@@ -33,6 +33,26 @@ class TestCoreModels(object):
         assert incident_type is not None, "Should create an IncidentType model"
         assert type(str(incident_type)) == str, "IncidentType should be a str object"
 
+    def test_event(self):
+        event = mixer.blend("core.Event")
+        assert event is not None, "Should create an Event model"
+        assert type(str(event)) == str, "Event Should be a str object"
+
+    def test_incident(self):
+        incident = mixer.blend("core.Incident")
+        assert incident is not None, "Should create an Incident"
+        assert type(str(incident)) == str, "Incident Should be a str object"
+
+    def test_incident_log(self):
+        incident_log = mixer.blend("core.IncidentLog")
+        assert incident_log is not None, "Should create an IncidentLog"
+        assert type(str(incident_log)) == str, "Incident Log should be a str object"
+
+    def test_notification(self):
+        notification = mixer.blend("core.Notification")
+        assert notification is not None, "Should create a Notification"
+        assert type(str(notification)) == str, "Notification should be a str object"
+
     def test_system(self):
         system = mixer.blend('core.System')
         assert system is not None, "Should create a System model"
@@ -62,3 +82,4 @@ class TestCoreModels(object):
         system_recipient = mixer.blend('core.SystemRecipient')
         assert system_recipient is not None, 'should create a SystemRecipient model'
         assert type(str(system_recipient)) == str, 'system_recipient should be a str object'
+
