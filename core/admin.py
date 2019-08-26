@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from core.models import State, NotificationType, EscalationLevel, IncidentType, Event, Incident, IncidentEvent,\
+from core.models import State, NotificationType, EscalationLevel, IncidentType, System, Interface, \
+    SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
     IncidentLog, Notification
 
 
@@ -93,3 +94,69 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('message', 'notification_type', 'state', 'incident',  'date_created', 'date_modified')
     ordering = ('-date_created',)
     search_fields = ('notification_type', 'incident__name')
+
+
+@admin.register(System)
+class SystemAdmin(admin.ModelAdmin):
+    """
+    Admin for System model
+    """
+    list_filter = ('date_created', )
+    list_display = ('name', 'description', 'health_check_endpoint', 'credential_endpoint', 'date_created',
+                    'state')
+    ordering = ('-date_created',)
+    search_fields = ('name',)
+
+
+@admin.register(SystemCredential)
+class SystemCredentialAdmin(admin.ModelAdmin):
+    """
+    Admin for System credential model
+    """
+    list_filter = ('date_created', )
+    list_display = ('username', 'system', 'state')
+    ordering = ('-date_created',)
+    search_fields = ('username', 'system')
+
+
+@admin.register(Interface)
+class InterfaceAdmin(admin.ModelAdmin):
+    """
+    Admin for Interface model
+    """
+    list_filter = ('date_created',)
+    list_display = ('name', 'system', 'state')
+    ordering = ('-date_created',)
+    search_fields = ('name', 'system')
+
+
+@admin.register(SystemMonitor)
+class SystemMonitorAdmin(admin.ModelAdmin):
+    """
+    Admin for System monitor model
+    """
+    list_filter = ('date_created',)
+    list_display = ('system', 'state', 'response_time')
+    ordering = ('-date_created',)
+
+
+@admin.register(Recipient)
+class RecipientAdmin(admin.ModelAdmin):
+    """
+    Admin for Recipient Model
+    """
+    list_filter = ('date_created', )
+    list_display = ('first_name', 'last_name', 'email', 'state', 'date_modified', 'date_created')
+    ordering = ('-date_created',)
+    search_fields = ('first_name', 'last_name')
+
+
+@admin.register(SystemRecipient)
+class SystemRecipient(admin.ModelAdmin):
+    """
+    Admin for System recipient model
+    """
+    list_filter = ('date_created',)
+    list_display = ('recipient', 'system', 'state')
+    ordering = ('-date_created',)
+    search_fields = ('system',)
