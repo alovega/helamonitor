@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from core.models import State, NotificationType, EscalationLevel, IncidentType
+from core.models import State, NotificationType, EscalationLevel, IncidentType, Event, Incident, IncidentEvent,\
+    IncidentLog, Notification
 
 
 @admin.register(State)
@@ -48,3 +49,11 @@ class IncidentTypeAdmin(admin.ModelAdmin):
     ordering = ('-date_created',)
     search_fields = ('name',)
 
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    """
+    Admin for Event Model
+    """
+    list_filter = ('date_created',)
+    list_display = ('name', 'description')

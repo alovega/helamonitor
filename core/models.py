@@ -72,3 +72,68 @@ class IncidentType(GenericBaseModel):
 
     def __str__(self):
         return "%s%s" % (self.name, self.state)
+
+
+class Event(BaseModel):
+    # interface = models.ForeignKey(Interface)
+    # system = models.ForeignKey(System)
+    escalation_level = models.ForeignKey(EscalationLevel)
+    method = models.CharField(max_length=100, help_text="Method where the error is origination from")
+    response = models.TextField(max_length=255)
+    request = models.TextField(max_length=255)
+    code = models.CharField(max_length=100)
+    response_time = models.DecimalField(decimal_places=3)
+
+    def __str__(self):
+        return "%s%s%s%s%s%s" % (
+            self.code, self.response_time, self.method, self.escalation_level, self.system, self.date_created
+        )
+
+
+class Incident(GenericBaseModel):
+    incident_type = models.ForeignKey(IncidentType)
+    # system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s%s%s%s%s" % (
+            self.name, self.description, self.incident_type, self.date_created, self.date_modified
+        )
+
+
+class IncidentEvent(BaseModel):
+    incident = models.ForeignKey(Incident)
+    event = models.ForeignKey(Event)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s%s%s%s" % (
+            self.incident, self.event, self.date_created, self.date_modified
+        )
+
+
+class IncidentLog(BaseModel):
+    description = models.TextField(max_length=255, blank=True, null=True)
+    incident = models.ForeignKey(Incident)
+    user = models.ForeignKey(User)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s%s%s%s%s" % (
+            self.description, self.incident, self.user, self.date_created, self.date_modified
+        )
+
+
+class Notification(BaseModel):
+    message = models.TextField(max_length=255)
+    notification_type = models.ForeignKey(NotificationType)
+    incident = models.ForeignKey(Incident)
+    recipient = models.ForeignKey(Incident)
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s%s%s%s%s" % (
+            self.recipient, self.message, self.incident, self.notification_type, self.date_created
+        )
+
