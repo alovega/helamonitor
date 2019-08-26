@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import uuid
 
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -51,7 +52,7 @@ class NotificationType(GenericBaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s" % (self.name, self.state)
+        return "%s" % self.name
 
 
 class EscalationLevel(GenericBaseModel):
@@ -61,7 +62,7 @@ class EscalationLevel(GenericBaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s" % (self.name, self.state)
+        return "%s" % self.name
 
 
 class IncidentType(GenericBaseModel):
@@ -71,33 +72,34 @@ class IncidentType(GenericBaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s" % (self.name, self.state)
+        return "%s" % self.name
 
 
 class Event(BaseModel):
-    # interface = models.ForeignKey(Interface)
-    # system = models.ForeignKey(System)
+    interface = models.ForeignKey(Interface)
+    system = models.ForeignKey(System)
     escalation_level = models.ForeignKey(EscalationLevel)
     method = models.CharField(max_length=100, help_text="Method where the error is origination from")
     response = models.TextField(max_length=255)
     request = models.TextField(max_length=255)
     code = models.CharField(max_length=100)
-    response_time = models.DecimalField(decimal_places=3)
+    response_time = models.DecimalField(decimal_places=3, max_digits=6)
+    state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s%s%s%s" % (
-            self.code, self.response_time, self.method, self.escalation_level, self.system, self.date_created
+        return "%s%s%s" % (
+            self.code, self.escalation_level, self.state
         )
 
 
 class Incident(GenericBaseModel):
     incident_type = models.ForeignKey(IncidentType)
-    # system = models.ForeignKey(System)
+    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s%s%s" % (
-            self.name, self.description, self.incident_type, self.date_created, self.date_modified
+        return "%s%s%s" % (
+            self.name, self.incident_type, self.state
         )
 
 
@@ -120,7 +122,7 @@ class IncidentLog(BaseModel):
 
     def __str__(self):
         return "%s%s%s%s%s" % (
-            self.description, self.incident, self.user, self.date_created, self.date_modified
+            self.description, self.incident, self.date_created, self.date_modified, self.user
         )
 
 
@@ -128,7 +130,7 @@ class Notification(BaseModel):
     message = models.TextField(max_length=255)
     notification_type = models.ForeignKey(NotificationType)
     incident = models.ForeignKey(Incident)
-    recipient = models.ForeignKey(Incident)
+    recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
