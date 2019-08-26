@@ -126,7 +126,7 @@ class SystemCredential(BaseModel):
 
     def __str__(self):
         return "%s%s%s" % (
-            self.name, self.incident_type, self.state
+            self.username, self.system, self.state
         )
 
 
@@ -136,7 +136,7 @@ class SystemMonitor(BaseModel):
     """
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
-    response_time = models.DurationField()
+    response_time = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return "%s %s %s" % (self.system, self.state, self.response_time)
@@ -180,7 +180,7 @@ class Event(BaseModel):
     response = models.TextField(max_length=255)
     request = models.TextField(max_length=255)
     code = models.CharField(max_length=100)
-    response_time = models.DurationField()
+    response_time = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return "%s%s%s" % (
