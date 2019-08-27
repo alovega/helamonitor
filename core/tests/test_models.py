@@ -83,3 +83,4 @@ class TestCoreModels(object):
         assert system_recipient is not None, 'should create a SystemRecipient model'
         assert type(str(system_recipient)) == str, 'system_recipient should be a str object'
 
+
