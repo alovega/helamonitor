@@ -160,3 +160,14 @@ class SystemRecipient(admin.ModelAdmin):
     list_display = ('recipient', 'system', 'state')
     ordering = ('-date_created',)
     search_fields = ('system',)
+
+
+@admin.register(IncidentEvent)
+class IncidentEvent(admin.ModelAdmin):
+    """
+    Admin for IncidentEvent model
+    """
+    list_filter = ('date_created',)
+    list_display = ('incident', 'event', 'state')
+    ordering = ('-date_created',)
+    search_fields = ('incident', 'event')
