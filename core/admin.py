@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from core.models import  NotificationType, EscalationLevel, IncidentType, System, Interface, \
+from core.models import NotificationType, EscalationLevel, IncidentType, System, Interface, \
     SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
     IncidentLog, Notification
 
@@ -16,7 +16,7 @@ class NotificationTypeAdmin(admin.ModelAdmin):
     list_filter = ('date_created', 'state')
     list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
     ordering = ('-date_created',)
-    search_fields = ('name',)
+    search_fields = ('name', 'description')
 
 
 @admin.register(EscalationLevel)
@@ -27,7 +27,7 @@ class EscalationLevelAdmin(admin.ModelAdmin):
     list_filter = ('date_created',)
     list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
     ordering = ('-date_created',)
-    search_fields = ('name',)
+    search_fields = ('name', 'description')
 
 
 @admin.register(IncidentType)
@@ -38,51 +38,73 @@ class IncidentTypeAdmin(admin.ModelAdmin):
     list_filter = ('date_created',)
     list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
     ordering = ('-date_created',)
-    search_fields = ('name',)
+    search_fields = ('name', 'description')
 
 
-@admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
+@admin.register(EventType)
+class EventTypeAdmin(admin.ModelAdmin):
     """
-    Admin for Event Model
-    """
-    list_filter = ('date_created',)
-    list_display = ('code', 'escalation_level', 'method', 'date_created', 'date_modified')
-    ordering = ('-date_created',)
-    search_fields = ('escalation_level__name', 'code')
-
-
-@admin.register(Incident)
-class IncidentAdmin(admin.ModelAdmin):
-    """
-    Admin for Incident Model
+    Admin for EventType model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'incident_type', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
     ordering = ('-date_created',)
-    search_fields = ('name', 'incident_type__name')
+    search_fields = ('name', 'description')
 
 
-@admin.register(IncidentLog)
-class IncidentLogAdmin(admin.ModelAdmin):
+@admin.register(PriorityLevel)
+class PriorityLevelAdmin(admin.ModelAdmin):
     """
-    Admin for IncidentLog Model
-    """
-    list_filter = ('date_created', )
-    list_display = ('incident', 'description', 'state', 'date_created', 'date_modified')
-    ordering = ('-date_created',)
-    search_fields = ('incident__name', )
-
-
-@admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
-    """
-    Admin for Notification Model
+    Admin for PriorityLevel model
     """
     list_filter = ('date_created',)
-    list_display = ('message', 'notification_type', 'state', 'incident',  'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
     ordering = ('-date_created',)
-    search_fields = ('notification_type', 'incident__name')
+    search_fields = ('name', 'description')
+
+
+@admin.register(PriorityLevel)
+class IncidentTypeAdmin(admin.ModelAdmin):
+    """
+    Admin for IncidentType model
+    """
+    list_filter = ('date_created',)
+    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('name', 'description')
+
+
+@admin.register(LogType)
+class LogTypeAdmin(admin.ModelAdmin):
+    """
+    Admin for LogType model
+    """
+    list_filter = ('date_created',)
+    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('name', 'description')
+
+
+@admin.register(EndpointType)
+class EndpointTypeAdmin(admin.ModelAdmin):
+    """
+    Admin for IncidentType model
+    """
+    list_filter = ('date_created',)
+    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('name', 'description')
+
+
+@admin.register(Occurrence)
+class OccurrenceAdmin(admin.ModelAdmin):
+    """
+    Admin for Occurrence model
+    """
+    list_filter = ('date_created',)
+    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('name', 'description')
 
 
 @admin.register(System)
@@ -117,6 +139,17 @@ class InterfaceAdmin(admin.ModelAdmin):
     list_display = ('name', 'system', 'state')
     ordering = ('-date_created',)
     search_fields = ('name', 'system')
+
+
+@admin.register(Endpoint)
+class EndpointAdmin(admin.ModelAdmin):
+    """
+    Admin for Endpoint model
+    """
+    list_filter = ('date_created', 'endpoint_type')
+    list_display = ('name', 'description', 'endpoint_type', 'system', 'state')
+    ordering = ('-date_created',)
+    search_fields = ('name', 'description', 'endpoint_type__name')
 
 
 @admin.register(SystemMonitor)
@@ -160,3 +193,47 @@ class IncidentEvent(admin.ModelAdmin):
     list_display = ('incident', 'event', 'state')
     ordering = ('-date_created',)
     search_fields = ('incident', 'event')
+
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    """
+    Admin for Event Model
+    """
+    list_filter = ('date_created',)
+    list_display = ('code', 'event_level', 'method', 'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('event_level__name', 'code', '')
+
+
+@admin.register(Incident)
+class IncidentAdmin(admin.ModelAdmin):
+    """
+    Admin for Incident Model
+    """
+    list_filter = ('date_created',)
+    list_display = ('name', 'description', 'incident_type', 'state', 'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('name', 'incident_type__name')
+
+
+@admin.register(IncidentLog)
+class IncidentLogAdmin(admin.ModelAdmin):
+    """
+    Admin for IncidentLog Model
+    """
+    list_filter = ('date_created', )
+    list_display = ('incident', 'description', 'state', 'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('incident__name', )
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    """
+    Admin for Notification Model
+    """
+    list_filter = ('date_created',)
+    list_display = ('message', 'notification_type', 'state',  'date_created', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('message', 'notification_type__name')
