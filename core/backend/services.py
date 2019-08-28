@@ -1,18 +1,12 @@
 """
 Services for Core module
 """
-from core.models import State, NotificationType, EscalationLevel, IncidentType, System, Interface, \
+from core.models import NotificationType, EscalationLevel, IncidentType, System, Interface, \
     SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
     IncidentLog, Notification
 
 from base.backend.servicebase import ServiceBase
 
-
-class StateService(ServiceBase):
-    """
-    Service for State CRUD
-    """
-    manager = State.objects
 
 
 class NotificationTypeService(ServiceBase):
