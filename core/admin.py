@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from core.models import NotificationType, EscalationLevel, IncidentType, System, Interface, \
-    SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
-    IncidentLog, Notification
+from core.models import NotificationType, EscalationLevel, IncidentType, EventType, EndpointType, LogType, \
+    PriorityLevel, Occurrence, System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
+    Event, EscalationRule, Incident, IncidentEvent, IncidentLog, Notification
 
 
 @admin.register(NotificationType)
@@ -201,9 +201,20 @@ class EventAdmin(admin.ModelAdmin):
     Admin for Event Model
     """
     list_filter = ('date_created',)
-    list_display = ('code', 'event_level', 'method', 'date_created', 'date_modified')
+    list_display = ('code', 'event_type', 'method', 'date_created', 'date_modified')
     ordering = ('-date_created',)
-    search_fields = ('event_level__name', 'code', '')
+    search_fields = ('event_level__name', 'code')
+
+
+@admin.register(EscalationRule)
+class EscalationRuleAdmin(admin.ModelAdmin):
+    """
+    Admin for EscalationRule model
+    """
+    list_filter = ('date_created',)
+    list_display = ('occurrence_type', 'occurrence_count', 'duration', 'event_type', 'system', 'date_modified')
+    ordering = ('-date_created',)
+    search_fields = ('occurrence_type__name', 'event_type__name', 'system__name')
 
 
 @admin.register(Incident)

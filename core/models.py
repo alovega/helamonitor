@@ -214,6 +214,24 @@ class Event(BaseModel):
         )
 
 
+class EscalationRule(GenericBaseModel):
+    """
+    Manages Escalation rules to be applied on events to determine whether they should be escalated or not
+    """
+    occurrence_count = models.IntegerField(
+        default=0, help_text="Number of occurrences; nth occurrence to trigger an escalation"
+    )
+    duration = models.DurationField()
+    occurrence_type = models.ForeignKey(Occurrence)
+    event_type = models.ForeignKey(EventType)
+    escalation_level = models.ForeignKey(EscalationLevel)
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
 class Incident(GenericBaseModel):
     """
     Manages Incidents created from escalation points
