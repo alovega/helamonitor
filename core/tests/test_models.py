@@ -13,10 +13,6 @@ class TestCoreModels(object):
     """
     Test class for core models
     """
-    def test_state(self):
-        state = mixer.blend("core.State")
-        assert state is not None, "Should create a State model"
-        assert type(str(state)) == str, "State should be a str object"
 
     def test_notification_type(self):
         notification_type = mixer.blend("core.NotificationType")

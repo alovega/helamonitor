@@ -5,7 +5,7 @@ from core.models import State, NotificationType, EscalationLevel, IncidentType, 
     SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
     IncidentLog, Notification
 
-from core.backend.servicebase import ServiceBase
+from base.backend.servicebase import ServiceBase
 
 
 class StateService(ServiceBase):
