@@ -41,6 +41,56 @@ class IncidentType(GenericBaseModel):
         return "%s" % self.name
 
 
+class EventType(GenericBaseModel):
+    """
+    Manages types of events e.g error, warning, info, debug, etc
+    """
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
+class PriorityLevel(GenericBaseModel):
+    """
+    Manages Levels of priority assigned to incidents e.g P1, P2, P3
+    """
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
+class LogType(GenericBaseModel):
+    """
+    Manages Types of logs to identify each incident log
+    """
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
+class EndpointType(GenericBaseModel):
+    """
+    EndpointType model to manage types of endpoints to be used in the system
+    """
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
+class Occurrence(GenericBaseModel):
+    """
+    Occurrence model to manage different types of occurrences to be used for escalation
+    """
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
 def versions():
     """
     returns a collection of salutation titles to chose from
@@ -54,20 +104,13 @@ class System(GenericBaseModel):
     """
     model for managing defined system
     """
-
-    health_check_endpoint = models.CharField(max_length=100, help_text='endpoint used in accessing this system')
-    credential_endpoint = models.CharField(
-        max_length=100, help_text='endpoint used for getting credentials for this system'
-    )
     code = models.CharField(max_length = 100, unique=True, db_index=True)
     version = models.CharField(max_length = 5, choices=versions(), default='1')
     admin = models.ForeignKey(User)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s %s %s %s" % (
-            self.name, self.code, self.state, self.credential_endpoint, self.health_check_endpoint
-        )
+        return "%s" % self.name
 
 
 class Interface(GenericBaseModel):
@@ -81,12 +124,26 @@ class Interface(GenericBaseModel):
         return "%s %s %s" % (self.name, self.system, self.state)
 
 
+class Endpoint(GenericBaseModel):
+    endpoint = models.CharField(max_length=100)
+    system = models.ForeignKey(System)
+    endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
 class SystemCredential(BaseModel):
     """
     model for managing credentials for system users
     """
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
+    username = models.CharField(max_length=100, help_text='Similar to a client_ID')
+    password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
+    token = models.CharField(max_length=100, help_text='Authorization token')
+    expires_at = models.DateTimeField(
+        auto_now=False, auto_now_add=False, help_text='Expiry time of the authorization token'
+    )
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
@@ -100,12 +157,13 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
+    response_time = models.PositiveIntegerField(default=0)
+    endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
-    response_time = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return "%s %s %s" % (self.system, self.state, self.response_time)
+        return "%s %s %s" % (self.endpoint, self.system, self.active)
 
 
 class Recipient(BaseModel):
@@ -129,6 +187,7 @@ class SystemRecipient(BaseModel):
     recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
+    escalation_level = models.ForeignKey(EscalationLevel)
 
     def __str__(self):
         return "%s%s%s" % (self.recipient, self.system, self.state)
@@ -138,29 +197,21 @@ class Event(BaseModel):
     """
     Model for managing events
     """
+    description = models.CharField(max_length=100, help_text="Informative description of the event")
     interface = models.ForeignKey(Interface)
     system = models.ForeignKey(System)
-    escalation_level = models.ForeignKey(EscalationLevel)
+    event_type = models.ForeignKey(EventType)
     state = models.ForeignKey(State)
-    method = models.CharField(max_length=100, help_text="Method where the error is origination from")
-    response = models.TextField(max_length=255)
-    request = models.TextField(max_length=255)
+    method = models.CharField(max_length=100, null=True, help_text="Method where the error is origination from")
+    response = models.TextField(max_length=255, null=True)
+    request = models.TextField(max_length=255, null=True)
     code = models.CharField(max_length=100)
     response_time = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return "%s%s%s" % (
-            self.code, self.escalation_level, self.state
+        return "%s %s %s" % (
+            self.event_type, self.description, self.state
         )
-
-
-class EscalationLevelRecipient(BaseModel):
-    escalation_level = models.ForeignKey(EscalationLevel)
-    recipient = models.ForeignKey(Recipient)
-    state = models.ForeignKey(State)
-
-    def __str__(self):
-        return "%s%s%s" % (self.escalation_level, self.recipient, self.state)
 
 
 class Incident(GenericBaseModel):
@@ -168,11 +219,12 @@ class Incident(GenericBaseModel):
     Manages Incidents created from escalation points
     """
     incident_type = models.ForeignKey(IncidentType)
+    priority_level = models.ForeignKey(PriorityLevel)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s" % (self.name, self.description, self.state)
+        return "%s" % self.name
 
 
 class IncidentEvent(BaseModel):
@@ -180,11 +232,13 @@ class IncidentEvent(BaseModel):
     Represents a ManyToMany association between incidents and events
     """
     incident = models.ForeignKey(Incident)
+    log_type = models.ForeignKey(LogType)
+    priority_level = models.ForeignKey(PriorityLevel)
     event = models.ForeignKey(Event)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s%s" % (self.incident, self.event, self.state)
+        return "%s %s" % (self.incident, self.log_type)
 
 
 class IncidentLog(BaseModel):
@@ -208,7 +262,7 @@ class Notification(BaseModel):
     """
     message = models.TextField(max_length=255)
     notification_type = models.ForeignKey(NotificationType)
-    incident = models.ForeignKey(Incident)
+    incident = models.ForeignKey(Incident, null=True)
     recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
