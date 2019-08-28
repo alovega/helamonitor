@@ -3,20 +3,9 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from core.models import State, NotificationType, EscalationLevel, IncidentType, System, Interface, \
+from core.models import  NotificationType, EscalationLevel, IncidentType, System, Interface, \
     SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
     IncidentLog, Notification
-
-
-@admin.register(State)
-class StateAdmin(admin.ModelAdmin):
-    """
-    Model Admin for State model
-    """
-    list_filter = ("date_created",)
-    list_display = ('name', 'description', 'date_created', 'date_modified',)
-    search_fields = ('name',)
-    ordering = ('-date_created',)
 
 
 @admin.register(NotificationType)
