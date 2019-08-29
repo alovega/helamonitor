@@ -13,8 +13,8 @@ class NotificationTypeAdmin(admin.ModelAdmin):
     """
     Admin for NotificationType model
     """
-    list_filter = ('date_created', 'state')
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_filter = ('date_created',)
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -25,7 +25,7 @@ class EscalationLevelAdmin(admin.ModelAdmin):
     Admin for EscalationLevel model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -36,7 +36,7 @@ class IncidentTypeAdmin(admin.ModelAdmin):
     Admin for IncidentType model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -47,7 +47,7 @@ class EventTypeAdmin(admin.ModelAdmin):
     Admin for EventType model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -58,7 +58,7 @@ class PriorityLevelAdmin(admin.ModelAdmin):
     Admin for PriorityLevel model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -69,7 +69,7 @@ class LogTypeAdmin(admin.ModelAdmin):
     Admin for LogType model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -80,7 +80,7 @@ class EndpointTypeAdmin(admin.ModelAdmin):
     Admin for IncidentType model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -91,7 +91,7 @@ class OccurrenceAdmin(admin.ModelAdmin):
     Admin for Occurrence model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
@@ -102,8 +102,7 @@ class SystemAdmin(admin.ModelAdmin):
     Admin for System model
     """
     list_filter = ('date_created', )
-    list_display = ('name', 'description', 'date_created',
-                    'state')
+    list_display = ('name', 'description', 'date_created','state')
     ordering = ('-date_created',)
     search_fields = ('name',)
 
@@ -190,7 +189,7 @@ class EventAdmin(admin.ModelAdmin):
     Admin for Event Model
     """
     list_filter = ('date_created',)
-    list_display = ('code', 'event_type', 'method', 'date_created', 'date_modified')
+    list_display = ('code', 'event_type', 'method', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('event_level__name', 'code')
 
@@ -212,7 +211,7 @@ class IncidentAdmin(admin.ModelAdmin):
     Admin for Incident Model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'description', 'incident_type', 'state', 'date_created', 'date_modified')
+    list_display = ('name', 'description', 'incident_type', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'incident_type__name')
 
@@ -223,7 +222,7 @@ class IncidentLogAdmin(admin.ModelAdmin):
     Admin for IncidentLog Model
     """
     list_filter = ('date_created', )
-    list_display = ('incident', 'description', 'state', 'date_created', 'date_modified')
+    list_display = ('incident', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('incident__name', )
 
@@ -234,6 +233,6 @@ class NotificationAdmin(admin.ModelAdmin):
     Admin for Notification Model
     """
     list_filter = ('date_created',)
-    list_display = ('message', 'notification_type', 'state',  'date_created', 'date_modified')
+    list_display = ('message', 'notification_type', 'state',  'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('message', 'notification_type__name')
