@@ -163,7 +163,7 @@ class SystemMonitor(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s %s" % (self.endpoint, self.system, self.active)
+        return "%s %s %s" % (self.endpoint, self.system, self.state)
 
 
 class Recipient(BaseModel):
