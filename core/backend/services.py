@@ -3,7 +3,7 @@ Services for Core module
 """
 from core.models import NotificationType, EscalationLevel, IncidentType, System, Interface, \
     SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
-    IncidentLog, Notification
+    IncidentLog, Notification, Endpoint, Occurrence, EndpointType, LogType, PriorityLevel, EventType
 
 from base.backend.servicebase import ServiceBase
 
@@ -105,3 +105,46 @@ class NotificationService(ServiceBase):
     Service for Notification CRUD
     """
     manager = Notification.objects
+
+
+class EndpointService(ServiceBase):
+    """
+    service for Endpoint CRUD
+    """
+    manager = Endpoint.objects
+
+
+class OccurrenceService(ServiceBase):
+    """
+    service for Occurrence CRUD
+    """
+    manager = Occurrence.objects
+
+
+class EndpointTypeService(ServiceBase):
+    """
+    service for EndpointType CRUD
+    """
+    manager = EndpointType.objects
+
+
+class LogTypeService(ServiceBase):
+    """
+    service for LogType CRUD
+    """
+    manager = LogType.objects
+
+
+class PriorityLevelService(ServiceBase):
+    """
+    service for PriorityLevel CRUD
+    """
+    manager = PriorityLevel.objects
+
+
+class EventTypeService(ServiceBase):
+    """
+    service for EventType CRUD
+    """
+    manager = EventType.objects
+

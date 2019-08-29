@@ -79,4 +79,32 @@ class TestCoreModels(object):
         assert system_recipient is not None, 'should create a SystemRecipient model'
         assert type(str(system_recipient)) == str, 'system_recipient should be a str object'
 
+    def test_event_type(self):
+        event_type = mixer.blend('core.EventType')
+        assert event_type is not None, 'should create an EventType model'
+        assert type(str(event_type)) == str, 'event_type should be a str object'
 
+    def test_priority_level(self):
+        priority_level = mixer.blend('core.PriorityLevel')
+        assert priority_level is not None, 'should create a PriorityLevel model'
+        assert type(str(priority_level)) == str, 'priority_level should be a str object'
+
+    def test_log_type(self):
+        log_type = mixer.blend('core.LogType')
+        assert log_type is not None, 'should create a LogType model'
+        assert type(str(log_type)) == str, 'log_type should be a str object'
+
+    def test_endpoint_type(self):
+        endpoint_type = mixer.blend('core.EndpointType')
+        assert endpoint_type is not None, 'should create an EndpointType model'
+        assert type(str(endpoint_type)) == str, 'endpoint_type should be a str object'
+
+    def test_occurrence(self):
+        occurrence = mixer.blend('core.Occurrence')
+        assert occurrence is not None, 'should create an Occurrence model'
+        assert type(str(occurrence)) == str, 'occurrence should be a str object'
+
+    def test_endpoint(self):
+        endpoint = mixer.blend('core.Endpoint')
+        assert endpoint is not None, 'should create an Endpoint model'
+        assert type(str(endpoint)) == str, 'endpoint should be a str object'
