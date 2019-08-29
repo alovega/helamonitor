@@ -135,7 +135,7 @@ class LogTypeService(ServiceBase):
     manager = LogType.objects
 
 
-class PriorityLevel(ServiceBase):
+class PriorityLevelService(ServiceBase):
     """
     service for PriorityLevel CRUD
     """
