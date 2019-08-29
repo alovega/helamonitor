@@ -5,7 +5,7 @@ from django.contrib import admin
 
 from core.models import NotificationType, EscalationLevel, IncidentType, EventType, EndpointType, LogType, \
     PriorityLevel, Occurrence, System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
-    Event, EscalationRule, Incident, IncidentEvent, IncidentLog, Notification
+    Event, EscalationRule, Incident, IncidentEvent, IncidentLog, Notification, Endpoint
 
 
 @admin.register(NotificationType)
@@ -63,17 +63,6 @@ class PriorityLevelAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
 
 
-@admin.register(PriorityLevel)
-class IncidentTypeAdmin(admin.ModelAdmin):
-    """
-    Admin for IncidentType model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_created', 'date_modified')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
 @admin.register(LogType)
 class LogTypeAdmin(admin.ModelAdmin):
     """
@@ -113,7 +102,7 @@ class SystemAdmin(admin.ModelAdmin):
     Admin for System model
     """
     list_filter = ('date_created', )
-    list_display = ('name', 'description', 'health_check_endpoint', 'credential_endpoint', 'date_created',
+    list_display = ('name', 'description', 'date_created',
                     'state')
     ordering = ('-date_created',)
     search_fields = ('name',)
