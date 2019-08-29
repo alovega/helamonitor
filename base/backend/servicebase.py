@@ -109,9 +109,6 @@ class ServiceBase(object):
 		"""
 		try:
 			record = self.get(id=pk)
-			import logging
-			lgr = logging.getLogger(__name__)
-			lgr.info(record)
 			if record is not None:
 				for k, v in kwargs.items():
 					setattr(record, k, v)

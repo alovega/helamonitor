@@ -13,6 +13,6 @@ class StateAdmin(admin.ModelAdmin):
     Model Admin for State model
     """
     list_filter = ("date_created",)
-    list_display = ('name', 'description', 'date_created', 'date_modified',)
+    list_display = ('name', 'description', 'date_modified', 'date_created',)
     search_fields = ('name',)
     ordering = ('-date_created',)

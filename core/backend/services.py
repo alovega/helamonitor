@@ -8,28 +8,6 @@ from core.models import NotificationType, EscalationLevel, IncidentType, System,
 from base.backend.servicebase import ServiceBase
 
 
-
-class NotificationTypeService(ServiceBase):
-    """
-    Service for NotificationType CRUD
-    """
-    manager = NotificationType.objects
-
-
-class EscalationLevelService(ServiceBase):
-    """
-    Service for EscalationLevel CRUD
-    """
-    manager = EscalationLevel.objects
-
-
-class IncidentTypeService(ServiceBase):
-    """
-    Service for IncidentType CRUD
-    """
-    manager = IncidentType.objects
-
-
 class SystemService(ServiceBase):
     """
     Service for SystemService CRUD
@@ -113,38 +91,4 @@ class EndpointService(ServiceBase):
     """
     manager = Endpoint.objects
 
-
-class OccurrenceService(ServiceBase):
-    """
-    service for Occurrence CRUD
-    """
-    manager = Occurrence.objects
-
-
-class EndpointTypeService(ServiceBase):
-    """
-    service for EndpointType CRUD
-    """
-    manager = EndpointType.objects
-
-
-class LogTypeService(ServiceBase):
-    """
-    service for LogType CRUD
-    """
-    manager = LogType.objects
-
-
-class PriorityLevelService(ServiceBase):
-    """
-    service for PriorityLevel CRUD
-    """
-    manager = PriorityLevel.objects
-
-
-class EventTypeService(ServiceBase):
-    """
-    service for EventType CRUD
-    """
-    manager = EventType.objects
 
