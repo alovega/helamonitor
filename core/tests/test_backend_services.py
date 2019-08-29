@@ -2,6 +2,7 @@
 """
 This is the Core services tests module.
 """
+import datetime
 import pytest
 from mixer.backend.django import mixer
 from django.contrib.auth.models import User
@@ -250,7 +251,9 @@ class TestSystemCredentialService(object):
         """
         state = mixer.blend('base.State')
         system = mixer.blend('core.System')
-        system_credential = SystemCredentialService().create(username='credential', state=state, system=system)
+        expires_at = mixer.blend(datetime)
+        system_credential = SystemCredentialService().create(username='credential', state=state, expires_at=expires_at,
+                                                             system=system)
         assert system_credential is not None, 'Should create a SystemCredential object'
         assert system_credential.username == 'credential', 'Created name is equals to credential'
 
@@ -281,8 +284,9 @@ class TestSystemMonitorService(object):
         Test SystemMonitor create service
         """
         system = mixer.blend('core.System')
+        endpoint = mixer.blend('core.Endpoint')
         state = mixer.blend('base.State')
-        system_monitor = SystemMonitorService().create(system=system, state=state, response_time=300)
+        system_monitor = SystemMonitorService().create(system=system, state=state, endpoint=endpoint, response_time=300)
         assert system_monitor is not None, 'Should create a SystemMonitor Object'
         assert system_monitor.response_time == 300, 'Response time is equals to 300'
 
@@ -404,7 +408,9 @@ class TestSystemRecipientService(object):
         system = mixer.blend('core.System')
         state = mixer.blend('base.State')
         recipient = mixer.blend('core.Recipient')
-        system_recipient = SystemRecipientService().create(system=system, state=state, recipient=recipient)
+        escalation_level = mixer.blend('core.EscalationLevel')
+        system_recipient = SystemRecipientService().create(system=system, state=state, recipient=recipient,
+                                                           escalation_level=escalation_level)
         assert system_recipient is not None, 'Should create a SystemMonitor Object'
         assert system_recipient.recipient == recipient, 'System Recipient is equals to the recipient created'
 
@@ -429,9 +435,9 @@ class TestEventService(object):
         """
         system = mixer.blend('core.System')
         interface = mixer.blend('core.Interface')
-        escalation_level = mixer.blend('core.EscalationLevel')
+        event_type = mixer.blend('core.EventType')
         state = mixer.blend('base.State')
-        mixer.blend('core.Event', system=system, interface=interface, escalation_level=escalation_level,
+        mixer.blend('core.Event', system=system, interface=interface, event_type=event_type,
                     state=state, method='Some', response='response', code='234', response_time=111)
         event = EventService().get(system=system.id)
         assert event is not None, 'Should get a created Event object'
@@ -449,11 +455,10 @@ class TestEventService(object):
         Test Event create service
         """
         interface = mixer.blend('core.Interface')
-        escalation_level = mixer.blend('core.EscalationLevel')
+        event_type = mixer.blend('core.EventType')
         system = mixer.blend('core.System')
         state = mixer.blend('base.State')
-        event = EventService().create(system=system, interface=interface, escalation_level=escalation_level,
-                    state=state)
+        event = EventService().create(system=system, interface=interface, state=state, event_type=event_type)
         assert event is not None, 'Should create an Event Object'
         assert event.code is not None, 'Event Created should have a code'
 
@@ -495,10 +500,11 @@ class TestIncidentService(object):
         Test Incident create service
         """
         incident_type = mixer.blend('core.IncidentType')
+        priority_level = mixer.blend('core.PriorityLevel')
         system = mixer.blend('core.System')
         state = mixer.blend('base.State')
         incident = IncidentService().create(system=system, incident_type=incident_type, state=state, name='maintenance',
-        description='some')
+        description='some', priority_level=priority_level)
         assert incident is not None, 'Should create an Incident Object'
         assert incident.description is not None, 'Incident has a description'
 
@@ -522,8 +528,9 @@ class TestIncidentEventService(object):
         """
         incident = mixer.blend('core.Incident')
         event = mixer.blend('core.Event')
+        priority_level = mixer.blend('core.PriorityLevel')
         state = mixer.blend('base.State')
-        mixer.blend('core.IncidentEvent', incident=incident, event=event, state=state)
+        mixer.blend('core.IncidentEvent', incident=incident, event=event, state=state, priority_level=priority_level)
         incident_event = IncidentEventService().get(incident=incident.id)
         assert incident_event is not None, 'Should get a created IncidentEvent object'
 
@@ -542,7 +549,10 @@ class TestIncidentEventService(object):
         incident = mixer.blend('core.Incident')
         event = mixer.blend('core.Event')
         state = mixer.blend('base.State')
-        incident_event = IncidentEventService().create(incident=incident, event=event, state=state)
+        log_type = mixer.blend('core.LogType')
+        priority_level = mixer.blend('core.PriorityLevel')
+        incident_event = IncidentEventService().create(incident=incident, event=event, state=state,
+                                                       priority_level=priority_level, log_type=log_type)
         assert incident_event is not None, 'Should create an IncidentEvent Object'
         assert incident_event.state is not None, 'IncidentEvent state is not null'
 
