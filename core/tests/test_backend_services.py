@@ -546,7 +546,7 @@ class TestEscalationRuleService(object):
         Test EscalationRule get service
         """
         system = mixer.blend('core.System')
-        mixer.blend('core.EscalationRule', system=system)
+        mixer.blend('core.EscalationRule', system=system, duration=datetime.timedelta(minutes=60))
         escalation_rule = EscalationRuleService().get(system=system.id)
         assert escalation_rule is not None, 'Should get a created  EscalationRule object'
 
@@ -554,32 +554,33 @@ class TestEscalationRuleService(object):
         """
         Test SystemRecipient filter service
         """
-        mixer.cycle(3).blend('core.EscalationRule')
+        mixer.cycle(3).blend('core.EscalationRule', duration=datetime.timedelta(minutes=60))
         system_recipient = EscalationRuleService().filter()
         assert len(system_recipient) == 3, 'Should return 3 EscalationRule objects'
 
-    def test_create(self):
+    def test_update(self):
         """
         Test EscalationRule create service
         """
         system = mixer.blend('core.System')
-        escalation_rule = mixer.blend('core.EscalationRule')
-        escalation_rule = EscalationRuleService().update(system=system)
+        escalation_rule = mixer.blend('core.EscalationRule', duration=datetime.timedelta(minutes=60))
+        escalation_rule = EscalationRuleService().update(escalation_rule.id, system=system)
         assert escalation_rule is not None, 'Should create an EscalationRule Object'
-        assert escalation_rule.description == 'description', 'Escalation Rule description is equals to description'
+        assert escalation_rule.system == system, 'Escalation Rule system is equals to system created'
 
-    def test_update(self):
+    def test_create(self):
         """
         Test EscalationRule update service
         """
         system = mixer.blend('core.System')
         state = mixer.blend('base.State')
         event_type = mixer.blend('base.EventType')
-        occurrence_type = mixer.blend('base.OccurrenceType')
+        occurrence_type = mixer.blend('base.Occurrence')
         escalation_level = mixer.blend('base.EscalationLevel')
         escalation_rule = EscalationRuleService().create(
             system=system, state=state, event_type=event_type, escalation_level=escalation_level,
-            occurrence_type=occurrence_type
+            occurrence_type=occurrence_type, duration=datetime.timedelta(minutes=60), name='name',
+            occurrence_count=2, description='second'
         )
         assert escalation_rule is not None, 'Should create an Escalation Rule object'
         assert escalation_rule.system == system, ' Recipient is changed to new_recipient'
