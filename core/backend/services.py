@@ -3,7 +3,7 @@ Services for Core module
 """
 from core.models import NotificationType, EscalationLevel, IncidentType, System, Interface, \
     SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
-    IncidentLog, Notification, Endpoint, Occurrence, EndpointType, LogType, PriorityLevel, EventType
+    IncidentLog, Notification, Endpoint, EscalationRule
 
 from base.backend.servicebase import ServiceBase
 
@@ -92,3 +92,8 @@ class EndpointService(ServiceBase):
     manager = Endpoint.objects
 
 
+class EscalationRuleService(ServiceBase):
+    """
+    Service For EscalationRule CRUD
+    """
+    manager = EscalationRule.objects

@@ -115,7 +115,7 @@ class SystemCredentialAdmin(admin.ModelAdmin):
     list_filter = ('date_created', )
     list_display = ('username', 'system', 'state')
     ordering = ('-date_created',)
-    search_fields = ('username', 'system')
+    search_fields = ('username', 'system__name')
 
 
 @admin.register(Interface)
@@ -126,7 +126,7 @@ class InterfaceAdmin(admin.ModelAdmin):
     list_filter = ('date_created',)
     list_display = ('name', 'system', 'state')
     ordering = ('-date_created',)
-    search_fields = ('name', 'system')
+    search_fields = ('name', 'system__name')
 
 
 @admin.register(Endpoint)
@@ -169,7 +169,7 @@ class SystemRecipient(admin.ModelAdmin):
     list_filter = ('date_created',)
     list_display = ('recipient', 'system', 'state')
     ordering = ('-date_created',)
-    search_fields = ('system',)
+    search_fields = ('system__name',)
 
 
 @admin.register(IncidentEvent)
@@ -180,7 +180,7 @@ class IncidentEvent(admin.ModelAdmin):
     list_filter = ('date_created',)
     list_display = ('incident', 'event', 'state')
     ordering = ('-date_created',)
-    search_fields = ('incident', 'event')
+    search_fields = ('incident__name', 'state__name')
 
 
 @admin.register(Event)

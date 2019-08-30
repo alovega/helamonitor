@@ -5,7 +5,7 @@ core Models
 from __future__ import unicode_literals
 
 import uuid
-
+from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
 from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, PriorityLevel, LogType,\
@@ -140,9 +140,9 @@ class EscalationRule(GenericBaseModel):
     Manages Escalation rules to be applied on events to determine whether they should be escalated or not
     """
     occurrence_count = models.IntegerField(
-        default=0, help_text="Number of occurrences; nth occurrence to trigger an escalation"
+        null=True, help_text="Number of occurrences; nth occurrence to trigger an escalation"
     )
-    duration = models.DurationField()
+    duration = models.DurationField(null=True)
     occurrence_type = models.ForeignKey(Occurrence)
     event_type = models.ForeignKey(EventType)
     escalation_level = models.ForeignKey(EscalationLevel)
