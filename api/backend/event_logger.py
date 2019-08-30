@@ -15,8 +15,12 @@ class EventLogger(object):
 
     def __init__(self, **kwargs):
         super(EventLogger, self).__init__()
-        if self.event is None:
-            self.event = EventService().create(**kwargs)  # Create event Object
+        try:
+            if self.event is None:
+                self.event = EventService().create(**kwargs)  # Create event Object
+        except Exception as ex:
+            lgr.exception('Event Log exception %s' % ex)
+
 
 
 
