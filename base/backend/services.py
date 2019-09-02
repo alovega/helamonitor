@@ -1,4 +1,4 @@
-from base.models import State, Occurrence, EndpointType, LogType, PriorityLevel, EventType, IncidentType,\
+from base.models import State, EndpointType, LogType, EventType, IncidentType,\
                         NotificationType,EscalationLevel
 
 from servicebase import ServiceBase
@@ -9,13 +9,6 @@ class StateService(ServiceBase):
     Service for State CRUD
     """
     manager = State.objects
-
-
-class OccurrenceService(ServiceBase):
-    """
-    service for Occurrence CRUD
-    """
-    manager = Occurrence.objects
 
 
 class EndpointTypeService(ServiceBase):
@@ -30,13 +23,6 @@ class LogTypeService(ServiceBase):
     service for LogType CRUD
     """
     manager = LogType.objects
-
-
-class PriorityLevelService(ServiceBase):
-    """
-    service for PriorityLevel CRUD
-    """
-    manager = PriorityLevel.objects
 
 
 class EventTypeService(ServiceBase):

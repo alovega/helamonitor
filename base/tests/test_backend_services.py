@@ -1,9 +1,8 @@
 import pytest
 from mixer.backend.django import mixer
 
-from base.backend.services import StateService, LogTypeService, EndpointTypeService, PriorityLevelService, \
-                                    EventTypeService, OccurrenceService, NotificationTypeService, EscalationLevelService,\
-                                    IncidentTypeService
+from base.backend.services import StateService, LogTypeService, EndpointTypeService, \
+    EventTypeService, NotificationTypeService, EscalationLevelService, IncidentTypeService
 
 pytestmark = pytest.mark.django_db
 
@@ -44,46 +43,6 @@ class TestStateService(object):
         state = mixer.blend('base.State')
         state = StateService().update(state.id, name = "Active")
         assert state.name == "Active", 'Should have the same name'
-
-
-class PriorityLevelService(object):
-    """
-    Tests for PriorityLevel model Services
-    """
-    def test_get(self):
-        """
-        Test PriorityLevel get service
-        """
-        state = mixer.blend('base.State')
-        mixer.blend('base.PriorityLevel', state=state)
-        priority_level = PriorityLevelService().get(state=state.id)
-        assert priority_level is not None, 'Should get a created PriorityLevel object'
-
-    def test_filter(self):
-        """
-        Test PriorityLevel filter service
-        """
-        mixer.cycle(3).blend('base.PriorityLevel')
-        incident_log = PriorityLevelService().filter()
-        assert len(incident_log) == 3, 'Should return 3 PriorityLevel objects'
-
-    def test_create(self):
-        """
-        Test PriorityLevel create service
-        """
-        state = mixer.blend('base.State')
-        priority_level = PriorityLevelService().create(state=state, description='Incident1')
-        assert priority_level is not None, 'Should create a PriorityLevel Object'
-        assert priority_level.description == 'Incident1', ' PriorityLevel description is equals to Incident1'
-
-    def test_update(self):
-        """
-        Test PriorityLevel update service
-        """
-        priority_level = mixer.blend('base.PriorityLevel')
-        priority_level = PriorityLevelService().update(priority_level.id, description='response2')
-        assert priority_level is not None, 'Should create a System Monitor object'
-        assert priority_level.description == 'response2', 'IncidentLog description has been updated to response2'
 
 
 class TestLogTypeService(object):
@@ -164,46 +123,6 @@ class TestEventTypeService(object):
         event_type = EventTypeService().update(event_type.id, description='response2')
         assert event_type is not None, 'Should create an EventType object'
         assert event_type.description == 'response2', 'EventType description has been updated to response2'
-
-
-class TestOccurrenceService(object):
-    """
-    Tests for occurrence model Services
-    """
-    def test_get(self):
-        """
-        Test Occurrence get service
-        """
-        state = mixer.blend('base.State')
-        mixer.blend('base.Occurrence', state=state)
-        occurrence = OccurrenceService().get(state=state.id)
-        assert occurrence is not None, 'Should get a created occurrence object'
-
-    def test_filter(self):
-        """
-        Test Occurrence filter service
-        """
-        mixer.cycle(3).blend('base.Occurrence')
-        occurrence = OccurrenceService().filter()
-        assert len(occurrence) == 3, 'Should return 3 Occurrence objects'
-
-    def test_create(self):
-        """
-        Test Occurrence create service
-        """
-        state = mixer.blend('base.State')
-        occurrence = EventTypeService().create( state=state, description='Incident1')
-        assert occurrence is not None, 'Should create an Occurrence Object'
-        assert occurrence.description == 'Incident1', ' Occurrence description is equals to Incident1'
-
-    def test_update(self):
-        """
-        Test Occurrence update service
-        """
-        occurrence = mixer.blend('base.Occurrence')
-        occurrence = OccurrenceService().update(occurrence.id, description='response2')
-        assert occurrence is not None, 'Should create an Occurrence object'
-        assert occurrence.description == 'response2', 'Occurrence description has been updated to response2'
 
 
 class TestIncidentTypeService(object):
