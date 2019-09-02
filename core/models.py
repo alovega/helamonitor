@@ -69,7 +69,7 @@ class SystemCredential(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s" % (
+        return "%s %s %s" % (
             self.username, self.system, self.state
         )
 
@@ -98,7 +98,7 @@ class Recipient(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s%s%s" % (self.first_name, self.last_name, self.email, self.phone_number, self.state)
+        return "%s %s %s %s %s" % (self.first_name, self.last_name, self.email, self.phone_number, self.state)
 
 
 class SystemRecipient(BaseModel):
@@ -111,7 +111,7 @@ class SystemRecipient(BaseModel):
     escalation_level = models.ForeignKey(EscalationLevel)
 
     def __str__(self):
-        return "%s%s%s" % (self.recipient, self.system, self.state)
+        return "%s %s %s" % (self.recipient, self.system, self.state)
 
 
 class Event(BaseModel):
@@ -190,7 +190,7 @@ class IncidentLog(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s" % (
+        return "%s %s %s" % (
             self.description, self.incident, self.user
         )
 
