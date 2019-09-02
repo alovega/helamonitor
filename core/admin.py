@@ -3,97 +3,8 @@ from __future__ import unicode_literals
 
 from django.contrib import admin
 
-from core.models import NotificationType, EscalationLevel, IncidentType, EventType, EndpointType, LogType, \
-    PriorityLevel, Occurrence, System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
+from core.models import System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
     Event, EscalationRule, Incident, IncidentEvent, IncidentLog, Notification, Endpoint
-
-
-@admin.register(NotificationType)
-class NotificationTypeAdmin(admin.ModelAdmin):
-    """
-    Admin for NotificationType model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(EscalationLevel)
-class EscalationLevelAdmin(admin.ModelAdmin):
-    """
-    Admin for EscalationLevel model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(IncidentType)
-class IncidentTypeAdmin(admin.ModelAdmin):
-    """
-    Admin for IncidentType model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(EventType)
-class EventTypeAdmin(admin.ModelAdmin):
-    """
-    Admin for EventType model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(PriorityLevel)
-class PriorityLevelAdmin(admin.ModelAdmin):
-    """
-    Admin for PriorityLevel model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(LogType)
-class LogTypeAdmin(admin.ModelAdmin):
-    """
-    Admin for LogType model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(EndpointType)
-class EndpointTypeAdmin(admin.ModelAdmin):
-    """
-    Admin for IncidentType model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(Occurrence)
-class OccurrenceAdmin(admin.ModelAdmin):
-    """
-    Admin for Occurrence model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
 
 
 @admin.register(System)
@@ -102,7 +13,7 @@ class SystemAdmin(admin.ModelAdmin):
     Admin for System model
     """
     list_filter = ('date_created', )
-    list_display = ('name', 'description', 'date_created','state')
+    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name',)
 
@@ -113,7 +24,7 @@ class SystemCredentialAdmin(admin.ModelAdmin):
     Admin for System credential model
     """
     list_filter = ('date_created', )
-    list_display = ('username', 'system', 'state')
+    list_display = ('username', 'system', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('username', 'system__name')
 
@@ -124,7 +35,7 @@ class InterfaceAdmin(admin.ModelAdmin):
     Admin for Interface model
     """
     list_filter = ('date_created',)
-    list_display = ('name', 'system', 'state')
+    list_display = ('name', 'system', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'system__name')
 
@@ -135,7 +46,7 @@ class EndpointAdmin(admin.ModelAdmin):
     Admin for Endpoint model
     """
     list_filter = ('date_created', 'endpoint_type')
-    list_display = ('name', 'description', 'endpoint_type', 'system', 'state')
+    list_display = ('name', 'description', 'endpoint_type', 'system', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name', 'description', 'endpoint_type__name')
 
@@ -146,7 +57,7 @@ class SystemMonitorAdmin(admin.ModelAdmin):
     Admin for System monitor model
     """
     list_filter = ('date_created',)
-    list_display = ('system', 'state', 'response_time')
+    list_display = ('system', 'state', 'response_time', 'date_modified', 'date_created')
     ordering = ('-date_created',)
 
 
@@ -167,7 +78,7 @@ class SystemRecipient(admin.ModelAdmin):
     Admin for System recipient model
     """
     list_filter = ('date_created',)
-    list_display = ('recipient', 'system', 'state')
+    list_display = ('recipient', 'system', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('system__name',)
 
@@ -178,7 +89,7 @@ class IncidentEvent(admin.ModelAdmin):
     Admin for IncidentEvent model
     """
     list_filter = ('date_created',)
-    list_display = ('incident', 'event', 'state')
+    list_display = ('incident', 'event', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('incident__name', 'state__name')
 
@@ -200,7 +111,9 @@ class EscalationRuleAdmin(admin.ModelAdmin):
     Admin for EscalationRule model
     """
     list_filter = ('date_created',)
-    list_display = ('occurrence_type', 'occurrence_count', 'duration', 'event_type', 'system', 'date_modified')
+    list_display = (
+        'occurrence_type', 'occurrence_count', 'duration', 'event_type', 'system', 'date_modified', 'date_created'
+    )
     ordering = ('-date_created',)
     search_fields = ('occurrence_type__name', 'event_type__name', 'system__name')
 
