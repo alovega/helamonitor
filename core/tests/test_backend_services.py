@@ -9,8 +9,8 @@ from django.contrib.auth.models import User
 
 # noinspection SpellCheckingInspection
 from core.backend.services import SystemService, InterfaceService, SystemCredentialService, \
-    RecipientService, SystemRecipientService,SystemMonitorService, EventService, IncidentService, IncidentEventService, \
-    IncidentLogService, NotificationService, EndpointService, EscalationRuleService
+    RecipientService, SystemRecipientService, SystemMonitorService, EventService, IncidentService,\
+    IncidentEventService, IncidentLogService, NotificationService, EndpointService, EscalationRuleService
 
 
 pytestmark = pytest.mark.django_db
@@ -380,13 +380,14 @@ class TestIncidentService(object):
         Test Incident create service
         """
         incident_type = mixer.blend('base.IncidentType')
-        priority_level = mixer.blend('base.PriorityLevel')
         system = mixer.blend('core.System')
         state = mixer.blend('base.State')
-        incident = IncidentService().create(system=system, incident_type=incident_type, state=state, name='maintenance',
-         description='some', priority_level=priority_level)
+        incident = IncidentService().create(
+            system=system, incident_type=incident_type, state=state, name='maintenance', description='some',
+            priority_level=1
+        )
         assert incident is not None, 'Should create an Incident Object'
-        assert incident.description is not None, 'Incident has a description'
+        assert incident.name == 'maintenance', 'Incident should have the same name'
 
     def test_update(self):
         """
@@ -404,19 +405,18 @@ class TestIncidentEventService(object):
     """
     def test_get(self):
         """
-        Test SystemMonitor get service
+        Test IncidentEvent get service
         """
         incident = mixer.blend('core.Incident')
         event = mixer.blend('core.Event')
-        priority_level = mixer.blend('base.PriorityLevel')
         state = mixer.blend('base.State')
-        mixer.blend('core.IncidentEvent', incident=incident, event=event, state=state, priority_level=priority_level)
+        mixer.blend('core.IncidentEvent', incident=incident, event=event, state=state)
         incident_event = IncidentEventService().get(incident=incident.id)
         assert incident_event is not None, 'Should get a created IncidentEvent object'
 
     def test_filter(self):
         """
-        Test SystemMonitor filter service
+        Test IncidentEvent filter service
         """
         mixer.cycle(3).blend('core.IncidentEvent')
         incident_event = IncidentEventService().filter()
@@ -424,21 +424,21 @@ class TestIncidentEventService(object):
 
     def test_create(self):
         """
-        Test SystemMonitor create service
+        Test IncidentEvent create service
         """
         incident = mixer.blend('core.Incident')
         event = mixer.blend('core.Event')
         state = mixer.blend('base.State')
         log_type = mixer.blend('base.LogType')
-        priority_level = mixer.blend('base.PriorityLevel')
-        incident_event = IncidentEventService().create(incident=incident, event=event, state=state,
-                                                       priority_level=priority_level, log_type=log_type)
+        incident_event = IncidentEventService().create(
+            incident=incident, event=event, state=state, log_type=log_type
+        )
         assert incident_event is not None, 'Should create an IncidentEvent Object'
         assert incident_event.state is not None, 'IncidentEvent state is not null'
 
     def test_update(self):
         """
-        Test SystemMonitor update service
+        Test IncidentEvent update service
         """
         event = mixer.blend('core.Event')
         incident_event = mixer.blend('core.IncidentEvent')
@@ -575,12 +575,11 @@ class TestEscalationRuleService(object):
         system = mixer.blend('core.System')
         state = mixer.blend('base.State')
         event_type = mixer.blend('base.EventType')
-        occurrence_type = mixer.blend('base.Occurrence')
         escalation_level = mixer.blend('base.EscalationLevel')
         escalation_rule = EscalationRuleService().create(
             system=system, state=state, event_type=event_type, escalation_level=escalation_level,
-            occurrence_type=occurrence_type, duration=datetime.timedelta(minutes=60), name='name',
-            occurrence_count=2, description='second'
+            duration=datetime.timedelta(minutes=60), name='10th event', nth_event = 10,
+            description='Escalates to level High for every 10 events of type error recorded within 60 minutes'
         )
         assert escalation_rule is not None, 'Should create an Escalation Rule object'
         assert escalation_rule.system == system, ' Recipient is changed to new_recipient'
