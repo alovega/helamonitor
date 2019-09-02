@@ -429,9 +429,8 @@ class TestIncidentEventService(object):
         incident = mixer.blend('core.Incident')
         event = mixer.blend('core.Event')
         state = mixer.blend('base.State')
-        log_type = mixer.blend('base.LogType')
         incident_event = IncidentEventService().create(
-            incident=incident, event=event, state=state, log_type=log_type
+            incident=incident, event=event, state=state
         )
         assert incident_event is not None, 'Should create an IncidentEvent Object'
         assert incident_event.state is not None, 'IncidentEvent state is not null'
