@@ -26,7 +26,6 @@ class TestMonitorProcessor(object):
 			'system': system,
 			'state': state,
 			'response_time': 0.212627,
-			'version': system.version,
 			'status_code': '200',
 			'code': 200
 		}
@@ -39,7 +38,7 @@ class TestMonitorProcessor(object):
 		# 	'response_time': response_time
 		# }
 
-		monitor_manager = MonitorProcessor().save_system_status( **kwargs)
+		monitor_manager = MonitorProcessor().save_system_status(**kwargs)
 		print kwargs['system']
 		print monitor_manager
 		assert monitor_manager is not None, "Should create a system status"

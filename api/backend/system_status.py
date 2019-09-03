@@ -26,9 +26,6 @@ class MonitorProcessor(object):
 				endpoint = EndpointService().get(endpoint=kwargs['url'])
 				data1 = {
 					"system": system,
-					"status_code": kwargs['response']['code'],
-					"code": kwargs['code'],
-					"version": system.version,
 					"response_time": kwargs['response_time'],
 					"endpoint": endpoint,
 					"state": status
