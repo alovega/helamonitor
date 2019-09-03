@@ -8,8 +8,8 @@ import uuid
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
-from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, PriorityLevel, LogType,\
-                        IncidentType, EndpointType, Occurrence, EscalationLevel
+from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType,\
+    IncidentType, EndpointType, EscalationLevel
 
 
 def versions():
@@ -139,11 +139,10 @@ class EscalationRule(GenericBaseModel):
     """
     Manages Escalation rules to be applied on events to determine whether they should be escalated or not
     """
-    occurrence_count = models.IntegerField(
-        null=True, help_text="Number of occurrences; nth occurrence to trigger an escalation"
+    nth_event = models.IntegerField(default=1, help_text="Limit of n events to satisfy this rule")
+    duration = models.DurationField(
+        null=True, help_text="Time period within which the nth occurrence of an event type will be escalated"
     )
-    duration = models.DurationField(null=True)
-    occurrence_type = models.ForeignKey(Occurrence)
     event_type = models.ForeignKey(EventType)
     escalation_level = models.ForeignKey(EscalationLevel)
     system = models.ForeignKey(System)
@@ -158,7 +157,7 @@ class Incident(GenericBaseModel):
     Manages Incidents created from escalation points
     """
     incident_type = models.ForeignKey(IncidentType)
-    priority_level = models.ForeignKey(PriorityLevel)
+    priority_level = models.IntegerField(default = 1)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
@@ -171,13 +170,11 @@ class IncidentEvent(BaseModel):
     Represents a ManyToMany association between incidents and events
     """
     incident = models.ForeignKey(Incident)
-    log_type = models.ForeignKey(LogType)
-    priority_level = models.ForeignKey(PriorityLevel)
     event = models.ForeignKey(Event)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s" % (self.incident, self.log_type)
+        return "%s %s" % (self.incident, self.event)
 
 
 class IncidentLog(BaseModel):
@@ -186,6 +183,7 @@ class IncidentLog(BaseModel):
     """
     description = models.TextField(max_length=255, blank=True, null=True)
     incident = models.ForeignKey(Incident)
+    log_type = models.ForeignKey(LogType, null = True)
     user = models.ForeignKey(User)
     state = models.ForeignKey(State)
 

@@ -91,7 +91,7 @@ class IncidentEvent(admin.ModelAdmin):
     list_filter = ('date_created',)
     list_display = ('incident', 'event', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
-    search_fields = ('incident__name', 'state__name')
+    search_fields = ('incident__name', 'event__name')
 
 
 @admin.register(Event)
@@ -112,10 +112,10 @@ class EscalationRuleAdmin(admin.ModelAdmin):
     """
     list_filter = ('date_created',)
     list_display = (
-        'occurrence_type', 'occurrence_count', 'duration', 'event_type', 'system', 'date_modified', 'date_created'
+        'name', 'nth_event', 'duration', 'event_type', 'system', 'date_modified', 'date_created'
     )
     ordering = ('-date_created',)
-    search_fields = ('occurrence_type__name', 'event_type__name', 'system__name')
+    search_fields = ('name', 'nth_event', 'event_type__name', 'system__name')
 
 
 @admin.register(Incident)
@@ -137,7 +137,7 @@ class IncidentLogAdmin(admin.ModelAdmin):
     list_filter = ('date_created', )
     list_display = ('incident', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
-    search_fields = ('incident__name', )
+    search_fields = ('incident__name', 'description')
 
 
 @admin.register(Notification)

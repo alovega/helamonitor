@@ -23,11 +23,6 @@ class TestBaseModels(object):
         assert event_type is not None, 'should create an EventType model'
         assert type(str(event_type)) == str, 'event_type should be a str object'
 
-    def test_priority_level(self):
-        priority_level = mixer.blend('base.PriorityLevel')
-        assert priority_level is not None, 'should create a PriorityLevel model'
-        assert type(str(priority_level)) == str, 'priority_level should be a str object'
-
     def test_log_type(self):
         log_type = mixer.blend('base.LogType')
         assert log_type is not None, 'should create a LogType model'
@@ -37,11 +32,6 @@ class TestBaseModels(object):
         endpoint_type = mixer.blend('base.EndpointType')
         assert endpoint_type is not None, 'should create an EndpointType model'
         assert type(str(endpoint_type)) == str, 'endpoint_type should be a str object'
-
-    def test_occurrence(self):
-        occurrence = mixer.blend('base.Occurrence')
-        assert occurrence is not None, 'should create an Occurrence model'
-        assert type(str(occurrence)) == str, 'occurrence should be a str object'
 
     def test_notification_type(self):
         notification_type = mixer.blend("base.NotificationType")
