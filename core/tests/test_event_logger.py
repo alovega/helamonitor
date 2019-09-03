@@ -24,7 +24,7 @@ class TestEventLogger(object):
         event_type = mixer.blend('base.EventType')
         state = mixer.blend('base.State')
         escalation_rule = mixer.blend(
-            "core.EscalationRule", system=system, event_type=event_type, nth_event=100, duration=timedelta(minutes=100)
+            "core.EscalationRule", system=system, event_type=event_type, nth_event=1, duration=timedelta(seconds=2)
         )
         event_fields = {
             "description": "Test Event description",
@@ -36,6 +36,6 @@ class TestEventLogger(object):
             "response_time": 100
         }
         event_log = EventProcessor().log_event(**event_fields)
-        assert event_log is None, "Should create an event %s" % event_log
+        assert event_log is None, "Should create an event {}".format(event_log)
         # assert event_log.event.description == "Test Event description", "Description equals Test Event description"
 

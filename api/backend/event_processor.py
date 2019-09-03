@@ -2,6 +2,8 @@
 Class for logging incoming events from connected microservices
 """
 import logging
+from datetime import timedelta
+from django.utils import timezone
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
 
@@ -16,25 +18,35 @@ class EventProcessor(object):
     def __init__(self):
         super(EventProcessor, self).__init__()
 
-    def log_event(self, **kwargs):
-        if kwargs is not None:
-            description = kwargs.get('description', None)
-            method = kwargs.get('method', None)
-            response = kwargs.get('response', None)
-            request = kwargs.get('request', None)
-            code = kwargs.get('code', None)
-            state = kwargs.get('state', None)
-            try:
-                system = SystemService().get(name = kwargs.get('system'))
-                interface = InterfaceService().get(name = kwargs.get('interface'))
-                event_type = EventTypeService().get(name = kwargs.get('event_type'))
-                state = StateService().get(name = kwargs.get('state'))
-                event_data = {
-                    "description": description, "method": method, "response": response, "code": code, "state": state,
-                    "request": request, "system": system, "interface": interface, "event_type": event_type
-                }
-            except Exception as ex:
-                lgr.exception('Event processor exception %s' % ex)
+    def log_event(self, event_type, system, interface, description, state, **kwargs):
+        """
+        Method that formats event data and logs the event
+        :param event_type:
+        :param system:
+        :param interface:
+        :param description:
+        :param state:
+        :param kwargs:
+        :return: event:
+        """
+
+        try:
+            system = SystemService().get(name=system)
+            interface = InterfaceService().get(name=interface)
+            event_type = EventTypeService().get(name=event_type)
+            state = StateService().get(name=state)
+            if kwargs is not None:
+                method = kwargs.get('method', None)
+                response = kwargs.get('response', None)
+                request = kwargs.get('request', None)
+                code = kwargs.get('code', None)
+
+            event_data = {
+                "description": description, "method": method, "response": response, "code": code, "state": state,
+                "request": request, "system": system, "interface": interface, "event_type": event_type
+            }
+        except Exception as ex:
+            lgr.exception('Event processor exception %s' % ex)
 
         if event_data is not None:
             try:
@@ -43,19 +55,48 @@ class EventProcessor(object):
             except Exception as ex:
                 lgr.exception("Event Processor exception %s" % ex)
 
-    def escalate_event(self, event, **kwargs):
+    @staticmethod
+    def escalate_event(event):
+        """
+        Method that processes an event and checks the existing escalation rules to determine if an escalation is needed.
+        :param event:
+        :return:
+        """
         if event is not None:
             event_type = event.event_type
-            matched_rule = EscalationRuleService().filter(event_type = event_type).first()
-            return matched_rule.nth_event
-            if matched_rule:
+            matched_rules = EscalationRuleService().filter(event_type = event_type)  # Filter out satisfied rules
+            incident_data = {
+                "name": "%s event" % event_type, "incident_type": "realtime", "system": event.system_name,
+                "state": "Investigating", "priority_level": 1
+            }   # Data to be used during incident creation and escalating to configured users
+
+            for matched_rule in matched_rules:
                 nth_event = matched_rule.nth_event
                 duration = matched_rule.duration
-                state = matched_rule.state
                 escalation_level = matched_rule.escalation_level
 
-
-
+                if duration > timedelta(seconds=1) and nth_event > 0:
+                    # Duration set at a minimum of a second and number of events is greater than zero.
+                    now = timezone.now()
+                    if nth_event == 1:
+                        # Escalate each event occurrence within the specified duration
+                        events = EventService().filter(date_created__time__range=(now-duration, now)).order_by(
+                            "-date_created").first()
+                        incident_data.update(escalation_level = escalation_level,
+                                             description = "%s event occurred".format(event_type), events = events)
+                        # TODO Call incident processor
+                    else:
+                        # Escalate if n events of the same type occur within the specified duration
+                        try:
+                            events = EventService().filter(date_created__time__range=(now-duration, now))
+                            if events.count() == nth_event:
+                                # Rule match found. Update incident_date before passing it to incident processor
+                                incident_data.update(escalation_level=escalation_level,
+                                                     description="{0} event occurred {1} times within {2}".format(
+                                                         event_type, nth_event, duration), events=events)
+                                # TODO Call incident processor
+                        except Exception as ex:
+                            lgr.exception("Event Processor exception %s " % ex)
 
 
 
