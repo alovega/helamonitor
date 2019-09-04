@@ -11,65 +11,66 @@ class MonitorProcessor(object):
 	"""
 	class for logging status  of  system micro-services
 	"""
-	system_status = None
 
-	def save_system_status(self, **kwargs):
+	def __init__(self, **kwargs):
+		self.kwargs = kwargs
+
+	@staticmethod
+	def save_system_status(**kwargs):
 		"""
-		This method  creates  system status for monitoring purposes
 		:param kwargs:
+			This is a variable type dictionary containing data that my request method will return
+			The kwargs will contain :-
+				1.response_status whether 200 or 4**(error) which will be used to determine whether an event will be created
+				2.response this will be the response the request has returned
+				3.request this is the http request method that was performed
+				4.url this is the endpoint url that was used. It is tied to an endpoint
+				5.response_time lastly the response_time self explanatory
 		:return: system_status
 		"""
-		if self.system_status is None:
-			if kwargs['code'] == 200:
-				system = SystemService().get(name=kwargs['system'])
-				status = StateService().get(name='operational')
-				endpoint = EndpointService().get(endpoint=kwargs['url'])
-				data1 = {
-					"system": system,
-					"response_time": kwargs['response_time'],
-					"endpoint": endpoint,
-					"state": status
-				}
+		try:
+			endpoint = EndpointService().get(endpoint=kwargs.get('url'))
+			response_time = kwargs.get('response_time')
+			system = SystemService().get(endpoint=endpoint)
+			interface = InterfaceService().get(system=system)
+			state = StateService().get(name='UP')
+			request = kwargs.get('request')
+			response = kwargs.get('response')
+			code = kwargs.get('code')
+			method = kwargs.get('method', None)
+		except Exception as e:
+			lgr.exception("Status Log exception: %s" % e)
+
+		if kwargs is not None:
+			if kwargs['status_code'] == 200:
+				status_data = {"system": system, "response_time": response_time, "endpoint": endpoint, "state": state}
 				try:
-					self.system_status = SystemMonitorService().create(**data1)  # creates a system_status object
-					# event = self.analyse_system_status(
-					# 	system_status = self.system_status, desired_time = self.system_status.endpoint.default_time,
-					# 	**data1
-					# )  # analyse whether to create an event based on the logged status and response time
-					return self.system_status #event
+					system_status = SystemMonitorService().create(**status_data)  # creates a system_status object
+					# should implement a function to check if the response_time is slow
+					return system_status #event
 				except Exception as e:
 					lgr.exception("Status Log exception: %s" % e)
 
 			else:
-				system = SystemService().get(name = kwargs['system'])
-				interface = InterfaceService().get(system=kwargs['system']),
-				event_type = EventTypeService.get(name='Error'),
-				escalation_level = EscalationLevelService.get(name='High'),
-				status = StateService().get(name='not operational')
-				data1 = {
-					"system": system,
-					"version": system.version,
-					"response_time": None,
-					"description": kwargs['message'],
-					"interface": interface,
-					"method": kwargs['message'],
-					"response": kwargs['response'].json(),
-					"request": kwargs['response'].request.method,
-					"event_type": event_type,
-					"state": status,
-					"escalation_level": escalation_level,
-					"status_code": kwargs['response']['code'],
+				new_state = StateService().get(name='Down')
+				event_type = EventTypeService().get(name='Critical')
+				escalation_level = EscalationLevelService().get(name='High')
+				status_data = {"system": system, "response_time": None, "endpoint": endpoint, "state": new_state}
+				event_data = {
+					"system": system, "version": system.version, "response_time": None, "description": response,
+					"method": method, "response": response, "request": request, "interface": interface,
+					"event_type": event_type, "state": new_state, "escalation_level": escalation_level, "code": code,
 				}
-
 				try:
-					self.system_status = SystemMonitorService().create(**data1)  # creates a system_status object
-					event = EventTypeService().create(**data1) # creates an Event object
-					return self.system_status, event
+					system_status = SystemMonitorService().create(**status_data)  # creates a system_status object
+					event = EventService.create(**event_data)  # should refactor and  call the processor for creating
+					# event
+					return system_status, event
 				except Exception as e:
 					lgr.exception("Status Log exception: %s" % e)
 
 	@staticmethod
-	def analyse_system_status(system_status, desired_time, **kwargs):
+	def analyse_response_time(system_status, desired_time):
 		"""
 		This method analyses the created system_status response time is within the desired time
 		:param system_status:
@@ -77,22 +78,7 @@ class MonitorProcessor(object):
 		:param kwargs: this is a dictionary of data to be used by EventService() object
 		:return: event
 		"""
-		if system_status.response_time > desired_time:
-			description = "%s is okay but with a slow response time" % system_status.endpoint
-			event_type = EventTypeService.get(name='Debug')
-			escalation_level = EscalationLevelService.get(name = 'Low')
-			method = None
-			response = kwargs['response'].json()
-			request = kwargs['response'].request.method
-			interface = InterfaceService().get(system = kwargs['system']),
-
-			try:
-				event = EventService().create(
-					description, event_type, escalation_level, method, request, response, interface,  **kwargs
-				)
-				return event
-			except Exception as e:
-				lgr.exception("Event Log exception: %s" % e)
+		pass
 
 	def generate_status_report(self):
 		pass
