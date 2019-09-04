@@ -48,6 +48,7 @@ class Interface(GenericBaseModel):
 class Endpoint(GenericBaseModel):
     endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
+    optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
     state = models.ForeignKey(State)
 
@@ -76,7 +77,7 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
-    response_time = models.PositiveIntegerField(default=0)
+    response_time = models.DurationField(default=timedelta(), null = True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -125,7 +126,7 @@ class Event(BaseModel):
     response = models.TextField(max_length=255, null=True)
     request = models.TextField(max_length=255, null=True)
     code = models.CharField(max_length=100)
-    response_time = models.PositiveIntegerField(default=0)
+    response_time = models.DurationField(default=timedelta(), null = True)
 
     def __str__(self):
         return "%s %s %s" % (

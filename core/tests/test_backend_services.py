@@ -166,18 +166,22 @@ class TestSystemMonitorService(object):
         system = mixer.blend('core.System')
         endpoint = mixer.blend('core.Endpoint')
         state = mixer.blend('base.State')
-        system_monitor = SystemMonitorService().create(system=system, state=state, endpoint=endpoint, response_time=300)
+        system_monitor = SystemMonitorService().create(
+            system=system, state=state, endpoint=endpoint, response_time=datetime.timedelta(milliseconds=300)
+        )
         assert system_monitor is not None, 'Should create a SystemMonitor Object'
-        assert system_monitor.response_time == 300, 'Response time is equals to 300'
+        assert system_monitor.response_time == datetime.timedelta(milliseconds = 300), 'Response time is equals to 300'
 
     def test_update(self):
         """
         Test SystemMonitor update service
         """
         system_monitor = mixer.blend('core.SystemMonitor')
-        system_monitor = SystemMonitorService().update(system_monitor.id, response_time=300)
+        system_monitor = SystemMonitorService().update(
+            system_monitor.id, response_time=datetime.timedelta(milliseconds =300)
+        )
         assert system_monitor is not None, 'Should create a System Monitor object'
-        assert system_monitor.response_time == 300, 'Response time is equals to 300c'
+        assert system_monitor.response_time == datetime.timedelta(milliseconds = 300), 'Response time is equals to 300c'
 
 
 class TestRecipientService(object):
@@ -317,8 +321,10 @@ class TestEventService(object):
         interface = mixer.blend('core.Interface')
         event_type = mixer.blend('base.EventType')
         state = mixer.blend('base.State')
-        mixer.blend('core.Event', system=system, interface=interface, event_type=event_type,
-                    state=state, method='Some', response='response', code='234', response_time=111)
+        mixer.blend(
+            'core.Event', system=system, interface=interface, event_type=event_type,state=state, method='Some',
+            response='response', code='234', response_time= datetime.timedelta(milliseconds =111)
+        )
         event = EventService().get(system=system.id)
         assert event is not None, 'Should get a created Event object'
 
