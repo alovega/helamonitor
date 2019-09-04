@@ -6,6 +6,7 @@ from datetime import timedelta
 from django.utils import timezone
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
+from base.backend.utilities import format_duration
 
 lgr = logging.getLogger(__name__)
 
@@ -77,24 +78,26 @@ class EventProcessor(object):
                 if duration > timedelta(seconds=1) and nth_event > 0:
                     # Duration set at a minimum of a second and number of events is greater than zero.
                     now = timezone.now()
-                    then = now-duration
+                    start = now-duration
                     if nth_event == 1:
                         # Escalate each event occurrence within the specified duration
-                        event = EventService().filter(date_created__time__range=(then, now)).order_by(
+                        event = EventService().filter(date_created__range=(start, now)).order_by(
                             "-date_created").first()
                         if event:
                             incident_data.update(escalation_level = escalation_level,
-                                                 description = "%s event occurred" % event_type, events = event)
+                                                 description = "%s event occurred within %s" % (
+                                                     event_type, format_duration(duration)), events = event)
                             return incident_data
                     else:
                         # Escalate if n events of the same type occur within the specified duration
                         try:
-                            events = EventService().filter(date_created__time__range=(then, now))
+                            events = EventService().filter(date_created__range=(start, now))
                             if events.count() == nth_event:
-                                # Rule match found. Update incident_data before passing it to incident processor
+                                # Rule match found. Update incident_data with an appropriate description and the events
                                 incident_data.update(escalation_level=escalation_level,
                                                      description="{0} event occurred {1} times within {2}".format(
-                                                         event_type, nth_event, duration), events=events)
+                                                         event_type, nth_event, format_duration(duration)),
+                                                     events=events)
                                 return incident_data
                         except Exception as ex:
                             lgr.exception("Event Processor exception %s " % ex)
