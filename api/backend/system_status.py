@@ -1,8 +1,8 @@
 
 import logging
 
-from core.backend.services import SystemMonitorService, EventService, InterfaceService, SystemService, EndpointService
-from base.backend.services import StateService, EventTypeService, EscalationLevelService
+from core.backend.services import SystemMonitorService, EventService, InterfaceService, EndpointService
+from base.backend.services import StateService, EventTypeService
 
 lgr = logging.getLogger(__name__)
 
@@ -15,8 +15,7 @@ class MonitorProcessor(object):
 	def __init__(self, **kwargs):
 		self.kwargs = kwargs
 
-	@staticmethod
-	def save_system_status(**kwargs):
+	def save_system_status(self, **kwargs):
 		"""
 		:param kwargs:
 			This is a variable type dictionary containing data that my request method will return
@@ -31,7 +30,7 @@ class MonitorProcessor(object):
 		try:
 			endpoint = EndpointService().get(endpoint=kwargs.get('url'))
 			response_time = kwargs.get('response_time')
-			system = SystemService().get(endpoint=endpoint)
+			system = endpoint.system
 			interface = InterfaceService().get(system = system)
 			state = StateService().get(name='UP')
 			request = kwargs.get('request')
@@ -46,8 +45,10 @@ class MonitorProcessor(object):
 				status_data = {"system": system, "response_time": response_time, "endpoint": endpoint, "state": state}
 				try:
 					system_status = SystemMonitorService().create(**status_data)  # creates a system_status object
-					# should implement a function to check if the response_time is slow
-					return system_status #event
+					event = self.analyse_response_time(
+						system_status=system_status, desired_time = system_status.endpoint.optimal_response_time
+					)
+					return system_status, event
 				except Exception as e:
 					lgr.exception("Status Log exception: %s" % e)
 
@@ -61,9 +62,10 @@ class MonitorProcessor(object):
 					"event_type": event_type, "state": new_state, "code": code,
 				}
 				try:
-					system_status = SystemMonitorService().create(**status_data)  # creates a system_status object
-					event = EventService().create(**event_data)  # should refactor and  call the processor for creating
-					# event
+					# creates a system_status object
+					system_status = SystemMonitorService().create(**status_data)
+					# should refactor and  call the processor for creating event
+					event = EventService().create(**event_data)
 					return system_status, event
 				except Exception as e:
 					lgr.exception("Status Log exception: %s" % e)
@@ -74,10 +76,27 @@ class MonitorProcessor(object):
 		This method analyses the created system_status response time is within the desired time
 		:param system_status:
 		:param desired_time: a set time that a response_time must meet for it's request to be considered okay
-		:param kwargs: this is a dictionary of data to be used by EventService() object
 		:return: event
 		"""
-		pass
+		if system_status.response_time > desired_time:
+			description = "%s is okay but with a slow response time" % system_status.endpoint
+			event_type = EventTypeService.get(name = 'Debug')
+			method = None
+			response = None
+			request = None
+			code = None
+			interface = InterfaceService().get(system = system_status.system)
+			event_data = {
+				"system": system_status.system, "response_time": system_status.response_time,
+				"description": description,"method": method, "response": response, "request": request,
+				"interface": interface,"event_type": event_type, "state": system_status.state, "code": code,
+			}
+			try:
+				# should refactor and  call the processor for creating event
+				event = EventService().create(**event_data)
+				return event
+			except Exception as e:
+				lgr.exception("Event Log exception: %s" % e)
 
 	def generate_status_report(self):
 		pass
