@@ -8,8 +8,8 @@ import uuid
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
-from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, PriorityLevel, LogType,\
-                        IncidentType, EndpointType, Occurrence, EscalationLevel
+from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType,\
+    IncidentType, EndpointType, EscalationLevel
 
 
 def versions():
@@ -48,6 +48,7 @@ class Interface(GenericBaseModel):
 class Endpoint(GenericBaseModel):
     endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
+    optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
     state = models.ForeignKey(State)
 
@@ -62,14 +63,12 @@ class SystemCredential(BaseModel):
     username = models.CharField(max_length=100, help_text='Similar to a client_ID')
     password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
     token = models.CharField(max_length=100, help_text='Authorization token')
-    expires_at = models.DateTimeField(
-        auto_now=False, auto_now_add=False, help_text='Expiry time of the authorization token'
-    )
+    expires_at = models.DateTimeField(null=True, blank=True, help_text='Expiry time of the authorization token')
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s" % (
+        return "%s %s %s" % (
             self.username, self.system, self.state
         )
 
@@ -78,7 +77,7 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
-    response_time = models.PositiveIntegerField(default=0, null=True)
+    response_time = models.DurationField(default=timedelta(), null = True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -98,7 +97,7 @@ class Recipient(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s%s%s" % (self.first_name, self.last_name, self.email, self.phone_number, self.state)
+        return "%s %s %s %s %s" % (self.first_name, self.last_name, self.email, self.phone_number, self.state)
 
 
 class SystemRecipient(BaseModel):
@@ -111,7 +110,7 @@ class SystemRecipient(BaseModel):
     escalation_level = models.ForeignKey(EscalationLevel)
 
     def __str__(self):
-        return "%s%s%s" % (self.recipient, self.system, self.state)
+        return "%s %s %s" % (self.recipient, self.system, self.state)
 
 
 class Event(BaseModel):
@@ -127,7 +126,7 @@ class Event(BaseModel):
     response = models.TextField(max_length=255, null=True)
     request = models.TextField(max_length=255, null=True)
     code = models.CharField(max_length=100)
-    response_time = models.PositiveIntegerField(default=0, null = True)
+    response_time = models.DurationField(default=timedelta(), null = True)
 
     def __str__(self):
         return "%s %s %s" % (
@@ -139,11 +138,10 @@ class EscalationRule(GenericBaseModel):
     """
     Manages Escalation rules to be applied on events to determine whether they should be escalated or not
     """
-    occurrence_count = models.IntegerField(
-        null=True, help_text="Number of occurrences; nth occurrence to trigger an escalation"
+    nth_event = models.IntegerField(default=1, help_text="Limit of n events to satisfy this rule")
+    duration = models.DurationField(
+        null=True, help_text="Time period within which the nth occurrence of an event type will be escalated"
     )
-    duration = models.DurationField(null=True)
-    occurrence_type = models.ForeignKey(Occurrence)
     event_type = models.ForeignKey(EventType)
     escalation_level = models.ForeignKey(EscalationLevel)
     system = models.ForeignKey(System)
@@ -158,7 +156,7 @@ class Incident(GenericBaseModel):
     Manages Incidents created from escalation points
     """
     incident_type = models.ForeignKey(IncidentType)
-    priority_level = models.ForeignKey(PriorityLevel)
+    priority_level = models.IntegerField(default = 1)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
@@ -171,13 +169,11 @@ class IncidentEvent(BaseModel):
     Represents a ManyToMany association between incidents and events
     """
     incident = models.ForeignKey(Incident)
-    log_type = models.ForeignKey(LogType)
-    priority_level = models.ForeignKey(PriorityLevel)
     event = models.ForeignKey(Event)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s" % (self.incident, self.log_type)
+        return "%s %s" % (self.incident, self.event)
 
 
 class IncidentLog(BaseModel):
@@ -186,11 +182,12 @@ class IncidentLog(BaseModel):
     """
     description = models.TextField(max_length=255, blank=True, null=True)
     incident = models.ForeignKey(Incident)
+    log_type = models.ForeignKey(LogType, null = True)
     user = models.ForeignKey(User)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s%s" % (
+        return "%s %s %s" % (
             self.description, self.incident, self.user
         )
 
