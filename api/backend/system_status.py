@@ -32,7 +32,7 @@ class MonitorProcessor(object):
 			endpoint = EndpointService().get(endpoint=kwargs.get('url'))
 			response_time = kwargs.get('response_time')
 			system = SystemService().get(endpoint=endpoint)
-			interface = InterfaceService().get(system=system)
+			interface = InterfaceService().get(system = system)
 			state = StateService().get(name='UP')
 			request = kwargs.get('request')
 			response = kwargs.get('response')
@@ -54,16 +54,15 @@ class MonitorProcessor(object):
 			else:
 				new_state = StateService().get(name='Down')
 				event_type = EventTypeService().get(name='Critical')
-				escalation_level = EscalationLevelService().get(name='High')
 				status_data = {"system": system, "response_time": None, "endpoint": endpoint, "state": new_state}
 				event_data = {
-					"system": system, "version": system.version, "response_time": None, "description": response,
+					"system": system, "response_time": None, "description": response,
 					"method": method, "response": response, "request": request, "interface": interface,
-					"event_type": event_type, "state": new_state, "escalation_level": escalation_level, "code": code,
+					"event_type": event_type, "state": new_state, "code": code,
 				}
 				try:
 					system_status = SystemMonitorService().create(**status_data)  # creates a system_status object
-					event = EventService.create(**event_data)  # should refactor and  call the processor for creating
+					event = EventService().create(**event_data)  # should refactor and  call the processor for creating
 					# event
 					return system_status, event
 				except Exception as e:

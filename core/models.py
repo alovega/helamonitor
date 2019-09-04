@@ -127,7 +127,7 @@ class Event(BaseModel):
     response = models.TextField(max_length=255, null=True)
     request = models.TextField(max_length=255, null=True)
     code = models.CharField(max_length=100)
-    response_time = models.PositiveIntegerField(default=0)
+    response_time = models.PositiveIntegerField(default=0, null = True)
 
     def __str__(self):
         return "%s %s %s" % (
