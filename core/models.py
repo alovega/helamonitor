@@ -79,7 +79,7 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
-    response_time = models.PositiveIntegerField(default=0, null = True)
+    response_time = models.DurationField(default=timedelta(), null = True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -128,7 +128,7 @@ class Event(BaseModel):
     response = models.TextField(max_length=255, null=True)
     request = models.TextField(max_length=255, null=True)
     code = models.CharField(max_length=100)
-    response_time = models.PositiveIntegerField(default=0, null = True)
+    response_time = models.DurationField(default=timedelta(), null = True)
 
     def __str__(self):
         return "%s %s %s" % (
