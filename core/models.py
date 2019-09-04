@@ -48,7 +48,7 @@ class Interface(GenericBaseModel):
 class Endpoint(GenericBaseModel):
     endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
-    optimal_response_time = models.DurationField(default= timedelta(seconds = 10), null=True)
+    optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
     state = models.ForeignKey(State)
 
