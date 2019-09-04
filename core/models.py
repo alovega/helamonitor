@@ -62,9 +62,7 @@ class SystemCredential(BaseModel):
     username = models.CharField(max_length=100, help_text='Similar to a client_ID')
     password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
     token = models.CharField(max_length=100, help_text='Authorization token')
-    expires_at = models.DateTimeField(
-        auto_now=False, auto_now_add=False, help_text='Expiry time of the authorization token'
-    )
+    expires_at = models.DateTimeField(null=True, blank=True, help_text='Expiry time of the authorization token')
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
