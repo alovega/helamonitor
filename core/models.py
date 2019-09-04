@@ -78,7 +78,7 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
-    response_time = models.PositiveIntegerField(default=0)
+    response_time = models.PositiveIntegerField(default=0, null=True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
