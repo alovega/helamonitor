@@ -1,5 +1,5 @@
 """
-Class for logging incoming events from connected microservices
+Class for logging incoming events from connected micro-services
 """
 import logging
 from datetime import timedelta
@@ -29,7 +29,6 @@ class EventProcessor(object):
         :param kwargs:
         :return: event:
         """
-
         try:
             system = SystemService().get(name=system)
             interface = InterfaceService().get(name=interface)
@@ -60,16 +59,16 @@ class EventProcessor(object):
         """
         Method that processes an event and checks the existing escalation rules to determine if an escalation is needed.
         :param event:
-        :return:
+        :return: incident_data: Data needed for creating an incident based on the escalation_rules and event(s)
+        :rtype: dict
         """
         if event is not None:
             event_type = event.event_type
             matched_rules = EscalationRuleService().filter(event_type = event_type)  # Filter out satisfied rules
             incident_data = {
-                "name": "%s event" % event_type, "incident_type": "realtime", "system": event.system_name,
+                "name": "%s event" % event_type.name, "incident_type": "realtime", "system": event.system.name,
                 "state": "Investigating", "priority_level": 1
             }   # Data to be used during incident creation and escalating to configured users
-
             for matched_rule in matched_rules:
                 nth_event = matched_rule.nth_event
                 duration = matched_rule.duration
@@ -78,26 +77,24 @@ class EventProcessor(object):
                 if duration > timedelta(seconds=1) and nth_event > 0:
                     # Duration set at a minimum of a second and number of events is greater than zero.
                     now = timezone.now()
+                    then = now-duration
                     if nth_event == 1:
                         # Escalate each event occurrence within the specified duration
-                        events = EventService().filter(date_created__time__range=(now-duration, now)).order_by(
+                        event = EventService().filter(date_created__time__range=(then, now)).order_by(
                             "-date_created").first()
-                        incident_data.update(escalation_level = escalation_level,
-                                             description = "%s event occurred".format(event_type), events = events)
-                        # TODO Call incident processor
+                        if event:
+                            incident_data.update(escalation_level = escalation_level,
+                                                 description = "%s event occurred" % event_type, events = event)
+                            return incident_data
                     else:
                         # Escalate if n events of the same type occur within the specified duration
                         try:
-                            events = EventService().filter(date_created__time__range=(now-duration, now))
+                            events = EventService().filter(date_created__time__range=(then, now))
                             if events.count() == nth_event:
-                                # Rule match found. Update incident_date before passing it to incident processor
+                                # Rule match found. Update incident_data before passing it to incident processor
                                 incident_data.update(escalation_level=escalation_level,
                                                      description="{0} event occurred {1} times within {2}".format(
                                                          event_type, nth_event, duration), events=events)
-                                # TODO Call incident processor
+                                return incident_data
                         except Exception as ex:
                             lgr.exception("Event Processor exception %s " % ex)
-
-
-
-
