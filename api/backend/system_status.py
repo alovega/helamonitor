@@ -122,13 +122,14 @@ def query_health():
 			endpoints = EndpointService().filter(system = system, endpoint_is_queried = True)
 			for endpoint in endpoints:
 				url = endpoint.get('endpoint')  # this will have the url that will be queried
-				kwargs = requests.get(url)
-				status_code = kwargs.status_code  # this has the response code for the response
-				response_time = kwargs.elapsed.total_seconds()
-				response = kwargs.json()
-				request = kwargs.request.method
+				health_state = requests.get(url) # this stores the response of the  http request on url
+				status_code = health_state.status_code  # this has the response code for the response
+				response_time = health_state.elapsed.total_seconds()
+				response = health_state.json()
+				request = health_state.request.method
 				code = response.get('code')
 
+				# data will be used by MonitorProcessor save_system_status method as a method variable
 				data = {
 					url: url, status_code: status_code, response_time: response_time, request: request, code: code
 				}
