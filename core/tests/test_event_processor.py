@@ -22,6 +22,7 @@ class TestEventLogger(object):
         system = mixer.blend('core.System')
         interface = mixer.blend('core.Interface', system=system)
         event_type = mixer.blend('base.EventType')
+        event_type2 = mixer.blend('base.EventType')
         state = mixer.blend('base.State')
         escalation_rule = mixer.blend(
             "core.EscalationRule", system=system, event_type=event_type, nth_event=1, duration=timedelta(seconds=5)

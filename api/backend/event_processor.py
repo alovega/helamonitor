@@ -30,6 +30,7 @@ class EventProcessor(object):
         :param kwargs:
         :return: event:
         """
+        event_data = {}
         try:
             system = SystemService().get(name=system)
             interface = InterfaceService().get(name=interface)
@@ -40,11 +41,12 @@ class EventProcessor(object):
                 response = kwargs.get('response', None)
                 request = kwargs.get('request', None)
                 code = kwargs.get('code', None)
-
-            event_data = {
-                "description": description, "method": method, "response": response, "code": code, "state": state,
-                "request": request, "system": system, "interface": interface, "event_type": event_type
-            }
+                event_data.update({
+                    "method": method, "response": response, "code": code, "state": state, "request": request,
+                })
+            event_data.update({
+                "description": description, "system": system, "interface": interface, "event_type": event_type
+            })
         except Exception as ex:
             lgr.exception('Event processor exception %s' % ex)
 
@@ -81,17 +83,17 @@ class EventProcessor(object):
                     start = now-duration
                     if nth_event == 1:
                         # Escalate each event occurrence within the specified duration
-                        event = EventService().filter(date_created__range=(start, now)).order_by(
+                        event = EventService().filter(event_type=event_type, date_created__range=(start, now)).order_by(
                             "-date_created").first()
                         if event:
                             incident_data.update(escalation_level = escalation_level,
-                                                 description = "%s event occurred within %s" % (
-                                                     event_type, format_duration(duration)), events = event)
+                                                 description = "%s event occurred at %s" % (
+                                                     event_type, now), events = event)
                             return incident_data
                     else:
                         # Escalate if n events of the same type occur within the specified duration
                         try:
-                            events = EventService().filter(date_created__range=(start, now))
+                            events = EventService().filter(event_type=event_type, date_created__range=(start, now))
                             if events.count() == nth_event:
                                 # Rule match found. Update incident_data with an appropriate description and the events
                                 incident_data.update(escalation_level=escalation_level,
