@@ -1,7 +1,9 @@
 
 import logging
 
-from core.backend.services import SystemMonitorService, EventService, InterfaceService, EndpointService
+import requests
+
+from core.backend.services import SystemMonitorService, EventService, InterfaceService, EndpointService, SystemService
 from base.backend.services import StateService, EventTypeService
 
 lgr = logging.getLogger(__name__)
@@ -42,7 +44,9 @@ class MonitorProcessor(object):
 
 		if kwargs is not None:
 			if kwargs['status_code'] == 200:
-				status_data = {"system": system, "response_time": response_time, "endpoint": endpoint, "state": state}
+				status_data = {
+					"system": system, "response_time": response_time, "endpoint": endpoint, "state": state
+				}
 				try:
 					system_status = SystemMonitorService().create(**status_data)  # creates a system_status object
 					event = self.analyse_response_time(
@@ -90,8 +94,8 @@ class MonitorProcessor(object):
 			interface = InterfaceService().get(system = system_status.system)
 			event_data = {
 				"system": system_status.system, "response_time": system_status.response_time,
-				"description": description,"method": method, "response": response, "request": request,
-				"interface": interface,"event_type": event_type, "state": system_status.state, "code": code,
+				"description": description, "method": method, "response": response, "request": request,
+				"interface": interface, "event_type": event_type, "state": system_status.state, "code": code,
 			}
 			try:
 				# should refactor and  call the processor for creating event
@@ -102,3 +106,32 @@ class MonitorProcessor(object):
 
 	def generate_status_report(self):
 		pass
+
+
+def query_health():
+	"""
+	This function is supposed to filter out all the registered system to be monitored, once it does that from
+	the system it got query all the existing endpoints that are supposed to be queried then perform a get request
+	on the endpoint from the response create data that is going to be used by the monitor processor and perform
+	a call to it and pass data
+	"""
+	try:
+		systems = SystemService().filter()  # get all the registered system
+		for system in systems:
+			# get all the endpoints belonging to the system that are queried
+			endpoints = EndpointService().filter(system = system, endpoint_is_queried = True)
+			for endpoint in endpoints:
+				url = endpoint.get('endpoint')  # this will have the url that will be queried
+				kwargs = requests.get(url)
+				status_code = kwargs.status_code  # this has the response code for the response
+				response_time = kwargs.elapsed.total_seconds()
+				response = kwargs.json()
+				request = kwargs.request.method
+				code = response.get('code')
+
+				data = {
+					url: url, status_code: status_code, response_time: response_time, request: request, code: code
+				}
+				MonitorProcessor(**data).save_system_status(**data)  # logs a system status based on the data
+	except Exception as e:
+		lgr.exception("Health Status exception:  %s" % e)
