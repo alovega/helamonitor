@@ -67,7 +67,9 @@ class EventProcessor(object):
         """
         if event is not None:
             event_type = event.event_type
-            matched_rules = EscalationRuleService().filter(event_type = event_type)  # Filter out satisfied rules
+            system = event.system
+            matched_rules = EscalationRuleService().filter(event_type=event_type, system=system)  # Filter out
+            # satisfied rules for the system the event originates from
             incident_data = {
                 "name": "%s event" % event_type.name, "incident_type": "realtime", "system": event.system.name,
                 "state": "Investigating", "priority_level": 1
@@ -82,24 +84,23 @@ class EventProcessor(object):
                     now = timezone.now()
                     start = now-duration
                     if nth_event == 1:
-                        # Escalate each event occurrence within the specified duration
+                        # Escalates each event occurrence within the specified duration
                         event = EventService().filter(event_type=event_type, date_created__range=(start, now)).order_by(
                             "-date_created").first()
                         if event:
                             incident_data.update(escalation_level = escalation_level,
-                                                 description = "%s event occurred at %s" % (
-                                                     event_type, now), events = event)
+                                                 description = "%s event occurred on %s in %s" % (
+                                                     event_type, now, system), events = event)
                             return incident_data
                     else:
-                        # Escalate if n events of the same type occur within the specified duration
+                        # Escalate if n events of the specified event type occur within the specified duration
                         try:
                             events = EventService().filter(event_type=event_type, date_created__range=(start, now))
                             if events.count() == nth_event:
                                 # Rule match found. Update incident_data with an appropriate description and the events
                                 incident_data.update(escalation_level=escalation_level,
-                                                     description="{0} event occurred {1} times within {2}".format(
-                                                         event_type, nth_event, format_duration(duration)),
-                                                     events=events)
+                                                     description="%s %s events occurred in %s between %s and %s" % (
+                                                         nth_event, event_type, system, start, now), events=events)
                                 return incident_data
                         except Exception as ex:
                             lgr.exception("Event Processor exception %s " % ex)
