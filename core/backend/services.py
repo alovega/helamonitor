@@ -1,9 +1,8 @@
 """
 Services for Core module
 """
-from core.models import NotificationType, EscalationLevel, IncidentType, System, Interface, \
-    SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, Incident, IncidentEvent, \
-    IncidentLog, Notification, Endpoint, EscalationRule
+from core.models import System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, \
+    Incident, IncidentEvent, IncidentLog, Notification, Endpoint, EscalationRule
 
 from base.backend.servicebase import ServiceBase
 

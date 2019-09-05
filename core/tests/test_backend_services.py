@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 # noinspection SpellCheckingInspection
 from core.backend.services import SystemService, InterfaceService, SystemCredentialService, \
     RecipientService, SystemRecipientService, SystemMonitorService, EventService, IncidentService,\
-    IncidentEventService, IncidentLogService, NotificationService, EndpointService, EscalationRuleService
+    IncidentEventService, IncidentLogService, EndpointService, EscalationRuleService
 
 
 pytestmark = pytest.mark.django_db
@@ -224,46 +224,6 @@ class TestRecipientService(object):
         assert recipient.first_name == 'Victor', 'First name is equals to Victor'
 
 
-class TestRecipientService(object):
-    """
-    Tests for Recipient model Service
-    """
-    def test_get(self):
-        """
-        Test Recipient get service
-        """
-        mixer.blend('core.Recipient', first_name='Victor')
-        recipient = RecipientService().get(first_name='Victor')
-        assert recipient is not None, 'Should return a recipient object'
-        assert recipient.first_name == 'Victor', 'First name is equals to Victor'
-
-    def test_filter(self):
-        """
-        Test Recipient filter service
-        """
-        mixer.cycle(3).blend('core.Recipient')
-        recipients = RecipientService().filter()
-        assert len(recipients) == 3, 'Should return 3 Recipients'
-
-    def test_create(self):
-        """
-        Test Recipient Create Service
-        """
-        state = mixer.blend('base.State')
-        recipient = RecipientService().create(first_name='Victor', last_name='Joseph', state=state)
-        assert recipient is not None, 'Should create a recipient object'
-        assert recipient.last_name == 'Joseph', 'Last name is equals to Joseph'
-
-    def test_update(self):
-        """
-        Test Recipient update Service
-        """
-        recipient = mixer.blend('core.Recipient')
-        recipient = RecipientService().update(recipient.id, first_name='Victor')
-        assert recipient is not None, 'Should create a recipient object'
-        assert recipient.first_name == 'Victor', 'First name is equals to Victor'
-
-
 class TestSystemRecipientService(object):
     """
     Tests for SystemRecipient model Services
@@ -322,7 +282,7 @@ class TestEventService(object):
         event_type = mixer.blend('base.EventType')
         state = mixer.blend('base.State')
         mixer.blend(
-            'core.Event', system=system, interface=interface, event_type=event_type,state=state, method='Some',
+            'core.Event', system=system, interface=interface, event_type=event_type, state=state, method='Some',
             response='response', code='234', response_time= datetime.timedelta(milliseconds =111)
         )
         event = EventService().get(system=system.id)
@@ -463,7 +423,7 @@ class TestIncidentLogService(object):
         incident = mixer.blend('core.Incident')
         user = mixer.blend(User)
         state = mixer.blend('base.State')
-        mixer.blend('core.IncidentLog', incident=incident, user=user,state=state)
+        mixer.blend('core.IncidentLog', incident=incident, user=user, state=state)
         incident_log = IncidentLogService().get(incident=incident.id)
         assert incident_log is not None, 'Should get a created IncidentLog object'
         return user
@@ -514,7 +474,7 @@ class TestEndpointService(object):
 
     def test_filter(self):
         """
-        Test Endpiont filter service
+        Test Endpoint filter service
         """
         mixer.cycle(3).blend('core.Endpoint')
         endpoint = EndpointService().filter()
@@ -528,7 +488,7 @@ class TestEndpointService(object):
         endpoint_type = mixer.blend('base.EndpointType')
         state = mixer.blend('base.State')
         endpoint = EndpointService().create(system=system, endpoint_type=endpoint_type, state=state,
-                                                   description='Incident1')
+                                            description='Incident1')
         assert endpoint is not None, 'Should create an Endpoint Object'
         assert endpoint.description == 'Incident1', ' Endpoint description is equals to Incident1'
 
