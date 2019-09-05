@@ -31,7 +31,7 @@ class TestMonitorProcessor(object):
 			'status_code': 200,
 		}
 
-		monitor_manager = MonitorProcessor(**kwargs).save_system_status(**kwargs)
+		monitor_manager = MonitorProcessor().save_system_status(**kwargs)
 		print (monitor_manager)
 		assert monitor_manager is not None, "Should create a system status"
 		assert monitor_manager[0].system == system
@@ -58,7 +58,7 @@ class TestMonitorProcessor(object):
 			'code': '800.200.001'
 		}
 
-		monitor_manager = MonitorProcessor(**kwargs).save_system_status(**kwargs)
+		monitor_manager = MonitorProcessor().save_system_status(**kwargs)
 		print (monitor_manager)
 		assert monitor_manager is not None, "Should create a system status"
 
@@ -84,6 +84,6 @@ class TestMonitorProcessor(object):
 			'code': '800.200.001'
 		}
 
-		monitor_manager = MonitorProcessor(**kwargs).save_system_status(**kwargs)
+		monitor_manager = MonitorProcessor().save_system_status(**kwargs)
 		print (monitor_manager)
 		assert monitor_manager is not None, "Should create a system status"

@@ -14,10 +14,10 @@ class MonitorProcessor(object):
 	class for logging status  of  system micro-services
 	"""
 
-	def __init__(self, **kwargs):
-		self.kwargs = kwargs
+	def __init__(self):
+		super(MonitorProcessor, self).__init__()
 
-	def save_system_status(self, **kwargs):
+	def save_system_status(self,  **kwargs):
 		"""
 		:param kwargs:
 			This is a variable type dictionary containing data that my request method will return
@@ -132,6 +132,6 @@ def query_health():
 				data = {
 					url: url, status_code: status_code, response_time: response_time, request: request, code: code
 				}
-				MonitorProcessor(**data).save_system_status(**data)  # logs a system status based on the data
+				MonitorProcessor().save_system_status(**data)  # logs a system status based on the data
 	except Exception as e:
 		lgr.exception("Health Status exception:  %s" % e)
