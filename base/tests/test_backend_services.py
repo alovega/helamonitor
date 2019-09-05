@@ -1,8 +1,8 @@
 import pytest
 from mixer.backend.django import mixer
 
-from base.backend.services import StateService, LogTypeService, EndpointTypeService, \
-    EventTypeService, NotificationTypeService, EscalationLevelService, IncidentTypeService
+from base.backend.services import StateService, LogTypeService, EventTypeService, \
+    NotificationTypeService, EscalationLevelService, IncidentTypeService
 
 pytestmark = pytest.mark.django_db
 
@@ -111,7 +111,7 @@ class TestEventTypeService(object):
         Test EventType create service
         """
         state = mixer.blend('base.State')
-        event_type = EventTypeService().create( state=state, description='Incident1')
+        event_type = EventTypeService().create(state=state, description='Incident1')
         assert event_type is not None, 'Should create an EventType Object'
         assert event_type.description == 'Incident1', ' EventType description is equals to Incident1'
 

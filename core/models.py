@@ -4,7 +4,6 @@ core Models
 """
 from __future__ import unicode_literals
 
-import uuid
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
