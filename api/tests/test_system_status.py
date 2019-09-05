@@ -69,14 +69,13 @@ class TestMonitorProcessor(object):
 		"""
 		system = mixer.blend('core.System')
 		interface = mixer.blend('core.Interface', system = system)
-		state = mixer.blend('base.State', name = 'Down')
+		state = mixer.blend('base.State', name = 'UP')
 		endpoint_type = mixer.blend('base.EndpointType', is_queried =True)
 		endpoint = mixer.blend(
 			'core.Endpoint', endpoint = "http://127.0.0.1/blah/blah", system = system, endpoint_type= endpoint_type,
-			opptimal_response_time = datetime.timedelta(milliseconds = 5)
+			optimal_response_time = datetime.timedelta(milliseconds = 5)
 		)
-		escalation_level = mixer.blend('base.EscalationLevel', name='High')
-		event_type = mixer.blend('base.EventType', name='Critical')
+		event_type = mixer.blend('base.EventType', name='Debug')
 		kwargs = {
 			'response': {u'code': u'800.200.001', u'data': {u'reference': u'A0Z9Z9Z90'}},
 			'url': 'http://127.0.0.1/blah/blah',

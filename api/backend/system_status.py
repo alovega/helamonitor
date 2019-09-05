@@ -46,8 +46,10 @@ class MonitorProcessor(object):
 				try:
 					system_status = SystemMonitorService().create(**status_data)  # creates a system_status object
 					event = self.analyse_response_time(
-						system_status=system_status, desired_time = system_status.endpoint.optimal_response_time
+						system_status=system_status, desired_time = system_status.endpoint.optimal_response_time,
+						**kwargs
 					)
+					print system_status.endpoint.optimal_response_time
 					return system_status, event
 				except Exception as e:
 					lgr.exception("Status Log exception: %s" % e)
@@ -71,7 +73,7 @@ class MonitorProcessor(object):
 					lgr.exception("Status Log exception: %s" % e)
 
 	@staticmethod
-	def analyse_response_time(system_status, desired_time):
+	def analyse_response_time(system_status, desired_time, **kwargs):
 		"""
 		This method analyses the created system_status response time is within the desired time
 		:param system_status:
@@ -80,11 +82,11 @@ class MonitorProcessor(object):
 		"""
 		if system_status.response_time > desired_time:
 			description = "%s is okay but with a slow response time" % system_status.endpoint
-			event_type = EventTypeService.get(name = 'Debug')
+			event_type = EventTypeService().get(name = 'Debug')
 			method = None
 			response = None
 			request = None
-			code = None
+			code = kwargs.get('code')
 			interface = InterfaceService().get(system = system_status.system)
 			event_data = {
 				"system": system_status.system, "response_time": system_status.response_time,
