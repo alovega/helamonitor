@@ -4,7 +4,6 @@ core Models
 """
 from __future__ import unicode_literals
 
-import uuid
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
@@ -48,6 +47,7 @@ class Interface(GenericBaseModel):
 class Endpoint(GenericBaseModel):
     endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
+    optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
     state = models.ForeignKey(State)
 
@@ -62,9 +62,7 @@ class SystemCredential(BaseModel):
     username = models.CharField(max_length=100, help_text='Similar to a client_ID')
     password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
     token = models.CharField(max_length=100, help_text='Authorization token')
-    expires_at = models.DateTimeField(
-        auto_now=False, auto_now_add=False, help_text='Expiry time of the authorization token'
-    )
+    expires_at = models.DateTimeField(null=True, blank=True, help_text='Expiry time of the authorization token')
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
@@ -78,7 +76,7 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
-    response_time = models.PositiveIntegerField(default=0)
+    response_time = models.DurationField(default=timedelta(), null = True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -127,7 +125,7 @@ class Event(BaseModel):
     response = models.TextField(max_length=255, null=True)
     request = models.TextField(max_length=255, null=True)
     code = models.CharField(max_length=100)
-    response_time = models.PositiveIntegerField(default=0)
+    response_time = models.DurationField(default=timedelta(), null = True)
 
     def __str__(self):
         return "%s %s %s" % (
