@@ -31,19 +31,37 @@ class IncidentProcessor(object):
 			lgr.exception("Incident Processor exception %s" % ex)
 
 		if incident_data is not None:
+			if kwargs:
+				escalation_level = kwargs.get("escalation_level", None)
+				events = kwargs.get("events", None)
+				event_type = kwargs.get("event_type", None)
+				escalation_data.update(
+					escalation_level = escalation_level, events = events
+				)
+				if events.exists() and event_type is not None:
+					# Check previous incidents to avoid duplicating any incident caused by re-occurring events of the
+					# same type
+					try:
+						incident_events = IncidentEventService().filter(event__type = event_type)
+						open_incident = IncidentService().filter(incident__in = incident_events).exclude(
+							status = "Resolved").order_by("-date_created").first()
+						# Query for any unresolved any incident that was created as a result of events of that type
+						# and increment the priority level
+						if open_incident.exists():
+							open_incident.update(priority_level = priority_level + 1)
+							return self.send_notification(open_incident, **escalation_data)  # Alert users on the
+							# this priority_level update
+						else:
+							incident = IncidentService().create(**incident_data)  # Create a new Incident
+							for event in events:
+								IncidentEventService().create(incident=incident, event=event)
+								# Associate new events with the incident in an incident-event instance
+							return incident
+					except Exception as ex:
+						lgr.exception("Incident Processor exception %s" % ex)
 			try:
-				incident = IncidentService().create(**incident_data)  # Create the Incident
-				if kwargs:
-					escalation_level = kwargs.get("escalation_level", None)
-					events = kwargs.get("events", None)
-					escalation_data.update(
-						escalation_level = escalation_level, events = events
-					)
-					if events.exists():
-						for event in events:
-							IncidentEventService().create(incident=incident, event=event)
-				if incident.exists():
-					return self.send_notification(incident, **escalation_data)
+				incident = IncidentService().create(**incident_data)  # Create a new Incident
+				return incident
 			except Exception as ex:
 				lgr.exception("Incident Processor exception %s" % ex)
 
