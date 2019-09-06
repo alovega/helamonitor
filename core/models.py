@@ -4,71 +4,203 @@ core Models
 """
 from __future__ import unicode_literals
 
-import uuid
-
+from datetime import timedelta
+from django.contrib.auth.models import User
 from django.db import models
+from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType,\
+    IncidentType, EndpointType, EscalationLevel
 
 
-class BaseModel(models.Model):
+def versions():
     """
-    Define repeating fields to avoid redefining these in each model
+    returns a collection of version choices to chose from
+    :return: version choices
+    @retype tuple
     """
-    id = models.UUIDField(max_length=100, default=uuid.uuid4, unique=True, editable=False, primary_key=True)
-    date_modified = models.DateTimeField(auto_now=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-
-    class Meta(object):
-        abstract = True
+    return ('1', '1.0.0'),
 
 
-class GenericBaseModel(BaseModel):
+class System(GenericBaseModel):
     """
-    Define repeating fields to avoid redefining these in each model
+    model for managing defined system
     """
-    name = models.CharField(max_length=100)
-    description = models.TextField(max_length=255, blank=True, null=True)
+    code = models.CharField(max_length = 100, unique=True, db_index=True)
+    version = models.CharField(max_length = 5, choices=versions(), default='1')
+    admin = models.ForeignKey(User)
+    state = models.ForeignKey(State)
 
-    class Meta(BaseModel.Meta):
-        abstract = True
-
-
-class State(GenericBaseModel):
-    """
-    States for objects lifecycle e.g. "Active"
-    """
     def __str__(self):
         return "%s" % self.name
 
-    class Meta(object):
-        ordering = ('name',)
-        unique_together = ('name',)
 
-
-class NotificationType(GenericBaseModel):
+class Interface(GenericBaseModel):
     """
-    Types for notifications e.g "sms", "email"
+    model for managing defined system interfaces
     """
+    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s" % (self.name, self.state)
+        return "%s %s %s" % (self.name, self.system, self.state)
 
 
-class EscalationLevel(GenericBaseModel):
-    """
-    Model for managing escalation levels
-    """
+class Endpoint(GenericBaseModel):
+    endpoint = models.CharField(max_length=100)
+    system = models.ForeignKey(System)
+    optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
+    endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s" % (self.name, self.state)
+        return "%s" % self.name
 
 
-class IncidentType(GenericBaseModel):
+class SystemCredential(BaseModel):
     """
-    Model for managing defined incident types e.g "realtime", "scheduled"
+    model for managing credentials for system users
     """
+    username = models.CharField(max_length=100, help_text='Similar to a client_ID')
+    password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
+    token = models.CharField(max_length=100, help_text='Authorization token')
+    expires_at = models.DateTimeField(null=True, blank=True, help_text='Expiry time of the authorization token')
+    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s%s" % (self.name, self.state)
+        return "%s %s %s" % (
+            self.username, self.system, self.state
+        )
+
+
+class SystemMonitor(BaseModel):
+    """
+    model for managing monitoring for my added system
+    """
+    response_time = models.DurationField(default=timedelta(), null = True)
+    endpoint = models.ForeignKey(Endpoint)
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s %s %s" % (self.endpoint, self.system, self.state)
+
+
+class Recipient(BaseModel):
+    """
+    models for managing the recipient of a system
+    """
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=255)
+    phone_number = models.CharField(max_length=100)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s %s %s %s %s" % (self.first_name, self.last_name, self.email, self.phone_number, self.state)
+
+
+class SystemRecipient(BaseModel):
+    """
+    models for managing recipient and a system
+    """
+    recipient = models.ForeignKey(Recipient)
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+    escalation_level = models.ForeignKey(EscalationLevel)
+
+    def __str__(self):
+        return "%s %s %s" % (self.recipient, self.system, self.state)
+
+
+class Event(BaseModel):
+    """
+    Model for managing events
+    """
+    description = models.CharField(max_length=100, help_text="Informative description of the event")
+    interface = models.ForeignKey(Interface)
+    system = models.ForeignKey(System)
+    event_type = models.ForeignKey(EventType)
+    state = models.ForeignKey(State)
+    method = models.CharField(max_length=100, null=True, help_text="Method where the error is origination from")
+    response = models.TextField(max_length=255, null=True)
+    request = models.TextField(max_length=255, null=True)
+    code = models.CharField(max_length=100)
+    response_time = models.DurationField(default=timedelta(), null = True)
+
+    def __str__(self):
+        return "%s %s %s" % (
+            self.event_type, self.description, self.state
+        )
+
+
+class EscalationRule(GenericBaseModel):
+    """
+    Manages Escalation rules to be applied on events to determine whether they should be escalated or not
+    """
+    nth_event = models.IntegerField(default=1, help_text="Limit of n events to satisfy this rule")
+    duration = models.DurationField(
+        null=True, help_text="Time period within which the nth occurrence of an event type will be escalated"
+    )
+    event_type = models.ForeignKey(EventType)
+    escalation_level = models.ForeignKey(EscalationLevel)
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
+class Incident(GenericBaseModel):
+    """
+    Manages Incidents created from escalation points
+    """
+    incident_type = models.ForeignKey(IncidentType)
+    priority_level = models.IntegerField(default = 1)
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
+class IncidentEvent(BaseModel):
+    """
+    Represents a ManyToMany association between incidents and events
+    """
+    incident = models.ForeignKey(Incident)
+    event = models.ForeignKey(Event)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s %s" % (self.incident, self.event)
+
+
+class IncidentLog(BaseModel):
+    """
+    Manages logs of incidences and keeps track of resolution history
+    """
+    description = models.TextField(max_length=255, blank=True, null=True)
+    incident = models.ForeignKey(Incident)
+    log_type = models.ForeignKey(LogType, null = True)
+    user = models.ForeignKey(User)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s %s %s" % (
+            self.description, self.incident, self.user
+        )
+
+
+class Notification(BaseModel):
+    """
+    Manages logs of notifications sent out to recipients based on incidents
+    """
+    message = models.TextField(max_length=255)
+    notification_type = models.ForeignKey(NotificationType)
+    incident = models.ForeignKey(Incident, null=True)
+    recipient = models.ForeignKey(Recipient)
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s %s %s" % (self.message, self.notification_type, self.recipient)
