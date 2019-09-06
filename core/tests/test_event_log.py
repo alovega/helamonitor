@@ -35,4 +35,4 @@ class TestEventLogger(object):
             "code": "12345",
         }
         event_log = EventProcessor().log_event(**event_fields)
-        assert event_log is not None, "Should create an event and return incident_data"
+        assert event_log is not None, "Should create an event and return incident_data %s" % event_log
