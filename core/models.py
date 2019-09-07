@@ -7,8 +7,8 @@ from __future__ import unicode_literals
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
-from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType,\
-    IncidentType, EndpointType, EscalationLevel
+from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType, \
+    IncidentType, EndpointType, EscalationLevel, ResponseTimeState
 
 
 def versions():
@@ -80,10 +80,11 @@ class SystemMonitor(BaseModel):
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
+    response_time_state = models.ForeignKey(ResponseTimeState, null = True)
     response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
-        return "%s %s %s" % (self.endpoint, self.system, self.state)
+        return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_state)
 
 
 class Recipient(BaseModel):

@@ -4,10 +4,9 @@ import logging
 import requests
 
 from core.backend.services import SystemMonitorService, EndpointService
-from base.backend.services import StateService
+from base.backend.services import StateService, ResponseTimeStateService
 
 lgr = logging.getLogger(__name__)
-
 
 class MonitorProcessor(object):
 	"""
@@ -29,15 +28,21 @@ class MonitorProcessor(object):
 					response_time = datetime.timedelta(seconds = health_state.elapsed.total_seconds()),
 					endpoint = endpoint, response = health_state.content, state = StateService().get(name = 'UP')
 				)
+				print 1234
+				print endpoint.optimal_response_time
 				if system_status is not None:
 					if health_state.status_code == 200:
 						system_status = system_status
 						if health_state.elapsed > endpoint.optimal_response_time:
-							SystemMonitorService().update(
-								system_status.id, state=StateService().get(name='Slow')
+							system_status = SystemMonitorService().update(
+								system_status.id, response_time_state=ResponseTimeStateService().get(name='Slow')
 							)
 							# to do an event log by calling its processor
-					return {"message": "unable to log  the system status", "code": 400}
+						else:
+							system_status = SystemMonitorService().update(
+								system_status.id, response_time_state = ResponseTimeStateService().get(name = 'Okay')
+							)
+					return {"message": "system status logged", "code": 200.001, 'system': system_status}
 				else:
 					system_status = SystemMonitorService().update(
 						system_status.id, state=StateService().get(name='Down')
@@ -46,7 +51,7 @@ class MonitorProcessor(object):
 					event = 'some event'
 					if system_status and event:
 						return {'system_status': system_status, 'event': event}
-					return {"message": "unable to log a the system status", "code": 400}
+					return {"message": "unable to log a the system status", "code": 200.002}
 
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
