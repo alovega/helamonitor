@@ -84,6 +84,7 @@ class LogTypeAdmin(admin.ModelAdmin):
     ordering = ('-date_created',)
     search_fields = ('name', 'description')
 
+
 @admin.register(ResponseTimeState)
 class ResponseTimeAdmin(admin.ModelAdmin):
     """

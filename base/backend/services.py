@@ -1,5 +1,5 @@
 from base.models import State, EndpointType, LogType, EventType, IncidentType,\
-                        NotificationType,EscalationLevel
+                        NotificationType,EscalationLevel, ResponseTimeState
 
 from servicebase import ServiceBase
 
@@ -51,3 +51,10 @@ class EscalationLevelService(ServiceBase):
     Service for EscalationLevel CRUD
     """
     manager = EscalationLevel.objects
+
+
+class ResponseTimeStateService(ServiceBase):
+    """
+    Service for ResponseTimeState CRUD
+    """
+    manager = ResponseTimeState.objects

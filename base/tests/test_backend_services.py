@@ -2,7 +2,7 @@ import pytest
 from mixer.backend.django import mixer
 
 from base.backend.services import StateService, LogTypeService, EventTypeService, \
-    NotificationTypeService, EscalationLevelService, IncidentTypeService
+	NotificationTypeService, EscalationLevelService, IncidentTypeService, ResponseTimeStateService
 
 pytestmark = pytest.mark.django_db
 
@@ -242,3 +242,43 @@ class TestNotificationTypeService(object):
         notification_type = mixer.blend('base.NotificationType')
         notification_type = NotificationTypeService().update(notification_type.id, name="SMS")
         assert notification_type.name == "SMS", 'Should have the same name'
+
+
+class TestResponseTimeStateService(object):
+    """
+    Test the NotificationType Model Services
+    """
+
+    def test_get(self):
+        """
+        Test NotificationType get service
+        """
+        state = mixer.blend('base.State')
+        mixer.blend('base.ResponseTimeState', name="SLOW", state=state)
+        response_time_state = ResponseTimeStateService().get(name="SLOW")
+        assert response_time_state is not None, 'Should have a ResponseTimeState object'
+
+    def test_filter(self):
+        """
+        Test NotificationType filter service
+        """
+        mixer.cycle(3).blend('base.ResponseTimeState')
+        response_time_state = ResponseTimeStateService().filter()
+        assert len(response_time_state) == 3, 'Should have 3 ResponseTimeState objects'
+
+    def test_create(self):
+        """
+        Test NotificationType create service
+        """
+        state = mixer.blend('base.State')
+        response_time_state = ResponseTimeStateService().create(name="OKAY", state=state)
+        assert response_time_state is not None, 'Should have a ResponseTimeState object'
+        assert response_time_state.name == "OKAY", "Created ResponseTimeState name should be equal to Active"
+
+    def test_update(self):
+        """
+        Test NotificationType update service
+        """
+        response_time_state = mixer.blend('base.ResponseTimeState')
+        response_time_state = ResponseTimeStateService().update(response_time_state.id, name="OKAY")
+        assert response_time_state.name == "OKAY", 'Should have the same name'
