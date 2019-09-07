@@ -80,6 +80,7 @@ class SystemMonitor(BaseModel):
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
+    response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
         return "%s %s %s" % (self.endpoint, self.system, self.state)
