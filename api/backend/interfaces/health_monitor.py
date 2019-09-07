@@ -18,19 +18,20 @@ class MonitorProcessor(object):
 		"""
 		@return: system status
 		"""
+		systems = {}
 		try:
 			for endpoint in EndpointService().filter(
 					system__state__name ="active", endpoint_type__is_queried = True, state__name='active'
 			):
-
 				health_state = requests.get(endpoint.endpoint)  # this stores the response of the  http request on url
-				if health_state.status_code == 200:
-					system_status = SystemMonitorService().create(
-						system=endpoint.system,
-						response_time= datetime.timedelta(seconds =health_state.elapsed.total_seconds()),
-						endpoint=endpoint, response= health_state.content, state=StateService().get(name='UP')
-						)
-					if system_status:
+				system_status = SystemMonitorService().create(
+					system = endpoint.system,
+					response_time = datetime.timedelta(seconds = health_state.elapsed.total_seconds()),
+					endpoint = endpoint, response = health_state.content, state = StateService().get(name = 'UP')
+				)
+				if system_status is not None:
+					if health_state.status_code == 200:
+						system_status = system_status
 						if health_state.elapsed > endpoint.optimal_response_time:
 							SystemMonitorService().update(
 								system_status.id, state=StateService().get(name='Slow')
@@ -38,9 +39,8 @@ class MonitorProcessor(object):
 							# to do an event log by calling its processor
 					return {"message": "unable to log  the system status", "code": 400}
 				else:
-					system_status = SystemMonitorService().create(
-						system = endpoint.system, response_time = None, endpoint = endpoint,
-						state = StateService().get(name = 'Down'), response= health_state
+					system_status = SystemMonitorService().update(
+						system_status.id, state=StateService().get(name='Down')
 					)
 					#  to do an event log by calling its processor
 					event = 'some event'

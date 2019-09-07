@@ -103,3 +103,13 @@ class LogType(GenericBaseModel):
 
     def __str__(self):
         return "%s" % self.name
+
+
+class ResponseTimeState(GenericBaseModel):
+    """
+    Types for response time e.g "Okay", "Slow"
+    """
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
