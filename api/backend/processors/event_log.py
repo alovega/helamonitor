@@ -6,7 +6,7 @@ import logging
 from datetime import timedelta
 
 from django.utils import timezone
-from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService, IncidentService
+from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
 from api.backend.processors.incident_log import IncidentLog
 
@@ -59,7 +59,7 @@ class EventLog(object):
 		"""
 		try:
 			matched_rules = EscalationRuleService().filter(
-				event_type=event.event_type, system=event.system).order_by("-nth_event")
+				event_type=event.event_type, system=event.system).order_by("-nth_event").first()
 			now = timezone.now()
 			# Filter out escalation rules for the system the event is reported from
 			for matched_rule in matched_rules:
@@ -67,19 +67,19 @@ class EventLog(object):
 					# Escalate if n events of the specified event type occur within the specified duration
 					escalated_events = EventService().filter(
 						event_type=event.event_type, date_created__range=(now - matched_rule.duration, now)
-					).order_by("-date_created")
+					)
 					if escalated_events.count() >= matched_rule.nth_event:
-						incident = IncidentLog().create_incident(
+						incident = IncidentLog.create_incident(
 							name = "%s event" % event.event_type.name, incident_type = "realtime",
 							system = event.system.name, state = "Investigating", priority_level = 1,
 							escalation_level = matched_rule.escalation_level, escalated_events = escalated_events,
 							description = "%s %s events occurred in %s between %s and %s" % (
-								matched_rule.nth_event, event.event_type, matched_rule.system,
+								matched_rule.nth_event, event.event_type,matched_rule.system,
 								now - matched_rule.duration, now)
 						)
-						if incident:
-							return {"code": "400.200.001"}
-						return {"code": "200.400.002"}
+						if incident.get("code") != "400.200.001":  # General success code
+							return incident
+						return {"code": "400.200.001"}
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
 		return {"code": "300.400.001"}
