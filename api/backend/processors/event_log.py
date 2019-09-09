@@ -45,55 +45,38 @@ class EventLog(object):
 			raise ValueError("Reported Event could not be logged")
 		except Exception as ex:
 			lgr.exception('Event processor exception %s' % ex)
-		raise Exception("LogEventException")
+		return None
 
 	@staticmethod
 	def escalate_event(event):
 		"""
 		Checks registered escalation rules to determine if an escalation is needed for an event.
 		@param event: the logged event
-		@return: incident_data: Data needed for creation of an incident based on the escalation_rules and event(s)
-		@rtype: dict
+		@return: incident | None: Returns a created incident based on the matched rules
+		@rtype: Incident | None
 		"""
 		try:
-			matched_rules = EscalationRuleService().filter(event_type=event.event_type, system=event.system)
+			matched_rules = EscalationRuleService().filter(
+				event_type=event.event_type, system=event.system).order_by("-nth_event")
+			now = timezone.now()
 			# Filter out escalation rules for the system the event is reported from
 			for matched_rule in matched_rules:
 				if matched_rule.duration > timedelta(seconds=1) and matched_rule.nth_event > 0:
-					if matched_rule.nth_event == 1:
-						# Escalates each event occurrence
-						escalated_event = EventService().filter(
-							event_type=event.event_type, date_created__range=(
-								timezone.now() - matched_rule.duration, timezone.now())
-						).order_by("-date_created").first()
-						if escalated_event is not None:
-							incident_data = {
-								"name": "%s event" % event.event_type.name, "incident_type": "realtime", "system":
-								event.system.name, "state": "Investigating", "priority_level": 1, "escalation_level":
-								matched_rule.escalation_level, "escalated_events": escalated_event,
-								"description": "%s %s events occurred in %s between %s and %s" % (
-									matched_rule.nth_event, event.event_type, matched_rule.system,
-									timezone.now()-matched_rule.duration, timezone.now())
-								}  # Data to be used during incident creation and escalating to configured users
-							return incident_data
-						raise ValueError("Event could not be escalated. Invalid event reported")
-					else:
-						# Escalate if n events of the specified event type occur within the specified duration
-						escalated_events = EventService().filter(
-							event_type=event.event_type, date_created__range=(
-								timezone.now() - matched_rule.duration, timezone.now())).order_by("-date_created")
+					# Escalate if n events of the specified event type occur within the specified duration
+					escalated_events = EventService().filter(
+						event_type=event.event_type, date_created__range=(now - matched_rule.duration, now)
+					).order_by("-date_created")
 
-						if escalated_events.count() == matched_rule.nth_event:
-							incident_data = {
-								"name": "%s event" % event.event_type.name, "incident_type": "realtime",
-								"system": event.system.name, "state": "Investigating", "priority_level": 1,
-								"escalation_level": matched_rule.escalation_level, "escalated_events": escalated_events,
-								"description": "%s %s events occurred in %s between %s and %s" % (
-									matched_rule.nth_event, event.event_type, matched_rule.system,
-									timezone.now()-matched_rule.duration, timezone.now()),
-							}  # Data to be used during incident creation and escalating to configured users
-							return incident_data
-				return None
+					if escalated_events.count() >= matched_rule.nth_event:
+						incident_data = {
+							"name": "%s event" % event.event_type.name, "incident_type": "realtime",
+							"system": event.system.name, "state": "Investigating", "priority_level": 1,
+							"escalation_level": matched_rule.escalation_level, "escalated_events": escalated_events,
+							"description": "%s %s events occurred in %s between %s and %s" % (
+								matched_rule.nth_event, event.event_type, matched_rule.system,
+								now-matched_rule.duration, now)
+						}  # Data to be used during incident creation and escalating to configured users
+						return incident_data
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
-		raise Exception("EscalationRulesCheckException")
+		return None
