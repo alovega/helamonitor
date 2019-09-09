@@ -6,7 +6,7 @@ import logging
 from datetime import timedelta
 
 from django.utils import timezone
-from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
+from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService, IncidentService
 from base.backend.services import EventTypeService, StateService
 
 lgr = logging.getLogger(__name__)
@@ -31,10 +31,10 @@ class EventLog(object):
 			system = SystemService().get(name=system, state__name="Active")
 			event_type = EventTypeService().get(name=event_type, state__name="Active")
 			if system is None or event_type is None:
-				raise ValueError("Invalid System or EventType")
+				return {"code": "200.400.001"}
 			event = EventService().create(
 				event_type=event_type, system=system, interface=InterfaceService().get(
-					name=kwargs.get("Interface", None), state__name="Active", system=system), state=StateService().get(
+					name=kwargs.get("interface", None), state__name="Active", system=system), state=StateService().get(
 					name="Active"), method=kwargs.get('method', None), response=kwargs.get('response', None),
 				request=kwargs.get('request', None), code=kwargs.get('code', None), description=kwargs.get(
 					'description', None)
@@ -42,10 +42,10 @@ class EventLog(object):
 
 			if event is not None:
 				return EventLog().escalate_event(event)
-			raise ValueError("Reported Event could not be logged")
+			return {"code": "200.400.001"}
 		except Exception as ex:
 			lgr.exception('Event processor exception %s' % ex)
-		return None
+		return {"code": "200.400.001"}
 
 	@staticmethod
 	def escalate_event(event):
@@ -59,7 +59,6 @@ class EventLog(object):
 			matched_rules = EscalationRuleService().filter(
 				event_type=event.event_type, system=event.system).order_by("-nth_event")
 			now = timezone.now()
-			return "FUN"
 			# Filter out escalation rules for the system the event is reported from
 			for matched_rule in matched_rules:
 				if matched_rule.duration > timedelta(seconds=1) and matched_rule.nth_event > 0:
@@ -69,15 +68,15 @@ class EventLog(object):
 					).order_by("-date_created")
 
 					if escalated_events.count() >= matched_rule.nth_event:
-						incident_data = {
-							"name": "%s event" % event.event_type.name, "incident_type": "realtime",
-							"system": event.system.name, "state": "Investigating", "priority_level": 1,
-							"escalation_level": matched_rule.escalation_level, "escalated_events": escalated_events,
-							"description": "%s %s events occurred in %s between %s and %s" % (
+						incident = IncidentService().create(
+							name="%s event" % event.event_type.name, incident_type="realtime",
+							system=event.system.name, state="Investigating", priority_level=1,
+							escalation_level=matched_rule.escalation_level, escalated_events=escalated_events,
+							description= "%s %s events occurred in %s between %s and %s" % (
 								matched_rule.nth_event, event.event_type, matched_rule.system,
-								now-matched_rule.duration, now)
-						}  # Data to be used during incident creation and escalating to configured users
-						return incident_data
+								now - matched_rule.duration, now)
+						)
+						return incident
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
-		return None
+		return {"code": "300.400.001"}
