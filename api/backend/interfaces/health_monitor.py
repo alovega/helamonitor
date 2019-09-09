@@ -21,13 +21,13 @@ class MonitorProcessor(object):
 		systems_status = {}
 		try:
 			for endpoint in EndpointService().filter(
-					system__state__name ="active", endpoint_type__is_queried = True, state__name='active'
+					system__state__name ="Active", endpoint_type__is_queried = True, state__name='Active'
 			):
 				health_state = requests.get(endpoint.endpoint)  # this stores the response of the  http request on url
 				system_status = SystemMonitorService().create(
 					system = endpoint.system,
 					response_time = datetime.timedelta(seconds = health_state.elapsed.total_seconds()),
-					endpoint = endpoint, response = health_state.content, state = StateService().get(name = 'UP')
+					endpoint = endpoint, response = health_state.content, state = StateService().get(name = 'Active')
 				)
 				if system_status is not None:
 					if health_state.status_code == 200:
@@ -49,11 +49,10 @@ class MonitorProcessor(object):
 						system_status = SystemMonitorService().update(
 							system_status.id, state=StateService().get(name='Down')
 						)
-					#  to do an event log by calling its processor
+						#  to do an event log by calling its processor
 						event = 'some event'
-						if system_status and event:
-							return {'system_status': system_status, 'event': event}
-						return {"code": "200.400.002", }
+						if system_status is not None and event is not None:
+							systems_status[system_status.system.name] = system_status
 			return {"systems": systems_status}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)

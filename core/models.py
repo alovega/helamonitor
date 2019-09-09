@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
 from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType, \
-    IncidentType, EndpointType, EscalationLevel, ResponseTimeState
+    IncidentType, EndpointType, EscalationLevel
 
 
 def versions():
@@ -17,7 +17,17 @@ def versions():
     :return: version choices
     @retype tuple
     """
-    return ('1', '1.0.0'),
+    return ('1', '1.0.0'), ('2', '1.0.1')
+
+
+def response_time_state():
+    """
+    returns a collection of response time state to chose from
+    @return: response_time states
+    @retype tuple
+    """
+
+    return ('Slow', 'Slow'), ('Okay', 'Okay')
 
 
 class System(GenericBaseModel):
@@ -25,7 +35,7 @@ class System(GenericBaseModel):
     model for managing defined system
     """
     code = models.CharField(max_length = 100, unique=True, db_index=True)
-    version = models.CharField(max_length = 5, choices=versions(), default='1')
+    version = models.CharField(max_length = 5, choices=versions(), default='0, 1')
     admin = models.ForeignKey(User)
     state = models.ForeignKey(State)
 
@@ -80,7 +90,7 @@ class SystemMonitor(BaseModel):
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
-    response_time_state = models.ForeignKey(ResponseTimeState, null = True)
+    response_time_state = models.CharField(max_length = 20, choices=response_time_state(), default='Okay')
     response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
