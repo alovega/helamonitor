@@ -6,12 +6,12 @@ Tests for event_creation process
 import pytest
 from datetime import timedelta
 from mixer.backend.django import mixer
-from api.backend.event_processor import EventProcessor
+from api.backend.processors.event_log import EventLog
 
 pytestmark = pytest.mark.django_db
 
 
-class TestEventLogger(object):
+class TestEventLog(object):
     """
     Class to test event creator
     """
@@ -19,20 +19,19 @@ class TestEventLogger(object):
         """
         Tests create event method
         """
-        system = mixer.blend('core.System')
-        interface = mixer.blend('core.Interface', system=system)
-        event_type = mixer.blend('base.EventType')
-        state = mixer.blend('base.State')
+        state = mixer.blend('base.State', name="Active")
+        system = mixer.blend('core.System', state=state)
+        interface = mixer.blend('core.Interface', system=system, state=state)
+        event_type = mixer.blend('base.EventType', state=state)
         escalation_rule = mixer.blend(
-            "core.EscalationRule", system=system, event_type=event_type, nth_event=1, duration=timedelta(seconds=5)
+            "core.EscalationRule", system=system, event_type=event_type, nth_event=1, duration=timedelta(seconds=5),
+            state=state
         )
         event_fields = {
             "description": "Test Event description",
             "interface": interface.name,
-            "system": system.name,
-            "event_type": event_type.name,
             "state": state.name,
             "code": "12345",
         }
-        event_log = EventProcessor().log_event(**event_fields)
+        event_log = EventLog().log_event(event_type.name, system.name, **event_fields)
         assert event_log is not None, "Should create an event and return incident_data %s" % event_log

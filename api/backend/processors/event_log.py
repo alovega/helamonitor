@@ -28,13 +28,13 @@ class EventLog(object):
 		@rtype: EventLog
 		"""
 		try:
-			system = SystemService().get(name=system, state="Active")
-			event_type = EventTypeService().get(name=event_type, state="Active")
+			system = SystemService().get(name=system, state__name="Active")
+			event_type = EventTypeService().get(name=event_type, state__name="Active")
 			if system is None or event_type is None:
 				raise ValueError("Invalid System or EventType")
 			event = EventService().create(
 				event_type=event_type, system=system, interface=InterfaceService().get(
-					name=kwargs.get("Interface", None), state="Active", system=system), state=StateService().get(
+					name=kwargs.get("Interface", None), state__name="Active", system=system), state=StateService().get(
 					name="Active"), method=kwargs.get('method', None), response=kwargs.get('response', None),
 				request=kwargs.get('request', None), code=kwargs.get('code', None), description=kwargs.get(
 					'description', None)
@@ -59,6 +59,7 @@ class EventLog(object):
 			matched_rules = EscalationRuleService().filter(
 				event_type=event.event_type, system=event.system).order_by("-nth_event")
 			now = timezone.now()
+			return "FUN"
 			# Filter out escalation rules for the system the event is reported from
 			for matched_rule in matched_rules:
 				if matched_rule.duration > timedelta(seconds=1) and matched_rule.nth_event > 0:
