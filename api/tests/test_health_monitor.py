@@ -21,17 +21,15 @@ class TestMonitorProcessor(object):
 			'core.System', name ='Github', description='A system for saving code', code=1234, state=state
 		)
 		state = mixer.blend('base.State', name = 'Down')
-		response_time_state = mixer.blend('base.ResponseTimeState', name = 'Slow')
-		response_time_state = mixer.blend('base.ResponseTimeState', name = 'Okay')
 		endpoint_type = mixer.blend('base.EndpointType', is_queried = True)
 		endpoint = mixer.blend(
 			'core.Endpoint', endpoint="http://127.0.0.1:8000/a", system=system, endpoint_type=endpoint_type,
-			optimal_response_time = datetime.timedelta(seconds = 5), state = system.state
+			optimal_response_time = datetime.timedelta(milliseconds = 5), state = system.state
 		)
 
 		monitor_manager = MonitorProcessor().perform_health_check()
 		print (monitor_manager)
-		assert monitor_manager['systems'] is None, "Should log systems statuses %s " % monitor_manager
+		assert monitor_manager is not None, "Should log systems statuses %s " % monitor_manager
 
 	# def test_create_event_if_status_fail(self):
 	# 	"""

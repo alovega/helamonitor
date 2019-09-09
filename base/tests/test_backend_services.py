@@ -1,8 +1,8 @@
 import pytest
 from mixer.backend.django import mixer
 
-from base.backend.services import StateService, LogTypeService, EventTypeService, \
-	NotificationTypeService, EscalationLevelService, IncidentTypeService, ResponseTimeStateService
+from base.backend.services import StateService, LogTypeService, EventTypeService, NotificationTypeService, \
+    EscalationLevelService, IncidentTypeService
 
 pytestmark = pytest.mark.django_db
 

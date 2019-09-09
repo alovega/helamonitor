@@ -20,14 +20,14 @@ def versions():
     return ('1', '1.0.0'), ('2', '1.0.1')
 
 
-def response_time_state():
+def response_time_speed():
     """
     returns a collection of response time state to chose from
     @return: response_time states
     @retype tuple
     """
 
-    return ('Slow', 'Slow'), ('Okay', 'Okay')
+    return ('Slow', 'Slow'), ('Okay', 'Normal'), ('Extra Slow', 'Extremely slow')
 
 
 class System(GenericBaseModel):
@@ -90,7 +90,7 @@ class SystemMonitor(BaseModel):
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
-    response_time_state = models.CharField(max_length = 20, choices=response_time_state(), default='Okay')
+    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Okay', null = True)
     response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
