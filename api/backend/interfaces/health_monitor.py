@@ -64,10 +64,10 @@ class MonitorProcessor(object):
 					systems_status.append({"system": system_status.system.name, "status": system_status.state.name})
 				else:
 					return {"code": "200.400.004"}
-			return {"code": "400.200.001", "systems": systems_status}
+			return {"code": "400.200.001", "data": systems_status}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
-		return {"code": "400.400.001", "message": "Error while logging"}
+		return {"code": "400.400.001", "data": "Error while logging system status"}
 
 	def generate_status_report(self):
 		pass
