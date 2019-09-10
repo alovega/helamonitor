@@ -20,14 +20,29 @@ class EventLog(object):
 	"""
 
 	@staticmethod
-	def log_event(event_type, system, **kwargs):
+	def log_event(event_type, system, interface=None, method='', response='', request='',
+															code='', description='', **kwargs):
 		"""
-		Method that formats event data and logs the event
+		Method that creates an event
 		@param event_type: type of the reported event
-		@param system: the system which reported the event
-		@param kwargs: extra fields in the event e.g. request, response and description
-		@return: EventLog | None:
-		@rtype: EventLog
+		@type event_type: str
+		@param system: the system reporting the event
+		@type system: str
+		@param interface: the interface where the event occurred in
+		@type interface: str
+		@param method: Specific method within the interface where the event occurred
+		@type method: str
+		@param response: response body from the event
+		@type response: str
+		@param request: request body of the event
+		@type request: str
+		@param code: response code of the event
+		@type code: str
+		@param description: Detailed information on the event
+		@type description: str
+		@param kwargs: extra fields in the event
+		@return: response code:
+		@rtype: dict
 		"""
 		try:
 			system = SystemService().get(name=system, state__name="Active")
@@ -35,49 +50,50 @@ class EventLog(object):
 			if system is None or event_type is None:
 				return {"code": "400.400.002"}
 			event = EventService().create(
-				event_type=event_type, system=system, interface=InterfaceService().get(
-					name=kwargs.get("interface", None), state__name="Active", system=system),
-				state=StateService().get(name="Active"), method=kwargs.get('method', None),
-				response=kwargs.get('response', None), request=kwargs.get('request', None),
-				code=kwargs.get('code', None), description=kwargs.get('description', None)
+				event_type=event_type, system=system, method=method, response=response, request=request, code=code,
+				interface=InterfaceService().get(name=interface, state__name="Active", system=system),
+				description=description, state=StateService().get(name="Active"),
 			)
 			if event is not None:
-				return EventLog().escalate_event(event)
-			return {"code": "200.400.001"}
+				escalation = EventLog().escalate_event(event)
+				if escalation.get('code') == '800.200.001':
+					lgr.warning('%s event escalation Failed' % event_type)
+				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception('Event processor exception %s' % ex)
-		return {"code": "200.400.001"}
+		return {"code": "800.400.001"}
 
 	@staticmethod
 	def escalate_event(event):
 		"""
 		Checks registered escalation rules to determine if an escalation is needed for an event.
 		@param event: the logged event
-		@return: incident | None: Returns a created incident based on the matched rules
-		@rtype: Incident | None
+		@type event: Event
+		@return: response code
+		@rtype: dict
 		"""
 		try:
 			matched_rules = EscalationRuleService().filter(
 				event_type=event.event_type, system=event.system).order_by("-nth_event")
 			now = timezone.now()
-			# Filter out escalation rules for the system the event is reported from
 			for matched_rule in matched_rules:
 				if matched_rule.duration > timedelta(seconds=1) and matched_rule.nth_event > 0:
-					# Escalate if n events of the specified event type occur within the specified duration
 					escalated_events = EventService().filter(
 						event_type=event.event_type, date_created__range=(now - matched_rule.duration, now)
 					)
 					if escalated_events.count() >= matched_rule.nth_event:
-						incident = IncidentLogger.create_incident(
-							name = "%s event" % event.event_type.name, incident_type = "realtime",
-							system = event.system.name, state = "Investigating", priority_level = 1,
-							escalation_level = matched_rule.escalation_level, escalated_events = escalated_events,
+						incident = IncidentLogger().log_incident(
+							name = "%s event" % event.event_type.name, incident_type = "Realtime",
+							system = event.system.name, state = "Investigating", escalated_events = escalated_events,
+							escalation_level = matched_rule.escalation_level, event_type=event.event_type.name,
 							description = "%s %s events occurred in %s between %s and %s" % (
-								matched_rule.nth_event, event.event_type,matched_rule.system,
+								matched_rule.nth_event, event.event_type, matched_rule.system,
 								now - matched_rule.duration, now)
 						)
-						return incident
-			return {"code": "400.200.001"}
+						if incident.get('code') != '800.200.001':
+							lgr.warning('Incident creation for %s event failed' % event.event_type.name)
+						return {'code': '800.200.001'}
+			return {"code": "800.200.001"}
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
-		return {"code": "300.400.001"}
+		return {"code": "800.400.001"}

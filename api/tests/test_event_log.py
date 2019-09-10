@@ -4,7 +4,6 @@ Tests for event_creation process
 """
 
 import pytest
-from datetime import timedelta
 from mixer.backend.django import mixer
 from api.backend.processors.event_log import EventLog
 
@@ -23,12 +22,11 @@ class TestEventLog(object):
         system = mixer.blend('core.System', state=state)
         interface = mixer.blend('core.Interface', system=system, state=state)
         event_type = mixer.blend('base.EventType', state=state)
-
         event = EventLog.log_event(
             system=system.name, event_type=event_type.name, description = "Test Event description",
             interface = interface.name, state = state.name, code = "12345"
         )
-        assert event == {'code': '400.200.001'}, "Should create an event successfully"
+        assert event.get('code') == '800.200.001', "Should create an event successfully"
 
     def test_escalate_event(self):
         """
@@ -38,15 +36,16 @@ class TestEventLog(object):
         system = mixer.blend('core.System', state=state)
         interface = mixer.blend('core.Interface', system=system, state=state)
         event_type = mixer.blend('base.EventType', state=state)
-        incident_type = mixer.blend("base.IncidentType", state=state, name="realtime")
-        escalation_rule = mixer.blend(
-            "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
-            duration = timedelta(seconds=5),
-            state = state
+        # incident_type = mixer.blend("base.IncidentType", state=state, name="realtime")
+        event = mixer.blend(
+            'core.Event', event_type=event_type, system=system, interface=interface, state=state,
+            description='Test Event description', code='12345'
         )
+        # escalation_rule = mixer.blend(
+        #     "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
+        #     duration = timedelta(seconds=5),
+        #     state = state
+        # )
 
-        event_escalation = EventLog.log_event(
-            event_type.name, system.name, description = "Test Event description",
-            interface = interface.name, state = state.name, code = "12345"
-        )
-        assert event_escalation != {'code': '300.400.001'}, "Should check escalate event successfully"
+        event_escalation = EventLog().escalate_event(event)
+        assert event_escalation.get('code') == '800.200.001', "Should escalate event successfully"
