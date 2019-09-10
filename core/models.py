@@ -27,7 +27,7 @@ def response_time_speed():
     @retype tuple
     """
 
-    return ('Slow', 'Slow'), ('Okay', 'Normal'), ('Extra Slow', 'Extremely slow')
+    return ('Slow', 'Slow'), ('Okay', 'Normal'),
 
 
 class System(GenericBaseModel):
@@ -94,7 +94,7 @@ class SystemMonitor(BaseModel):
     response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
-        return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_state)
+        return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_speed)
 
 
 class Recipient(BaseModel):

@@ -20,7 +20,7 @@ class MonitorProcessor(object):
 		"""
 		@return: system status
 		"""
-		systems_status = {}
+		systems_status = []
 		try:
 			for endpoint in EndpointService().filter(
 					system__state__name ="Active", endpoint_type__is_queried = True, state__name='Active'
@@ -32,18 +32,10 @@ class MonitorProcessor(object):
 					"endpoint": endpoint, "response": health_state.content, "state": StateService().get(name='Active')
 				}
 				if health_state.status_code == 200:
-					if (health_state.elapsed > endpoint.optimal_response_time) and (
-							health_state.elapsed < datetime.timedelta(seconds=2)):
+					if health_state.elapsed > endpoint.optimal_response_time:
 						status_data.update({
 							"response_time_speed": 'Slow', "event_type": EventTypeService().get(name='Debug'),
 							"description": 'Response time is not within the expected time'
-						})
-					elif (health_state.elapsed > endpoint.optimal_response_time) and (
-							health_state.elapsed > datetime.timedelta(seconds=2)):
-						status_data.update({
-							"response_time_speed": 'Extremely Slow',
-							"event_type": EventTypeService().get(name = 'Warning'),
-							"description": 'The system response is extremely'
 						})
 					else:
 						status_data.update({
@@ -69,13 +61,13 @@ class MonitorProcessor(object):
 				# 		request= health_state.request
 				# 	)
 				if system_status is not None:  # and event is not None:
-					systems_status.update({"system": system_status.system.name, "status": system_status.state.name})
+					systems_status.append({"system": system_status.system.name, "status": system_status.state.name})
 				else:
 					return {"code": "200.400.004"}
-			return {"systems": systems_status}
+			return {"code": "400.200.001", "systems": systems_status}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
-			return {"message": "Error while logging"}
+		return {"code": "400.400.001", "message": "Error while logging"}
 
 	def generate_status_report(self):
 		pass
