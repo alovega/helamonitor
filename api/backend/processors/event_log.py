@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
-from api.backend.processors.incident_log import IncidentLog
+from api.backend.processors.incident_log import IncidentLogger
 
 
 lgr = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class EventLog(object):
 			system = SystemService().get(name=system, state__name="Active")
 			event_type = EventTypeService().get(name=event_type, state__name="Active")
 			if system is None or event_type is None:
-				return {"code": "200.400.001"}
+				return {"code": "400.400.002"}
 			event = EventService().create(
 				event_type=event_type, system=system, interface=InterfaceService().get(
 					name=kwargs.get("interface", None), state__name="Active", system=system),
@@ -41,7 +41,6 @@ class EventLog(object):
 				response=kwargs.get('response', None), request=kwargs.get('request', None),
 				code=kwargs.get('code', None), description=kwargs.get('description', None)
 			)
-
 			if event is not None:
 				return EventLog().escalate_event(event)
 			return {"code": "200.400.001"}
@@ -59,7 +58,7 @@ class EventLog(object):
 		"""
 		try:
 			matched_rules = EscalationRuleService().filter(
-				event_type=event.event_type, system=event.system).order_by("-nth_event").first()
+				event_type=event.event_type, system=event.system).order_by("-nth_event")
 			now = timezone.now()
 			# Filter out escalation rules for the system the event is reported from
 			for matched_rule in matched_rules:
@@ -69,7 +68,7 @@ class EventLog(object):
 						event_type=event.event_type, date_created__range=(now - matched_rule.duration, now)
 					)
 					if escalated_events.count() >= matched_rule.nth_event:
-						incident = IncidentLog.create_incident(
+						incident = IncidentLogger.create_incident(
 							name = "%s event" % event.event_type.name, incident_type = "realtime",
 							system = event.system.name, state = "Investigating", priority_level = 1,
 							escalation_level = matched_rule.escalation_level, escalated_events = escalated_events,
@@ -77,9 +76,8 @@ class EventLog(object):
 								matched_rule.nth_event, event.event_type,matched_rule.system,
 								now - matched_rule.duration, now)
 						)
-						if incident.get("code") != "400.200.001":  # General success code
-							return incident
-						return {"code": "400.200.001"}
+						return incident
+				return {"code": "400.200.001"}
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
 		return {"code": "300.400.001"}
