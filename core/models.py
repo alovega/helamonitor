@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
-from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType, \
+from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType,\
     IncidentType, EndpointType, EscalationLevel
 
 
@@ -17,25 +17,15 @@ def versions():
     :return: version choices
     @retype tuple
     """
-    return ('1', '1.0.0'), ('2', '1.0.1')
-
-
-def response_time_speed():
-    """
-    returns a collection of response time state to chose from
-    @return: response_time states
-    @retype tuple
-    """
-
-    return ('Slow', 'Slow'), ('Normal', 'Normal'),
+    return ('1', '1.0.0'),
 
 
 class System(GenericBaseModel):
     """
-    model for managing defined system
+    Model for managing defined system
     """
     code = models.CharField(max_length = 100, unique=True, db_index=True)
-    version = models.CharField(max_length = 5, choices=versions(), default='0, 1')
+    version = models.CharField(max_length = 5, choices=versions(), default='1')
     admin = models.ForeignKey(User)
     state = models.ForeignKey(State)
 
@@ -45,7 +35,7 @@ class System(GenericBaseModel):
 
 class Interface(GenericBaseModel):
     """
-    model for managing defined system interface
+    Model for managing defined system interfaces
     """
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -56,7 +46,7 @@ class Interface(GenericBaseModel):
 
 class Endpoint(GenericBaseModel):
     """
-    Model for managing a system endpoint
+    Model for managing endpoint of a system
     """
     endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
@@ -70,7 +60,7 @@ class Endpoint(GenericBaseModel):
 
 class SystemCredential(BaseModel):
     """
-    model for managing credentials for system users
+    Model for managing credentials for system users
     """
     username = models.CharField(max_length=100, help_text='Similar to a client_ID')
     password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
@@ -87,23 +77,20 @@ class SystemCredential(BaseModel):
 
 class SystemMonitor(BaseModel):
     """
-    model for managing monitoring of a system
+    Model for managing monitoring of a system
     """
-    response_time = models.DurationField(default=timedelta(), null = True, blank = True)
+    response_time = models.DurationField(default=timedelta(), null=True, blank=True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
-    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Normal',
-                                           null = True, blank = True)
-    response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
-        return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_speed)
+        return "%s %s %s" % (self.endpoint, self.system, self.state)
 
 
 class Recipient(BaseModel):
     """
-    model for managing the recipient of a system
+    Model for managing the recipient of a system
     """
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -117,7 +104,7 @@ class Recipient(BaseModel):
 
 class SystemRecipient(BaseModel):
     """
-    model for managing recipient and a system
+    Model for managing recipient and a system
     """
     recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
@@ -132,16 +119,17 @@ class Event(BaseModel):
     """
     Model for managing events
     """
-    description = models.CharField(max_length=100, help_text="Informative description of the event")
-    interface = models.ForeignKey(Interface)
+    description = models.CharField(max_length=100, help_text="Informative description of the event", null=True,
+                                   blank=True)
+    interface = models.ForeignKey(Interface, null=True, blank=True)
     system = models.ForeignKey(System)
     event_type = models.ForeignKey(EventType)
     state = models.ForeignKey(State)
     method = models.CharField(max_length=100, null=True, help_text="Method where the error is origination from")
-    response = models.TextField(max_length=255, null=True)
-    request = models.TextField(max_length=255, null=True)
-    code = models.CharField(max_length=100)
-    response_time = models.DurationField(default=timedelta(), null = True)
+    response = models.TextField(max_length=255, null=True, blank=True)
+    request = models.TextField(max_length=255, null=True, blank=True)
+    code = models.CharField(max_length=100, null=True, blank=True)
+    response_time = models.DurationField(default=timedelta(), null=True, blank=True)
 
     def __str__(self):
         return "%s %s %s" % (
@@ -155,7 +143,8 @@ class EscalationRule(GenericBaseModel):
     """
     nth_event = models.IntegerField(default=1, help_text="Limit of n events to satisfy this rule")
     duration = models.DurationField(
-        null=True, help_text="Time period within which the nth occurrence of an event type will be escalated"
+        help_text="Time period within which the nth occurrence of an event type will be escalated", null=True,
+        blank = True
     )
     event_type = models.ForeignKey(EventType)
     escalation_level = models.ForeignKey(EscalationLevel)
@@ -198,12 +187,12 @@ class IncidentLog(BaseModel):
     description = models.TextField(max_length=255, blank=True, null=True)
     incident = models.ForeignKey(Incident)
     log_type = models.ForeignKey(LogType, null = True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, blank=True)
     state = models.ForeignKey(State)
 
     def __str__(self):
         return "%s %s %s" % (
-            self.description, self.incident, self.user
+            self.state, self.incident, self.user
         )
 
 
