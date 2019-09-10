@@ -84,7 +84,7 @@ class SystemCredential(BaseModel):
 
 class SystemMonitor(BaseModel):
     """
-    model for managing monitoring for my added system
+    model for managing monitoring of a system
     """
     response_time = models.DurationField(default=timedelta(), null = True, blank = True)
     endpoint = models.ForeignKey(Endpoint)
