@@ -86,11 +86,12 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
-    response_time = models.DurationField(default=timedelta(), null = True)
+    response_time = models.DurationField(default=timedelta(), null = True, blank = True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
-    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Okay', null = True)
+    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Okay',
+                                           null = True, blank = True)
     response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
