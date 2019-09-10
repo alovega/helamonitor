@@ -45,7 +45,7 @@ class System(GenericBaseModel):
 
 class Interface(GenericBaseModel):
     """
-    model for managing defined system interfaces
+    model for managing defined system interface
     """
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -55,6 +55,9 @@ class Interface(GenericBaseModel):
 
 
 class Endpoint(GenericBaseModel):
+    """
+    Model for managing a system endpoint
+    """
     endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
     optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
@@ -100,7 +103,7 @@ class SystemMonitor(BaseModel):
 
 class Recipient(BaseModel):
     """
-    models for managing the recipient of a system
+    model for managing the recipient of a system
     """
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -114,7 +117,7 @@ class Recipient(BaseModel):
 
 class SystemRecipient(BaseModel):
     """
-    models for managing recipient and a system
+    model for managing recipient and a system
     """
     recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
