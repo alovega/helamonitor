@@ -27,7 +27,7 @@ def response_time_speed():
     @retype tuple
     """
 
-    return ('Slow', 'Slow'), ('Okay', 'Normal'),
+    return ('Slow', 'Slow'), ('Normal', 'Normal'),
 
 
 class System(GenericBaseModel):
