@@ -76,7 +76,7 @@ class SystemMonitor(BaseModel):
     """
     model for managing monitoring for my added system
     """
-    response_time = models.DurationField(default=timedelta(), null = True)
+    response_time = models.DurationField(default=timedelta(), null=True, blank=True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -116,16 +116,17 @@ class Event(BaseModel):
     """
     Model for managing events
     """
-    description = models.CharField(max_length=100, help_text="Informative description of the event")
-    interface = models.ForeignKey(Interface)
+    description = models.CharField(max_length=100, help_text="Informative description of the event", null=True,
+                                   blank=True)
+    interface = models.ForeignKey(Interface, null=True, blank=True)
     system = models.ForeignKey(System)
     event_type = models.ForeignKey(EventType)
     state = models.ForeignKey(State)
     method = models.CharField(max_length=100, null=True, help_text="Method where the error is origination from")
-    response = models.TextField(max_length=255, null=True)
-    request = models.TextField(max_length=255, null=True)
-    code = models.CharField(max_length=100)
-    response_time = models.DurationField(default=timedelta(), null = True)
+    response = models.TextField(max_length=255, null=True, blank=True)
+    request = models.TextField(max_length=255, null=True, blank=True)
+    code = models.CharField(max_length=100, null=True, blank=True)
+    response_time = models.DurationField(default=timedelta(), null=True, blank=True)
 
     def __str__(self):
         return "%s %s %s" % (
@@ -139,7 +140,8 @@ class EscalationRule(GenericBaseModel):
     """
     nth_event = models.IntegerField(default=1, help_text="Limit of n events to satisfy this rule")
     duration = models.DurationField(
-        null=True, help_text="Time period within which the nth occurrence of an event type will be escalated"
+        help_text="Time period within which the nth occurrence of an event type will be escalated", null=True,
+        blank = True
     )
     event_type = models.ForeignKey(EventType)
     escalation_level = models.ForeignKey(EscalationLevel)
@@ -182,12 +184,12 @@ class IncidentLog(BaseModel):
     description = models.TextField(max_length=255, blank=True, null=True)
     incident = models.ForeignKey(Incident)
     log_type = models.ForeignKey(LogType, null = True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, blank=True)
     state = models.ForeignKey(State)
 
     def __str__(self):
         return "%s %s %s" % (
-            self.description, self.incident, self.user
+            self.state, self.incident, self.user
         )
 
 
