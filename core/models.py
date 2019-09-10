@@ -90,7 +90,7 @@ class SystemMonitor(BaseModel):
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
-    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Okay',
+    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Normal',
                                            null = True, blank = True)
     response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
