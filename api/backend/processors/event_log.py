@@ -77,7 +77,7 @@ class EventLog(object):
 								now - matched_rule.duration, now)
 						)
 						return incident
-				return {"code": "400.200.001"}
+			return {"code": "400.200.001"}
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
 		return {"code": "300.400.001"}
