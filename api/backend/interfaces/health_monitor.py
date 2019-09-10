@@ -18,9 +18,11 @@ class MonitorProcessor(object):
 	@staticmethod
 	def perform_health_check():
 		"""
-		@return: system status
+		Method that formats system status data and logs system status
+		@return: systems
+		@rtype: list
 		"""
-		systems_status = []
+		systems = []
 		try:
 			for endpoint in EndpointService().filter(
 					system__state__name ="Active", endpoint_type__is_queried = True, state__name='Active'
@@ -45,10 +47,9 @@ class MonitorProcessor(object):
 					status_data.update({
 						"response_time_speed": None,
 						"event_type": EventTypeService().get(name='Critical'),
-						"description": 'The system response is extremely',
+						"description": 'The system is not accessible',
 						"state": StateService().get(name='Down')
 					})
-					#  to do an event log by calling its processor
 				system_status = SystemMonitorService().create(
 					system=status_data.get("system"), response_time=status_data.get("response_time"),
 					response_time_speed = status_data.get("response_time_speed"), response=status_data.get(
@@ -61,13 +62,11 @@ class MonitorProcessor(object):
 				# 		request= health_state.request
 				# 	)
 				if system_status is not None:  # and event is not None:
-					systems_status.append({"system": system_status.system.name, "status": system_status.state.name})
+					systems.append({"system": system_status.system.name, "status": system_status.state.name})
 				else:
 					return {"code": "200.400.004"}
-			return {"code": "400.200.001", "data": systems_status}
+			return {"code": "800.200.001", "data": systems}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
-		return {"code": "400.400.001", "data": "Error while logging system status"}
+		return {"code": "800.400.001", "data": "Error while logging system status"}
 
-	def generate_status_report(self):
-		pass
