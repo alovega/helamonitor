@@ -19,9 +19,10 @@ class MonitorInterface(object):
 	@staticmethod
 	def perform_health_check():
 		"""
-		Method that formats system status data and logs system status
-		@return: systems
-		@rtype: list
+		This method formats system  data and logs system status to system monitor model
+		@return: Systems: a dictionary containing a success code and a list of dictionaries containing  system status
+						data
+		@rtype:dict
 		"""
 		systems = []
 		try:
@@ -56,6 +57,16 @@ class MonitorInterface(object):
 					response_time_speed = status_data.get("response_time_speed"), response = status_data.get(
 						"response"), endpoint = status_data.get("endpoint"), state = status_data.get('state')
 				)
+				if system_status is not None:
+					systems.append({
+							"system": system_status.system.name, "status": system_status.state.name,
+							"endpoint": endpoint.endpoint
+						})
+				else:
+					systems.append({
+							"system": system_status.system.name, "status": "failed", "endpoint": endpoint.endpoint
+						})
+
 				if status_data.get("event_type") is not None:
 					event = EventLog().log_event(
 						event_type = status_data.get("event_type").name, system = status_data.get("system").name,
@@ -64,11 +75,7 @@ class MonitorInterface(object):
 					)
 					if event['code'] != "800.200.001":
 						lgr.warning("Event creation failed %s" % event)
-				if system_status is not None:
-					systems.append({"system": system_status.system.name, "status": system_status.state.name})
-				else:
-					return {"code": "200.400.004"}
-			return {"code": "800.200.001", "data": systems}
+			return {"code": "800.200.001", "data": {"systems": systems}}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
 		return {"code": "800.400.001", "data": "Error while logging system status"}
