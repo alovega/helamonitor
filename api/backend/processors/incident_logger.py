@@ -4,8 +4,8 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
-from core.backend.services import SystemService, IncidentService
-from base.backend.services import IncidentTypeService, StateService, EventTypeService
+from core.backend.services import SystemService, IncidentService, IncidentEventService
+from base.backend.services import IncidentTypeService, StateService, EventTypeService, EscalationLevelService
 lgr = logging.getLogger(__name__)
 
 
@@ -14,8 +14,8 @@ class IncidentLogger(object):
 	Class for logging incidents
 	"""
 	@staticmethod
-	def create_incident(incident_type, system, name='', description='', event_type='', escalated_events=None,
-						priority_level='', escalation_level='', **kwargs):
+	def create_incident(incident_type, system, escalation_level, name='', description='', event_type='',
+							escalated_events=None, priority_level='', **kwargs):
 		"""
 		Creates an incident from the escalated events
 		@param incident_type: Type of the incident to be created
@@ -40,7 +40,8 @@ class IncidentLogger(object):
 		try:
 			system = SystemService().get(name=system, state__name = "Active")
 			incident_type = IncidentTypeService().get(name=incident_type, state__name="Active")
-			if system is None or incident_type is None:
+			escalation_level = EscalationLevelService().get(name=escalation_level, state__name="Active", system=system)
+			if system is None or incident_type is None or escalation_level is None:
 				return {"code": "800.400.002"}
 
 			if incident_type.name == "Realtime" and escalated_events is not None and event_type is not None:
@@ -51,13 +52,19 @@ class IncidentLogger(object):
 				else:
 					incident = IncidentService().create(
 						name = name, description = description, state = StateService().get(name = "Active"),
-						incident_type = incident_type, system = system, event_type=event_type,
+						incident_type = incident_type, system = system, event_type=EventTypeService().get(
+							name='event_type'),
 						priority_level = EventTypeService().get(name = event_type).priority_level()
+					)
+				for event in escalated_events:
+					IncidentEventService().create(
+						event=event, incident=incident, state=StateService().get(name = "Active")
 					)
 			else:
 				incident = IncidentService().create(
 					name = name, description = description, state = StateService().get(name = "Active"),
-					incident_type = incident_type, system = system, event_type=event_type,
+					incident_type = incident_type, system = system, event_type=EventTypeService().get(
+							name='event_type'),
 					priority_level = int(priority_level)
 				)
 
