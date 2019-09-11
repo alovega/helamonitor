@@ -283,7 +283,7 @@ class TestEventService(object):
         state = mixer.blend('base.State')
         mixer.blend(
             'core.Event', system=system, interface=interface, event_type=event_type, state=state, method='Some',
-            response='response', code='234', response_time= datetime.timedelta(milliseconds =111)
+            response='response', code='200'
         )
         event = EventService().get(system=system.id)
         assert event is not None, 'Should get a created Event object'
@@ -306,7 +306,6 @@ class TestEventService(object):
         state = mixer.blend('base.State')
         event = EventService().create(system=system, interface=interface, state=state, event_type=event_type)
         assert event is not None, 'Should create an Event Object'
-        assert event.code is not None, 'Event Created should have a code'
 
     def test_update(self):
         """

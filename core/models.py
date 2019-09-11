@@ -14,7 +14,7 @@ from base.models import BaseModel, GenericBaseModel, State, NotificationType, Ev
 def versions():
     """
     returns a collection of version choices to chose from
-    :return: version choices
+    @return: version choices
     @retype tuple
     """
     return ('1', '1.0.0'),
@@ -126,7 +126,6 @@ class Event(BaseModel):
     response = models.TextField(max_length=255, null=True, blank=True)
     request = models.TextField(max_length=255, null=True, blank=True)
     code = models.CharField(max_length=100, null=True, blank=True)
-    response_time = models.DurationField(default=timedelta(), null=True, blank=True)
 
     def __str__(self):
         return "%s %s %s" % (
@@ -158,6 +157,7 @@ class Incident(GenericBaseModel):
     """
     incident_type = models.ForeignKey(IncidentType)
     priority_level = models.IntegerField(default = 1)
+    event_type = models.ForeignKey(EventType, null=True, blank=True)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
