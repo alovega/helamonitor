@@ -14,8 +14,8 @@ class IncidentLogger(object):
 	Class for logging incidents
 	"""
 	@staticmethod
-	def create_incident(incident_type, system, name='', description='', event_type='', escalated_events='',
-																					escalation_level='', **kwargs):
+	def create_incident(incident_type, system, name='', description='', event_type='', escalated_events=None,
+						priority_level='', escalation_level='', **kwargs):
 		"""
 		Creates an incident from the escalated events
 		@param incident_type: Type of the incident to be created
@@ -30,6 +30,8 @@ class IncidentLogger(object):
 		@type event_type: str
 		@param escalated_events: One or more events that satisfied an escalation rule.
 		@type escalated_events: list
+		@param priority_level: The priority level to be assigned to the incident.
+		@type priority_level: str
 		@param escalation_level: Configuration for the recipients of a notification after incident creation
 		@type escalation_level: str
 		@param kwargs:
@@ -51,7 +53,7 @@ class IncidentLogger(object):
 				incident = IncidentService().create(
 					name = name, description = description, state = StateService().get(name = "Active"),
 					incident_type = incident_type, system = system,
-					priority_level = EventTypeService().get(name = event_type).priority_level
+					priority_level = EventTypeService().get(name = event_type).priority_level()
 				)
 				if incident is not None:
 					notification = IncidentLogger.send_notification(incident, escalation_level)
