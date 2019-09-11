@@ -77,7 +77,7 @@ class EscalationLevel(GenericBaseModel):
 
 class IncidentType(GenericBaseModel):
     """
-    Model for managing defined incident types e.g "realtime", "scheduled"
+    Model for managing defined incident types e.g realtime, scheduled
     """
     state = models.ForeignKey(State)
 
@@ -87,9 +87,26 @@ class IncidentType(GenericBaseModel):
 
 class EventType(GenericBaseModel):
     """
-    Manages types of events e.g error, warning, info, debug, etc
+    Manages types of events e.g error, warning, info, debug
     """
     state = models.ForeignKey(State)
+
+    def priority_level(self):
+        """
+        Returns the event_type's priority level if used within incident creation
+        @return: priority_level
+        @rtype: int
+        """
+        if self.name == "Info":
+            return 2
+        elif self.name == "Warning":
+            return 3
+        elif self.name == "Error":
+            return 4
+        elif self.name == "Critical":
+            return 5
+        else:
+            return 1
 
     def __str__(self):
         return "%s" % self.name
