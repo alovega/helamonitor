@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
-from api.backend.processors.incident_log import IncidentLogger
+# from api.backend.processors.incident_log import IncidentLogger
 
 
 lgr = logging.getLogger(__name__)
@@ -67,16 +67,16 @@ class EventLog(object):
 					escalated_events = EventService().filter(
 						event_type=event.event_type, date_created__range=(now - matched_rule.duration, now)
 					)
-					if escalated_events.count() >= matched_rule.nth_event:
-						incident = IncidentLogger.create_incident(
-							name = "%s event" % event.event_type.name, incident_type = "realtime",
-							system = event.system.name, state = "Investigating", priority_level = 1,
-							escalation_level = matched_rule.escalation_level, escalated_events = escalated_events,
-							description = "%s %s events occurred in %s between %s and %s" % (
-								matched_rule.nth_event, event.event_type,matched_rule.system,
-								now - matched_rule.duration, now)
-						)
-						return incident
+					# if escalated_events.count() >= matched_rule.nth_event:
+					# 	incident = IncidentLogger.create_incident(
+					# 		name = "%s event" % event.event_type.name, incident_type = "realtime",
+					# 		system = event.system.name, state = "Investigating", priority_level = 1,
+					# 		escalation_level = matched_rule.escalation_level, escalated_events = escalated_events,
+					# 		description = "%s %s events occurred in %s between %s and %s" % (
+					# 			matched_rule.nth_event, event.event_type,matched_rule.system,
+					# 			now - matched_rule.duration, now)
+					# 	) 
+					# 	return incident
 				return {"code": "400.200.001"}
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
