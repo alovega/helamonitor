@@ -43,29 +43,33 @@ class IncidentLogger(object):
 			if system is None or incident_type is None:
 				return {"code": "800.400.002"}
 
-			open_incident = IncidentService().filter(event_type__name=event_type).exclude(
-				state__name='Resolved').order_by('-date_created').first()
-			if open_incident:
-				open_incident.priority_level += 1
-				notification = IncidentLogger.send_notification(
-					open_incident, escalation_level=escalation_level, message="message")
+			if incident_type.name == "Realtime" and escalated_events is not None and event_type is not None:
+				incident = IncidentService().filter(event_type__name=event_type).exclude(
+					state__name='Resolved').order_by('-date_created').first()
+				if incident:
+					incident.priority_level += 1
+				else:
+					incident = IncidentService().create(
+						name = name, description = description, state = StateService().get(name = "Active"),
+						incident_type = incident_type, system = system, event_type=event_type,
+						priority_level = EventTypeService().get(name = event_type).priority_level()
+					)
 			else:
 				incident = IncidentService().create(
 					name = name, description = description, state = StateService().get(name = "Active"),
-					incident_type = incident_type, system = system,
-					priority_level = EventTypeService().get(name = event_type).priority_level()
+					incident_type = incident_type, system = system, event_type=event_type,
+					priority_level = int(priority_level)
 				)
-				if incident is not None:
-					notification = IncidentLogger.send_notification(incident, escalation_level)
-			if notification.get('code') != '800.200.001':
-				lgr.warning('Error during notification')
-			return {"code": "200.400.002"}
+
+			if incident is not None:
+				notification = IncidentLogger.send_notification(
+					incident, escalation_level = escalation_level, message="message")
+				if notification.get('code') != '800.200.001':
+					lgr.warning("Notification sending failed")
+				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception("Incident Logger exception %s" % ex)
 		return {"code": "200.400.002"}
-
-	def log_incident(self):
-		pass
 
 	@staticmethod
 	def send_notification(incident, escalation_level, message):
