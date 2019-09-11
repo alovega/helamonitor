@@ -22,7 +22,7 @@ def versions():
 
 class System(GenericBaseModel):
     """
-    model for managing defined system
+    Model for managing defined system
     """
     code = models.CharField(max_length = 100, unique=True, db_index=True)
     version = models.CharField(max_length = 5, choices=versions(), default='1')
@@ -35,7 +35,7 @@ class System(GenericBaseModel):
 
 class Interface(GenericBaseModel):
     """
-    model for managing defined system interfaces
+    Model for managing defined system interfaces
     """
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
@@ -45,6 +45,9 @@ class Interface(GenericBaseModel):
 
 
 class Endpoint(GenericBaseModel):
+    """
+    Model for managing endpoint of a system
+    """
     endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
     optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
@@ -57,7 +60,7 @@ class Endpoint(GenericBaseModel):
 
 class SystemCredential(BaseModel):
     """
-    model for managing credentials for system users
+    Model for managing credentials for system users
     """
     username = models.CharField(max_length=100, help_text='Similar to a client_ID')
     password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
@@ -74,7 +77,7 @@ class SystemCredential(BaseModel):
 
 class SystemMonitor(BaseModel):
     """
-    model for managing monitoring for my added system
+    Model for managing monitoring of a system
     """
     response_time = models.DurationField(default=timedelta(), null=True, blank=True)
     endpoint = models.ForeignKey(Endpoint)
@@ -87,7 +90,7 @@ class SystemMonitor(BaseModel):
 
 class Recipient(BaseModel):
     """
-    models for managing the recipient of a system
+    Model for managing the recipient of a system
     """
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -101,7 +104,7 @@ class Recipient(BaseModel):
 
 class SystemRecipient(BaseModel):
     """
-    models for managing recipient and a system
+    Model for managing recipient and a system
     """
     recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
