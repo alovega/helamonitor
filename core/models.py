@@ -96,6 +96,7 @@ class Recipient(BaseModel):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length=255)
     phone_number = models.CharField(max_length=100)
+    user = models.ForeignKey(User, null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):
@@ -107,6 +108,7 @@ class SystemRecipient(BaseModel):
     Model for managing recipient and a system
     """
     recipient = models.ForeignKey(Recipient)
+    notification_type = models.ForeignKey(NotificationType)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
     escalation_level = models.ForeignKey(EscalationLevel)
