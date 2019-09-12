@@ -4,7 +4,6 @@ Class for incident Administration
 """
 import logging
 
-from api.backend.processors.incident_logger import IncidentLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService
 from base.backend.services import LogTypeService, StateService, EscalationLevelService, EventTypeService, \
 	IncidentTypeService
@@ -21,7 +20,7 @@ class IncidentAdministrator(object):
 	@staticmethod
 	def log_incident(
 			incident_type, system, escalation_level, name, description, event_type = None,
-			escalated_events = None, priority_level = None, message = None, **kwargs):
+			escalated_events = None, priority_level = None, message = None, duration = None, **kwargs):
 		"""
 		Creates a realtime incident based on escalated events or scheduled incident based on user reports
 		@param incident_type: Type of the incident to be created
@@ -52,7 +51,7 @@ class IncidentAdministrator(object):
 			system = SystemService().get(name = system, state__name = "Active")
 			incident_type = IncidentTypeService().get(name = incident_type, state__name = "Active")
 			escalation_level = EscalationLevelService().get(
-				name = escalation_level, state__name = "Active", system = system)
+				name = escalation_level, state__name = "Active")
 			if system is None or incident_type is None or escalation_level is None:
 				return {"code": "800.400.002"}
 
@@ -60,7 +59,7 @@ class IncidentAdministrator(object):
 				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
 					state__name = 'Resolved').order_by('-date_created').first()
 				if incident:
-					priority_level = int(priority_level) + 1
+					priority_level = incident.priority_level + 1
 					return IncidentAdministrator().update_incident(
 						incident = incident.name, escalation_level = escalation_level.name, log_type = "PriorityUpdate",
 						state = incident.state.name, priority_level = str(priority_level),
@@ -124,7 +123,7 @@ class IncidentAdministrator(object):
 			else:
 				priority_level = incident.priority_level
 			incident_log = IncidentLogService().create(
-				description = description, incident = incident, user = User.objects.get(username = user),
+				description = description, incident = incident, user = User.objects.filter(username = user).first(),
 				log_type = log_type, priority_level = priority_level, state = StateService().get(name = state)
 			)
 			if incident_log:

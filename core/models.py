@@ -188,6 +188,7 @@ class IncidentLog(BaseModel):
     description = models.TextField(max_length=255, blank=True, null=True)
     incident = models.ForeignKey(Incident)
     log_type = models.ForeignKey(LogType, null = True)
+    priority_level = models.IntegerField()
     user = models.ForeignKey(User, null=True, blank=True)
     state = models.ForeignKey(State)
 
