@@ -4,8 +4,9 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
-from core.backend.services import SystemService, IncidentService, IncidentEventService
-from base.backend.services import IncidentTypeService, StateService, EventTypeService, EscalationLevelService
+from core.backend.services import SystemService, IncidentService, IncidentEventService, IncidentLogService
+from base.backend.services import IncidentTypeService, StateService, EventTypeService, EscalationLevelService, \
+	LogTypeService
 
 lgr = logging.getLogger(__name__)
 
@@ -17,8 +18,8 @@ class IncidentLogger(object):
 
 	@staticmethod
 	def create_incident(
-			incident_type, system, escalation_level, name = '', description = '', event_type = None,
-			escalated_events = None, priority_level = '', message = '', **kwargs):
+			incident_type, system, escalation_level, name, description, event_type = None,
+			escalated_events = None, priority_level = None, message = None, **kwargs):
 		"""
 		Creates a realtime incident based on escalated events or scheduled incident based on user reports
 		@param incident_type: Type of the incident to be created
@@ -33,10 +34,14 @@ class IncidentLogger(object):
 		@type event_type: str | None
 		@param escalated_events: One or more events in the escalation if the incident is event driven.
 		@type escalated_events: list | None
-		@param priority_level: The priority level to be assigned to the incident.
+		@param priority_level: The level of importance to be assigned to the incident.
 		@type priority_level: str | None
+		@param message: The message to be sent out during notification after incident creation.
+		@type message: str | None
 		@param escalation_level: Level at which an escalation is configured with a set of recipients
 		@type escalation_level: str
+		@param duration: The duration to check for an unresolved incident caused by the same event type occurrence.
+		@type duration: timedelta | None
 		@param kwargs: Extra key-value arguments to pass for incident logging
 		@return: Status of the incident creation in a response code dictionary
 		@rtype: dict
@@ -53,8 +58,16 @@ class IncidentLogger(object):
 				incident = IncidentService().filter(event_type__name = event_type).exclude(
 					state__name = 'Resolved').order_by('-date_created').first()
 				if incident:
-					incident.priority_level += 1
-					return {'code': '800.200.001'}
+					incident_log = IncidentLogService().create(
+						description = "Priority level increased to %s" % incident.priority_level + 1,
+						priority_level = int(priority_level) + 1, incident = incident,
+						log_type = LogTypeService().get(name = "PriorityUpdate"), state = incident.state
+					)
+					if incident_log is not None:
+						pass
+						# TODO add send_notification call
+						return {'code': '800.200.001'}
+					return {'code': '800.400.001'}
 				else:
 					priority_level = EventTypeService().get(name = event_type).priority_level()
 			else:
@@ -72,15 +85,8 @@ class IncidentLogger(object):
 						IncidentEventService().create(
 							event = event, incident = incident, state = StateService().get(name = "Active")
 						)
-				notification = IncidentLogger.send_notification(
-					incident, escalation_level = escalation_level, message = "message")
-				if notification.get('code') != '800.200.001':
-					lgr.error("Notification sending failed")
+					# TODO add send_notification call
 				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception("Incident Logger exception %s" % ex)
-		return {"code": "200.400.002"}
-
-	@staticmethod
-	def send_notification(incident, escalation_level, message):
-		return {'code': '800.200.001'}
+		return {"code": "800.400.001"}
