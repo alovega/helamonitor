@@ -4,7 +4,7 @@ Class for incident Administration
 """
 import logging
 
-from api.backend.processors import IncidentLogger
+from api.backend.processors.incident_logger import IncidentLogger
 from core.backend.services import IncidentService, IncidentLogService
 from base.backend.services import LogTypeService, StateService, EscalationLevelService
 from django.contrib.auth.models import User
@@ -89,11 +89,11 @@ class IncidentAdministrator(object):
 			)
 			if incident_log:
 				notification = IncidentLogger().send_notification(
-					incident = incident.name, system = incident.system.name, escalation_level = escalation_level.name,
-					message = description
+					incident = incident.name, escalation_level = escalation_level.name,
+					message = description, asignee = incident_log.user
 				)
 				if notification.get('code') != '800.200.001':
-					lgr.error('Notification sending failed')
+					lgr.error('Notification on incident %s update failed' % incident)
 				return {'code': '800.200.001', 'data': 'Incident updated successfully'}
 		except Exception as ex:
 			lgr.exception("Incident Administration exception %s" % ex)
