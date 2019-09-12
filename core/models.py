@@ -96,6 +96,7 @@ class Recipient(BaseModel):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length=255)
     phone_number = models.CharField(max_length=100)
+    user = models.ForeignKey(User, null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):
@@ -202,9 +203,7 @@ class Notification(BaseModel):
     """
     message = models.TextField(max_length=255)
     notification_type = models.ForeignKey(NotificationType)
-    incident = models.ForeignKey(Incident, null=True)
     recipient = models.ForeignKey(Recipient)
-    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
