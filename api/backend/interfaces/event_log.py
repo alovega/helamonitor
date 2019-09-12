@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
-from api.backend.interfaces.incident_adminstrator import IncidentAdminstrator
+from api.backend.interfaces.incident_administration import IncidentAdministrator
 
 lgr = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class EventLog(object):
 					event_type = event.event_type, date_created__range = (now - matched_rule.duration, now)
 				)
 				if escalated_events.count() >= matched_rule.nth_event > 0:
-					return IncidentAdminstrator().log_incident(
+					return IncidentAdministrator().log_incident(
 						name = "%s event" % event.event_type.name, incident_type = "Realtime",
 						system = event.system.name, state = "Investigating", escalated_events = escalated_events,
 						escalation_level = matched_rule.escalation_level, event_type = event.event_type.name,
