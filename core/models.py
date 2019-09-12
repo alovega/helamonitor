@@ -207,4 +207,4 @@ class Notification(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s %s" % (self.message, self.notification_type, self.recipient)
+        return "%s %s %s" % (self.message, self.notification_type, self.state)

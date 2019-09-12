@@ -36,8 +36,8 @@ class NotificationLogger(object):
 				)
 			if data:
 				system = SystemRecipientService().get(recipient=data.recipient, state__name='Active')
-				message1 = {
-					"destination": data.recipient, "message_type": data.notification_type,
+				message = {
+					"destination": data.recipient, "message_type": data.notification_type.name,
 					"lang": None,
 					"corporate_id": system.system.id, "message_code": 'HPS0006',
 					"replace_tags": {
@@ -48,8 +48,9 @@ class NotificationLogger(object):
 					}
 				# to do a call to notification API check if it returns a code for success
 				if message:
-					print data.id
-					NotificationService().update(data.id, state= StateService().get(name='Sent'))
+					print data
+					data = NotificationService().update(data.id, state= StateService().get(name='Sent'))
+					print data
 					return {"code": "800.200.001"}
 				else:
 					NotificationService().update(data.id, state = StateService().get(name = 'Failed'))

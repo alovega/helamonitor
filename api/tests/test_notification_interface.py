@@ -13,9 +13,9 @@ class TestIncidentLogger(object):
 	"""
 
 	def test_notification_logger(self):
+		state2 = mixer.blend('base.State', name = 'Sent')
 		state = mixer.blend('base.State', name = 'Active')
 		system = mixer.blend('core.System', state = state)
-		state2 = mixer.blend('base.State', name = 'Sent')
 		escalation_level = mixer.blend('base.EscalationLevel')
 		recipient = mixer.blend('core.Recipient', first_name = 'Kevin', state = state)
 		system_recipient = SystemRecipientService().create(

@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
-from api.backend.processors.incident_log import IncidentLogger
+# from api.backend.processors.incident_log import IncidentLogger
 
 lgr = logging.getLogger(__name__)
 
