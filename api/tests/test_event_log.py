@@ -5,7 +5,7 @@ Tests for event_creation process
 
 import pytest
 from mixer.backend.django import mixer
-from api.backend.processors.event_log import EventLog
+from api.backend.interfaces.event_log import EventLog
 
 pytestmark = pytest.mark.django_db
 
