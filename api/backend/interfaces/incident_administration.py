@@ -5,8 +5,9 @@ Class for incident Administration
 import logging
 
 from api.backend.processors.incident_logger import IncidentLogger
-from core.backend.services import IncidentService, IncidentLogService
-from base.backend.services import LogTypeService, StateService, EscalationLevelService
+from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService
+from base.backend.services import LogTypeService, StateService, EscalationLevelService, EventTypeService, \
+	IncidentTypeService
 from django.contrib.auth.models import User
 
 lgr = logging.getLogger(__name__)
@@ -18,37 +19,76 @@ class IncidentAdministrator(object):
 	"""
 
 	@staticmethod
-	def create_incident(
-			name, description, state, incident_type, priority_level, system, escalation_level, message, **kwargs):
+	def log_incident(
+			incident_type, system, escalation_level, name, description, event_type = None,
+			escalated_events = None, priority_level = None, message = None, **kwargs):
 		"""
-		Calls the incident logger processor to create an incident
-		@param name: The name of the incident
-		@type: name: str
+		Creates a realtime incident based on escalated events or scheduled incident based on user reports
+		@param incident_type: Type of the incident to be created
+		@type incident_type: str
+		@param system: The system which the incident will be associated with
+		@type system: str
+		@param name: Title of the incident
+		@type name: str
 		@param description: Details on the incident
 		@type description: str
-		@param state: The resolution state of the incident at creation
-		@type state: str
-		@param incident_type: The type of the incident i.e realtime or scheduled
-		@type incident_type: str
-		@param system: The system affected by the incident
-		@type system: str
-		@param escalation_level: Level at which to send notifications on the incident to configured users
+		@param event_type: Type of the event(s) that triggered creation of the incident, if its event driven.
+		@type event_type: str | None
+		@param escalated_events: One or more events in the escalation if the incident is event driven.
+		@type escalated_events: list | None
+		@param priority_level: The level of importance to be assigned to the incident.
+		@type priority_level: str | None
+		@param message: The message to be sent out during notification after incident creation.
+		@type message: str | None
+		@param escalation_level: Level at which an escalation is configured with a set of recipients
 		@type escalation_level: str
-		@param message: Message to be send when notifying users on the incident
-		@type message: str
-		@param priority_level: Level of importance assigned to the incident
-		@type priority_level: str
-		@param kwargs: Extra key-value arguments to be passed for incident creation
-		@return: Response code and data to indicate if the incident was created or not
+		@param duration: The duration to check for an unresolved incident caused by the same event type occurrence.
+		@type duration: timedelta | None
+		@param kwargs: Extra key-value arguments to pass for incident logging
+		@return: Response code dictionary to indicate if the incident was created or not
 		@rtype: dict
 		"""
-		incident = IncidentLogger().log_incident(
-			name = name, description = description, state = state, incident_type = incident_type, system = system,
-			escalation_level = escalation_level, message = message, priority_level = priority_level,
-		)
-		if incident.get('code') != '800.200.001':
-			return {'code': incident.get('code'), 'data': 'Incident creation failed'}
-		return {'code': '800.200.001', 'data': 'Incident created successfully'}
+		try:
+			system = SystemService().get(name = system, state__name = "Active")
+			incident_type = IncidentTypeService().get(name = incident_type, state__name = "Active")
+			escalation_level = EscalationLevelService().get(
+				name = escalation_level, state__name = "Active", system = system)
+			if system is None or incident_type is None or escalation_level is None:
+				return {"code": "800.400.002"}
+
+			if incident_type.name == "Realtime" and event_type is not None:
+				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
+					state__name = 'Resolved').order_by('-date_created').first()
+				if incident:
+					priority_level = int(priority_level) + 1
+					return IncidentAdministrator().update_incident(
+						incident = incident.name, escalation_level = escalation_level.name, log_type = "PriorityUpdate",
+						state = incident.state.name, priority_level = str(priority_level),
+						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
+					)
+				else:
+					priority_level = EventTypeService().get(name = event_type).priority_level()
+			else:
+				priority_level = int(priority_level)
+
+			incident = IncidentService().create(
+				name = name, description = description, state = StateService().get(name = "Active"),
+				incident_type = incident_type, system = system, event_type = EventTypeService().get(
+					name = event_type), priority_level = priority_level
+			)
+			if incident is not None:
+				if escalated_events is not None:
+					for event in escalated_events:
+						incident_event = IncidentEventService().create(
+							event = event, incident = incident, state = StateService().get(name = "Active")
+						)
+						if not incident_event:
+							lgr.error("Error creating incident-events")
+				# TODO add send_notification call
+				return {'code': '800.200.001'}
+		except Exception as ex:
+			lgr.exception("Incident Logger exception %s" % ex)
+		return {"code": "800.400.001"}
 
 	@staticmethod
 	def update_incident(
@@ -88,13 +128,8 @@ class IncidentAdministrator(object):
 				log_type = log_type, priority_level = priority_level, state = StateService().get(name = state)
 			)
 			if incident_log:
-				notification = IncidentLogger().send_notification(
-					incident = incident.name, escalation_level = escalation_level.name,
-					message = description, asignee = incident_log.user
-				)
-				if notification.get('code') != '800.200.001':
-					lgr.error('Notification on incident %s update failed' % incident)
-				return {'code': '800.200.001', 'data': 'Incident updated successfully'}
+				# TODO Add a send_notification call
+				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception("Incident Administration exception %s" % ex)
-		return {'code': '800.200.001', 'data': 'Failed to update the incident'}
+		return {'code': '800.400.001'}
