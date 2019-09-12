@@ -86,7 +86,9 @@ class IncidentLogger(object):
 		return {"code": "200.400.002"}
 
 	@staticmethod
-	def send_notification(incident, message, escalation_level = None, assignee = None):
+	def notification(incident, message, escalation_level = None, assignee = None):
+
+		notifications_data = []
 		try:
 			if escalation_level is not None:
 				recipients = SystemRecipientService().filter(
@@ -94,145 +96,60 @@ class IncidentLogger(object):
 				)
 				for recipient in recipients:
 					if recipient.phone_number and recipient.email:
-						data1 = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('Email'),
-							recipient = recipient, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						data2 = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('SMS'),
-							recipient = recipient, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						if data1 and data2:
-							message2 = {
-								"destination": data2.recipient, "message_type": data2.notification_type,
-								"lang": None,
-								"corporate_id": data2.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data2.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-							message1 = {
-								"destination": data1.recipient, "message_type": data1.notification_type,
-								"lang": None,
-								"corporate_id": data1.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data1.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-						return {"code": "800.400.001"}
-
+						notification_data1 = {
+							"message": message, "notification_type": NotificationTypeService().get('SMS'),
+							"recipient": recipient, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notification_data2 = {
+							"message": message, "notification_type": NotificationTypeService().get('Email'),
+							"recipient": recipient, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notifications_data.extend((notification_data1, notification_data2))
 					elif recipient.phone_number is not None:
-						data = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('SMS'),
-							recipient = recipient, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						if data:
-							message = {
-								"destination": data.recipient, "message_type": data.notification_type,
-								"lang": None,
-								"corporate_id": data.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-						return {"code": "800.400.001"}
+						notification_data = {
+							"message": message, "notification_type": NotificationTypeService().get('SMS'),
+							"recipient": recipient, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notifications_data.append(notification_data)
 					else:
-						data = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('Email'),
-							recipient = recipient, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						if data:
-							message = {
-								"destination": data.recipient, "message_type": data.notification_type,
-								"lang": None,
-								"corporate_id": data.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-						return {"code": "800.400.001"}
+						notification_data = {
+							"message": message, "notification_type": NotificationTypeService().get('Email'),
+							"recipient": recipient, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notifications_data.append(notification_data)
 				else:
+
 					if assignee.phone_number and assignee.email:
-						data1 = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('SMS'),
-							recipient = assignee, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						data2 = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('SMS'),
-							recipient = assignee, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						if data1 and data2:
-							message2 = {
-								"destination": data2.recipient, "message_type": data2.notification_type,
-								"lang": None,
-								"corporate_id": data2.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data2.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-							message1 = {
-								"destination": data1.recipient, "message_type": data1.notification_type,
-								"lang": None,
-								"corporate_id": data1.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data1.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-						return {"code": "800.400.001"}
+						notification_data1 = {
+							"message": message, "notification_type": NotificationTypeService().get('email'),
+							"recipient": assignee, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notification_data2 = {
+							"message": message, "notification_type": NotificationTypeService().get('SMS'),
+							"recipient": assignee, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notifications_data.extend((notification_data1, notification_data2))
 					elif assignee.phone_number:
-						data = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('SMS'),
-							recipient = assignee, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						if data:
-							message = {
-								"destination": data.recipient, "message_type": data.notification_type,
-								"lang": None,
-								"corporate_id": data.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-						return {"code": "800.400.001"}
+						notification_data = {
+							"message": message, "notification_type": NotificationTypeService().get('SMS'),
+							"recipient": assignee, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notifications_data.append(notification_data)
 					else:
-						data = NotificationService().create(
-							message = message, notification_type = NotificationTypeService().get('SMS'),
-							recipient = assignee, incident = incident, system = incident.system,
-							state = StateService().get(name = 'Active')
-						)
-						if data:
-							message = {
-								"destination": data.recipient, "message_type": data.notification_type,
-								"lang": None,
-								"corporate_id": data.system__id, "message_code": 'HPS0006',
-								"replace_tags": {
-									"code": None, 'corporate': data.system,
-									'date': datetime.date.today().strftime('%d/%m/%y'),
-									'time': datetime.datetime.now().time().strftime('%I:%M%p')
-								}
-							}
-						return {"code": "800.400.001"}
-			return {"code": "800.200.001"}
+						data = {
+							"message": message, "notification_type": NotificationTypeService().get('SMS'),
+							"recipient": assignee, "incident": incident, "system": incident.system,
+							"state": StateService().get(name = 'Active')
+						}
+						notifications_data.append(data)
+					return {"code": "200.400.005"}
+				return {"code": "800.200.001", "data": notifications_data}
 		except Exception as e:
 			lgr.exception("Notification logger exception %s" % e)
