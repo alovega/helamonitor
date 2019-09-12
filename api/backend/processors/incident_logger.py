@@ -55,7 +55,7 @@ class IncidentLogger(object):
 				return {"code": "800.400.002"}
 
 			if incident_type.name == "Realtime" and escalated_events is not None and event_type is not None:
-				incident = IncidentService().filter(event_type__name = event_type).exclude(
+				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
 					state__name = 'Resolved').order_by('-date_created').first()
 				if incident:
 					incident_log = IncidentLogService().create(
@@ -76,8 +76,7 @@ class IncidentLogger(object):
 			incident = IncidentService().create(
 				name = name, description = description, state = StateService().get(name = "Active"),
 				incident_type = incident_type, system = system, event_type = EventTypeService().get(
-					name = 'event_type'),
-				priority_level = priority_level
+					name = 'event_type'), priority_level = priority_level
 			)
 			if incident is not None:
 				if escalated_events is not None:
@@ -85,7 +84,7 @@ class IncidentLogger(object):
 						IncidentEventService().create(
 							event = event, incident = incident, state = StateService().get(name = "Active")
 						)
-					# TODO add send_notification call
+				# TODO add send_notification call
 				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception("Incident Logger exception %s" % ex)
