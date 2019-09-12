@@ -48,9 +48,7 @@ class NotificationLogger(object):
 					}
 				# to do a call to notification API check if it returns a code for success
 				if message:
-					print data
-					data = NotificationService().update(data.id, state= StateService().get(name='Sent'))
-					print data
+					NotificationService().update(data.id, state= StateService().get(name='Sent'))
 					return {"code": "800.200.001"}
 				else:
 					NotificationService().update(data.id, state = StateService().get(name = 'Failed'))
