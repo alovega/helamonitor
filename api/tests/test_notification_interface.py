@@ -32,7 +32,7 @@ class TestIncidentLogger(object):
 			escalation_level = escalation_level
 		)
 		message_type = mixer.blend('base.NotificationType', name = 'SMS')
-		print message_type.name
+
 		message = 'Hey Listen to BBC news today'
 
 		notification = NotificationLogger().send_notification(
