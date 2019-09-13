@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from api.backend.interfaces.event_log import EventLog
+from api.backend.interfaces.health_monitor import MonitorInterface
 from base.backend.utilities import get_request_data
 
 lgr = logging.getLogger(__name__)
@@ -30,3 +31,19 @@ def report_event(request):
 	except Exception as ex:
 		lgr.exception("Event logging exception" % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def health_check(requests):
+	"""
+	Creates status of all systems  registered in the monitor system
+	@return: A response code indicating success and a list containing a dict of all registered system status
+	@rtype: dict
+	"""
+
+	try:
+		data = MonitorInterface().perform_health_check()
+		return JsonResponse(data)
+	except Exception as ex:
+		lgr.exception('health_check Exception: %s' % ex)
+	return JsonResponse({'code': '800.400.001'})

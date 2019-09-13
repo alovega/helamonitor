@@ -33,7 +33,8 @@ class MonitorInterface(object):
 				status_data = {
 					"system": endpoint.system,
 					"response_time": datetime.timedelta(seconds = health_state.elapsed.total_seconds()),
-					"endpoint": endpoint, "response": health_state.content, "state": StateService().get(name = 'Active')
+					"endpoint": endpoint, "response": health_state.content,
+					"state": StateService().get(name = 'Active')
 				}
 				if health_state.status_code == 200:
 					if health_state.elapsed > endpoint.optimal_response_time:
