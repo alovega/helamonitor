@@ -51,9 +51,8 @@ class EventLog(object):
 				return {"code": "400.400.002"}
 			event = EventService().create(
 				event_type = event_type, system = system, method = method, response = response, request = request,
-				code = code,
+				code = code, description = description, state = StateService().get(name = "Active"),
 				interface = InterfaceService().get(name = interface, state__name = "Active", system = system),
-				description = description, state = StateService().get(name = "Active")
 			)
 			if event is not None:
 				escalation = EventLog().escalate_event(event)
@@ -88,7 +87,7 @@ class EventLog(object):
 						escalation_level = matched_rule.escalation_level, event_type = event.event_type.name,
 						description = "%s %s events occurred in %s between %s and %s" % (
 							matched_rule.nth_event, event.event_type, matched_rule.system,
-							now - matched_rule.duration, now)
+							now - matched_rule.duration, now), priority_level = event.event_type.priority_level()
 					)
 			return {"code": "800.200.001"}
 		except Exception as ex:
