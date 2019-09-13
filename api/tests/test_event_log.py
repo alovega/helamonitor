@@ -32,26 +32,12 @@ class TestEventLog(object):
         """
         Tests if a created event is escalated successfully
         """
-        state = mixer.blend('base.State', name="Active")
+        state = mixer.blend('base.State', name='Active')
         system = mixer.blend('core.System', state=state)
         interface = mixer.blend('core.Interface', system=system, state=state)
-        event_type = mixer.blend('base.EventType', state=state)
-        escalation_level = mixer.blend("base.EscalationLevel", state=state, name="Critical")
-        log_type = mixer.blend("base.LogType", state=state, name="PriorityUpdate")
-        incident_type = mixer.blend(
-            "base.IncidentType", state=state, name="Realtime")
-        recipient1 = mixer.blend("core.Recipient", state=state)
-        recipient2 = mixer.blend("core.Recipient", state=state)
-        system_recipient1 = mixer.blend(
-            "core.SystemRecipient", system=system, escalation_level=escalation_level, recipient=recipient1
-        )
-        system_recipient2 = mixer.blend(
-            "core.SystemRecipient", system=system, escalation_level=escalation_level, recipient=recipient2
-        )
-        event1 = mixer.blend(
-            'core.Event', event_type=event_type, system=system, interface=interface, state=state,
-            description='Test Event description', code='12345'
-        )
+        event_type = mixer.blend('base.EventType', state=state, name='Critical')
+        escalation_level = mixer.blend("base.EscalationLevel", state=state, name='High')
+        incident_type = mixer.blend('base.IncidentType', state=state, name="Realtime")
         event = mixer.blend(
             'core.Event', event_type=event_type, system=system, interface=interface, state=state,
             description='description', code='123'
@@ -61,6 +47,5 @@ class TestEventLog(object):
             duration = timedelta(seconds=5), state = state, escalation_level=escalation_level
         )
 
-        event_escalation1 = EventLog().escalate_event(event)
         event_escalation = EventLog().escalate_event(event)
-        assert event_escalation is None, "Should escalate event successfully"
+        assert event_escalation.get('code') == '800.200.001', "Should escalate event successfully"
