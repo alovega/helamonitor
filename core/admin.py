@@ -145,7 +145,7 @@ class NotificationAdmin(admin.ModelAdmin):
     """
     Admin for Notification Model
     """
-    list_filter = ('date_created',)
+    list_filter = ('date_created', 'state__name')
     list_display = ('message', 'notification_type', 'state',  'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('message', 'notification_type__name')

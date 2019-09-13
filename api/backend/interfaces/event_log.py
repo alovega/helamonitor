@@ -8,14 +8,14 @@ from datetime import timedelta
 from django.utils import timezone
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
-from api.backend.processors.incident_log import IncidentLogger
+from api.backend.interfaces.incident_administration import IncidentAdministrator
 
 lgr = logging.getLogger(__name__)
 
 
 class EventLog(object):
 	"""
-	Class for processing events
+	Class for logging and escalating reported events by checking against registered escalation rules
 	"""
 
 	@staticmethod
@@ -23,7 +23,7 @@ class EventLog(object):
 			event_type, system, interface = None, method = None, response = None, request = None, code = None,
 			description = None, **kwargs):
 		"""
-		Logs an event reported from external systems or an health check
+		Logs an event tha is reported from an external system or an health check
 		@param event_type: Type of the event to be logged
 		@type event_type: str
 		@param system: The system where the event occurred
@@ -41,7 +41,7 @@ class EventLog(object):
 		@param description: Detailed information on the event occurrence
 		@type description: str | None
 		@param kwargs: Extra key=>value arguments to be passed for the event logging
-		@return: The status of event creation in a response code dictionary:
+		@return: Response code in a dictionary indicating if the event is created successfully or not
 		@rtype: dict
 		"""
 		try:
@@ -51,9 +51,8 @@ class EventLog(object):
 				return {"code": "400.400.002"}
 			event = EventService().create(
 				event_type = event_type, system = system, method = method, response = response, request = request,
-				code = code,
+				code = code, description = description, state = StateService().get(name = "Active"),
 				interface = InterfaceService().get(name = interface, state__name = "Active", system = system),
-				description = description, state = StateService().get(name = "Active")
 			)
 			if event is not None:
 				escalation = EventLog().escalate_event(event)
@@ -68,9 +67,9 @@ class EventLog(object):
 	def escalate_event(event):
 		"""
 		Checks registered escalation rules to determine if an event occurrence is to be escalated or not.
-		@param event: Logged event to be escalated
+		@param event: A logged event to be checked for escalation
 		@type event: Event
-		@return: The status of an event escalation in a response code dictionary
+		@return: Response code in a dictionary indicating if the event is created successfully or not
 		@rtype: dict
 		"""
 		try:
@@ -82,13 +81,13 @@ class EventLog(object):
 					event_type = event.event_type, date_created__range = (now - matched_rule.duration, now)
 				)
 				if escalated_events.count() >= matched_rule.nth_event > 0:
-					return IncidentLogger().log_incident(
+					return IncidentAdministrator().log_incident(
 						name = "%s event" % event.event_type.name, incident_type = "Realtime",
 						system = event.system.name, state = "Investigating", escalated_events = escalated_events,
 						escalation_level = matched_rule.escalation_level, event_type = event.event_type.name,
 						description = "%s %s events occurred in %s between %s and %s" % (
 							matched_rule.nth_event, event.event_type, matched_rule.system,
-							now - matched_rule.duration, now)
+							now - matched_rule.duration, now), priority_level = event.event_type.priority_level()
 					)
 			return {"code": "800.200.001"}
 		except Exception as ex:

@@ -422,7 +422,9 @@ class TestIncidentLogService(object):
         incident = mixer.blend('core.Incident')
         user = mixer.blend(User)
         state = mixer.blend('base.State')
-        mixer.blend('core.IncidentLog', incident=incident, user=user, state=state)
+        mixer.blend(
+            'core.IncidentLog', incident=incident, user=user, state=state, priority_level =
+            incident.priority_level)
         incident_log = IncidentLogService().get(incident=incident.id)
         assert incident_log is not None, 'Should get a created IncidentLog object'
         return user
@@ -442,7 +444,9 @@ class TestIncidentLogService(object):
         incident = mixer.blend('core.Incident')
         user = mixer.blend(User)
         state = mixer.blend('base.State')
-        incident_log = IncidentLogService().create(incident=incident, user=user, state=state, description='Incident1')
+        incident_log = IncidentLogService().create(
+            incident=incident, user=user, state=state, description='Incident1', priority_level =
+            incident.priority_level)
         assert incident_log is not None, 'Should create an IncidentLog Object'
         assert incident_log.description == 'Incident1', ' IncidentLog description is equals to Incident1'
 

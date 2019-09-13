@@ -20,6 +20,16 @@ def versions():
     return ('1', '1.0.0'),
 
 
+def response_time_speed():
+    """
+    returns a collection of response time state to chose from
+    @return: response_time states
+    @retype tuple
+    """
+
+    return ('Slow', 'Slow'), ('Normal', 'Normal'),
+
+
 class System(GenericBaseModel):
     """
     Model for managing defined system
@@ -79,13 +89,16 @@ class SystemMonitor(BaseModel):
     """
     Model for managing monitoring of a system
     """
-    response_time = models.DurationField(default=timedelta(), null=True, blank=True)
+    response_time = models.DurationField(default=timedelta(), null = True, blank = True)
     endpoint = models.ForeignKey(Endpoint)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
+    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Normal',
+                                           null = True, blank = True)
+    response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
 
     def __str__(self):
-        return "%s %s %s" % (self.endpoint, self.system, self.state)
+        return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_speed)
 
 
 class Recipient(BaseModel):
@@ -96,6 +109,7 @@ class Recipient(BaseModel):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length=255)
     phone_number = models.CharField(max_length=100)
+    user = models.ForeignKey(User, null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):
@@ -187,6 +201,7 @@ class IncidentLog(BaseModel):
     description = models.TextField(max_length=255, blank=True, null=True)
     incident = models.ForeignKey(Incident)
     log_type = models.ForeignKey(LogType, null = True)
+    priority_level = models.IntegerField()
     user = models.ForeignKey(User, null=True, blank=True)
     state = models.ForeignKey(State)
 
@@ -202,10 +217,8 @@ class Notification(BaseModel):
     """
     message = models.TextField(max_length=255)
     notification_type = models.ForeignKey(NotificationType)
-    incident = models.ForeignKey(Incident, null=True)
     recipient = models.ForeignKey(Recipient)
-    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s %s" % (self.message, self.notification_type, self.recipient)
+        return "%s %s %s" % (self.message, self.notification_type, self.state)
