@@ -4,7 +4,7 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
-from core.backend.services import NotificationService, SystemRecipientService
+from core.backend.services import NotificationService
 from base.backend.services import StateService, NotificationTypeService
 
 import datetime
@@ -27,6 +27,8 @@ class NotificationLogger(object):
 		@return: returns a dict of a code for success or failure
 		@rtype: dict
 		"""
+		if not recipients or message.split() is None or message_type.split() is None:
+			return {"code": "800.400.002"}
 		try:
 			for recipient in recipients:
 				data = NotificationService().create(
@@ -35,19 +37,13 @@ class NotificationLogger(object):
 					recipient = recipient,
 					state = StateService().get(name = 'Active')
 				)
-				if data:
-					if str(message_type) == 'Email':
-						system = SystemRecipientService().get(recipient__email = data.recipient, state__name = 'Active')
-					else:
-						system = SystemRecipientService().get(
-							recipient__phone_number = data.recipient.phone_number, state__name = 'Active'
-						)
+				if data is not None:
 					message_data = {
 						"destination": data.recipient, "message_type": data.notification_type.name,
 						"lang": None,
-						"corporate_id": system.system.id, "message_code": 'HPS0006',
+						"corporate_id": None, "message_code": 'HPS0006',
 						"replace_tags": {
-							"code": None, 'corporate': system.system.name,
+							"code": None, 'corporate': None,
 							'date': datetime.date.today().strftime('%d/%m/%y'),
 							'time': datetime.datetime.now().time().strftime('%I:%M%p')
 						}
@@ -63,3 +59,4 @@ class NotificationLogger(object):
 			return {"code": "800.200.001"}
 		except Exception as e:
 			lgr.exception("Notification logger exception %s" % e)
+		return {"code": "800.400.001", "message": "error in sending notification interface"}
