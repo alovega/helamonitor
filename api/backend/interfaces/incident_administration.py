@@ -3,12 +3,14 @@
 Class for incident Administration
 """
 import logging
+from django.contrib.auth.models import User
 
+from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
 	SystemRecipientService, RecipientService
 from base.backend.services import LogTypeService, StateService, EscalationLevelService, EventTypeService, \
 	IncidentTypeService, NotificationTypeService
-from django.contrib.auth.models import User
+
 
 lgr = logging.getLogger(__name__)
 
@@ -80,7 +82,14 @@ class IncidentAdministrator(object):
 						if not incident_event:
 							lgr.error("Error creating incident-events")
 				system_recipients = SystemRecipientService().filter(
-					escalation_level = escalation_level, system = system)
+					escalation_level = escalation_level, system = incident.system)
+				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
+				mail_list = [recipient["email"] for recipient in recipients.values("email")]
+				notification = NotificationLogger().send_notification(
+					message = incident.description,  message_type = "Email", recipients = mail_list
+				)
+				if notification.get('code') != '800.200.001':
+					lgr.warning("Notification sending failed")
 				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception("Incident Logger exception %s" % ex)
@@ -126,12 +135,13 @@ class IncidentAdministrator(object):
 			if incident_log:
 				system_recipients = SystemRecipientService().filter(
 					escalation_level = escalation_level, system = incident.system).values('recipient')
-				recipients = RecipientService().filter(id__in = system_recipients)
-
-				email_list = [recipient["email"] for recipient in recipients.values("email")]
-				phone_numbers = [recipient["phone_number"] for recipient in recipients.values("phone_number")]
-
-				# TODO add send_notification call
+				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
+				mail_list = [recipient["email"] for recipient in recipients.values("email")]
+				notification = NotificationLogger().send_notification(
+					message = incident_log.description,  message_type = "Email", recipients = mail_list
+				)
+				if notification.get('code') != '800.200.001':
+					lgr.warning("Notification sending failed")
 				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception("Incident Administration exception %s" % ex)
