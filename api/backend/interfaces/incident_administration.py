@@ -9,7 +9,7 @@ from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
 	SystemRecipientService, RecipientService
 from base.backend.services import LogTypeService, StateService, EscalationLevelService, EventTypeService, \
-	IncidentTypeService, NotificationTypeService
+	IncidentTypeService
 
 
 lgr = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class IncidentAdministrator(object):
 	@staticmethod
 	def log_incident(
 			incident_type, system, escalation_level, name, description, priority_level, event_type = None,
-			escalated_events = None, message = None, duration = None, **kwargs):
+			escalated_events = None, **kwargs):
 		"""
 		Creates a realtime incident based on escalated events or scheduled incident based on user reports
 		@param incident_type: Type of the incident to be created
@@ -40,12 +40,8 @@ class IncidentAdministrator(object):
 		@type escalated_events: list | None
 		@param priority_level: The level of importance to be assigned to the incident.
 		@type priority_level: str
-		@param message: The message to be sent out during notification after incident creation.
-		@type message: str | None
 		@param escalation_level: Level at which an escalation is configured with a set of recipients
 		@type escalation_level: str
-		@param duration: The duration to check for an unresolved incident caused by the same event type occurrence.
-		@type duration: timedelta | None
 		@param kwargs: Extra key-value arguments to pass for incident logging
 		@return: Response code dictionary to indicate if the incident was created or not
 		@rtype: dict
