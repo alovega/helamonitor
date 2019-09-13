@@ -6,7 +6,6 @@ from django.contrib import admin
 # Register your models here.
 from base.models import State, EndpointType, NotificationType, IncidentType, EventType, LogType, EscalationLevel
 
-
 @admin.register(State)
 class StateAdmin(admin.ModelAdmin):
     """
