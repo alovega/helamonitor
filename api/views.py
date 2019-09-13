@@ -5,7 +5,8 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
+from api.backend.interfaces.event_log import EventLog
+from api.backend.interfaces.health_monitor import MonitorInterface
 from base.backend.utilities import get_request_data
 
 lgr = logging.getLogger(__name__)
@@ -23,56 +24,26 @@ def report_event(request):
 	try:
 		data = get_request_data(request)
 		event = EventLog().log_event(
-			event_type = data.get('event_type'), system = data.get('system'), interface = data.get('interface'),
-			response = data.get('response'), request = data.get('request'), code = data.get('code'),
-			description = data.get('description')
+			data.get('event_type'), data.get('system'), data.get('interface', None), data.get('response', None),
+			data.get('request', None), data.get('code', None), data.get('description', None)
 		)
 		return JsonResponse(event)
 	except Exception as ex:
-		lgr.exception("Event logging Exception: %s" % ex)
+		lgr.exception("Event logging exception" % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
-def create_incident(request):
+def health_check(requests):
 	"""
-	Creates incidents from users
-	@param request: The Django WSGI Request to process
-	@type request: WSGIRequest
-	@return: A response code to indicate successful incident creation or otherwise
+	Creates status of all systems  registered in the monitor system
+	@return: A response code indicating success and a list containing a dict of all registered system status
 	@rtype: dict
 	"""
-	try:
-		data = get_request_data(request)
-		incident = IncidentAdministrator().log_incident(
-			incident_type = data.get('incident_type'), system = data.get('system'), name = data.get('name'),
-			escalation_level = data.get('escalation_level'), description = data.get('description'),
-			priority_level = data.get('priority_level'), event_type = data.get('event_type', None),
-			state = data.get('state', 'Investigating'), escalated_events = data.get('escalated_events', None)
-		)
-		return JsonResponse(incident)
-	except Exception as ex:
-		lgr.exception('Incident creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
 
-
-@csrf_exempt
-def update_incident(request):
-	"""
-	Updates an existing incident's priority, resolution status or user assignment
-	@param request: The Django WSGI Request to process
-	@type request: WSGIRequest
-	@return: A response code to indicate successful incident creation or otherwise
-	@rtype: dict
-	"""
 	try:
-		data = get_request_data(request)
-		updated_incident = IncidentAdministrator().update_incident(
-			incident = data.get('incident'), log_type = data.get('log_type'), escalation_level = data.get(
-				'escalation_level'), state = data.get('state'), description = data.get('description'), user = data.get(
-				'user'), priority_level = data.get('priority_level')
-		)
-		return JsonResponse(updated_incident)
+		data = MonitorInterface().perform_health_check()
+		return JsonResponse(data)
 	except Exception as ex:
-		lgr.exception('Incident update Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+		lgr.exception('health_check Exception: %s' % ex)
+	return JsonResponse({'code': '800.400.001'})
