@@ -116,7 +116,7 @@ class IncidentAdministrator(object):
 		"""
 		try:
 			state = StateService().get(name = state)
-			incident = IncidentService().get(name = incident, state = state)
+			incident = IncidentService().get(name = incident)
 			log_type = LogTypeService().get(name = log_type, state__name = 'Active')
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
 			if incident is None or log_type is None or escalation_level is None or state is None:
