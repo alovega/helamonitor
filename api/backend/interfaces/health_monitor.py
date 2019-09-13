@@ -6,7 +6,7 @@ import requests
 from core.backend.services import SystemMonitorService, EndpointService
 from base.backend.services import StateService, EventTypeService
 
-from api.backend.processors.event_log import EventLog
+from api.backend.interfaces.event_log import EventLog
 
 lgr = logging.getLogger(__name__)
 
