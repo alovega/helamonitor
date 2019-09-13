@@ -11,7 +11,6 @@ from core.backend.services import IncidentService, IncidentLogService, IncidentE
 from base.backend.services import LogTypeService, StateService, EscalationLevelService, EventTypeService, \
 	IncidentTypeService
 
-
 lgr = logging.getLogger(__name__)
 
 
@@ -23,7 +22,7 @@ class IncidentAdministrator(object):
 	@staticmethod
 	def log_incident(
 			incident_type, system, escalation_level, name, description, priority_level, event_type = None,
-			escalated_events = None, **kwargs):
+			state = "Investigating", escalated_events = None, **kwargs):
 		"""
 		Creates a realtime incident based on escalated events or scheduled incident based on user reports
 		@param incident_type: Type of the incident to be created
@@ -38,6 +37,8 @@ class IncidentAdministrator(object):
 		@type event_type: str | None
 		@param escalated_events: One or more events in the escalation if the incident is event driven.
 		@type escalated_events: list | None
+		@param state: Initial resolution state of the incident. Defaults to Investigating if left blank
+		@type state: str
 		@param priority_level: The level of importance to be assigned to the incident.
 		@type priority_level: str
 		@param escalation_level: Level at which an escalation is configured with a set of recipients
@@ -65,7 +66,7 @@ class IncidentAdministrator(object):
 						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
 					)
 			incident = IncidentService().create(
-				name = name, description = description, state = StateService().get(name = "Active"),
+				name = name, description = description, state = StateService().get(name = state),
 				incident_type = incident_type, system = system, event_type = EventTypeService().get(
 					name = event_type), priority_level = int(priority_level)
 			)
@@ -82,7 +83,7 @@ class IncidentAdministrator(object):
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
 				mail_list = [recipient["email"] for recipient in recipients.values("email")]
 				notification = NotificationLogger().send_notification(
-					message = incident.description,  message_type = "Email", recipients = mail_list
+					message = incident.description, message_type = "Email", recipients = mail_list
 				)
 				if notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
@@ -114,10 +115,10 @@ class IncidentAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			incident = IncidentService().get(name = incident, state__name = 'Active')
+			state = StateService().get(name = state)
+			incident = IncidentService().get(name = incident, state = state)
 			log_type = LogTypeService().get(name = log_type, state__name = 'Active')
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
-			state = StateService().get(name = state)
 			if incident is None or log_type is None or escalation_level is None or state is None:
 				return {'code': '800.400.002'}
 			if priority_level is not None:
@@ -128,13 +129,16 @@ class IncidentAdministrator(object):
 				description = description, incident = incident, user = User.objects.filter(username = user).first(),
 				log_type = log_type, priority_level = priority_level, state = StateService().get(name = state)
 			)
-			if incident_log:
+			updated_incident = IncidentService().update(
+				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state)
+			)
+			if incident_log and updated_incident:
 				system_recipients = SystemRecipientService().filter(
 					escalation_level = escalation_level, system = incident.system).values('recipient')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
 				mail_list = [recipient["email"] for recipient in recipients.values("email")]
 				notification = NotificationLogger().send_notification(
-					message = incident_log.description,  message_type = "Email", recipients = mail_list
+					message = incident_log.description, message_type = "Email", recipients = mail_list
 				)
 				if notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
