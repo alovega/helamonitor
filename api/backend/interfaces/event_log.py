@@ -23,7 +23,7 @@ class EventLog(object):
 			event_type, system, interface = None, method = None, response = None, request = None, code = None,
 			description = None, **kwargs):
 		"""
-		Logs an event tha is reported from an external system or an health check
+		Logs an event that being reported from an external system or an health check
 		@param event_type: Type of the event to be logged
 		@type event_type: str
 		@param system: The system where the event occurred

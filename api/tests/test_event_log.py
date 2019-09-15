@@ -33,6 +33,7 @@ class TestEventLog(object):
         Tests if a created event is escalated successfully
         """
         state = mixer.blend('base.State', name='Active')
+        investigating_state = mixer.blend('base.state', name = "Investigating")
         system = mixer.blend('core.System', state=state)
         interface = mixer.blend('core.Interface', system=system, state=state)
         event_type = mixer.blend('base.EventType', state=state, name='Critical')
@@ -44,7 +45,7 @@ class TestEventLog(object):
         )
         escalation_rule = mixer.blend(
             "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
-            duration = timedelta(seconds=5), state = state, escalation_level=escalation_level
+            duration = timedelta(seconds=5), escalation_level=escalation_level
         )
 
         event_escalation = EventLog().escalate_event(event)
