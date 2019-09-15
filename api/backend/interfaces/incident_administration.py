@@ -61,7 +61,7 @@ class IncidentAdministrator(object):
 				if incident:
 					priority_level = incident.priority_level + 1
 					return IncidentAdministrator().update_incident(
-						incident = incident.name, escalation_level = escalation_level.name, log_type = "PriorityUpdate",
+						incident = incident.id, escalation_level = escalation_level.name, log_type = "PriorityUpdate",
 						state = incident.state.name, priority_level = str(priority_level),
 						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
 					)
@@ -94,10 +94,11 @@ class IncidentAdministrator(object):
 
 	@staticmethod
 	def update_incident(
-			incident, log_type, escalation_level, state, description = None, user = None, priority_level = None):
+			incident, log_type, escalation_level, state, name = None, description = None, user = None,
+			priority_level = None):
 		"""
 		Logs incident updates e.g changes in resolution state or priority level of an incident
-		@param incident: The incident to be updated
+		@param incident: The id of the incident to be updated
 		@type incident: str
 		@param log_type: The type of update to be done on the incident
 		@type log_type: str
@@ -105,6 +106,8 @@ class IncidentAdministrator(object):
 		@type escalation_level: str
 		@param state: New resolution state of the incident
 		@type state: str
+		@param name: New name of the incident
+		@type name: str | None
 		@param description: Detailed information on the incident update
 		@type description: str | None
 		@param user: User assigned to the incident
@@ -116,7 +119,7 @@ class IncidentAdministrator(object):
 		"""
 		try:
 			state = StateService().get(name = state)
-			incident = IncidentService().get(name = incident)
+			incident = IncidentService().get(pk = incident)
 			log_type = LogTypeService().get(name = log_type, state__name = 'Active')
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
 			if incident is None or log_type is None or escalation_level is None or state is None:
@@ -130,7 +133,8 @@ class IncidentAdministrator(object):
 				log_type = log_type, priority_level = priority_level, state = StateService().get(name = state)
 			)
 			updated_incident = IncidentService().update(
-				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state)
+				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state),
+				name = name
 			)
 			if incident_log and updated_incident:
 				system_recipients = SystemRecipientService().filter(
