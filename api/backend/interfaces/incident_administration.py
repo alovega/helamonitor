@@ -61,7 +61,7 @@ class IncidentAdministrator(object):
 				if incident:
 					priority_level = incident.priority_level + 1
 					return IncidentAdministrator().update_incident(
-						incident = incident.id, escalation_level = escalation_level.name, log_type = "PriorityUpdate",
+						incident = incident.name, escalation_level = escalation_level.name, log_type = "PriorityUpdate",
 						state = incident.state.name, priority_level = str(priority_level),
 						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
 					)
@@ -94,7 +94,7 @@ class IncidentAdministrator(object):
 
 	@staticmethod
 	def update_incident(
-			incident, log_type, escalation_level, state, name = None, description = None, user = None,
+			incident, log_type, escalation_level, state, description = None, user = None,
 			priority_level = None):
 		"""
 		Logs incident updates e.g changes in resolution state or priority level of an incident
@@ -106,8 +106,6 @@ class IncidentAdministrator(object):
 		@type escalation_level: str
 		@param state: New resolution state of the incident
 		@type state: str
-		@param name: New name of the incident
-		@type name: str | None
 		@param description: Detailed information on the incident update
 		@type description: str | None
 		@param user: User assigned to the incident
@@ -133,8 +131,7 @@ class IncidentAdministrator(object):
 				log_type = log_type, priority_level = priority_level, state = StateService().get(name = state)
 			)
 			updated_incident = IncidentService().update(
-				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state),
-				name = name
+				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state)
 			)
 			if incident_log and updated_incident:
 				system_recipients = SystemRecipientService().filter(
