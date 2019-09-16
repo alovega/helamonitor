@@ -70,7 +70,7 @@ def update_incident(request):
 	try:
 		data = get_request_data(request)
 		updated_incident = IncidentAdministrator().update_incident(
-			incident = data.get('incident'), log_type = data.get('log_type'), escalation_level = data.get(
+			incident_id = data.get('incident'), escalation_level = data.get(
 				'escalation_level'), state = data.get('state'), description = data.get('description'), user = data.get(
 				'user'), priority_level = data.get('priority_level')
 		)
