@@ -4,7 +4,7 @@ Class for incident Administration
 """
 import logging
 from django.contrib.auth.models import User
-from django.core import serializers
+from django.db.models import F
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
@@ -158,10 +158,15 @@ class IncidentAdministrator(object):
 		"""
 		try:
 			system = SystemService().get(name = system, state__name = 'Active')
-			incident = IncidentService().filter(pk = incident_id, system = system)
+			incident = IncidentService().filter(pk = incident_id, system = system).values(
+				'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
+				type = F('incident_type__name'),
+				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name'),
+				eventtype = F('event_type__name')
+			).first()
 			if system is None or incident is None:
 				return {'code': '800.400.200'}
-			return {'code': '800.200.001', 'data': list(incident.values())}
+			return {'code': '800.200.001', 'data': incident}
 		except Exception as ex:
 			lgr.exception("Incident Administration Exception: %s" % ex)
-		return {'code': '800.400.001'}
+		return {'code': '800.400.001 %s' % ex}

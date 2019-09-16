@@ -93,7 +93,6 @@ def health_check(request):
 	try:
 		data = MonitorInterface().perform_health_check()
 		return JsonResponse(data)
-
 	except Exception as ex:
 		lgr.exception('Health check interface  Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
