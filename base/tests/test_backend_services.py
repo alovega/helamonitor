@@ -1,8 +1,8 @@
 import pytest
 from mixer.backend.django import mixer
 
-from base.backend.services import StateService, LogTypeService, EventTypeService, NotificationTypeService, \
-    EscalationLevelService, IncidentTypeService
+from base.backend.services import StateService, EventTypeService, NotificationTypeService, EscalationLevelService, \
+    IncidentTypeService
 
 pytestmark = pytest.mark.django_db
 
@@ -43,46 +43,6 @@ class TestStateService(object):
         state = mixer.blend('base.State')
         state = StateService().update(state.id, name = "Active")
         assert state.name == "Active", 'Should have the same name'
-
-
-class TestLogTypeService(object):
-    """
-    Tests for LogType model Services
-    """
-    def test_get(self):
-        """
-        Test LogType get service
-        """
-        state = mixer.blend('base.State')
-        mixer.blend('base.LogType', state=state)
-        log_type = LogTypeService().get(state=state.id)
-        assert log_type is not None, 'Should get a created  LogType object'
-
-    def test_filter(self):
-        """
-        Test LogType filter service
-        """
-        mixer.cycle(3).blend('base.LogType')
-        log_type = LogTypeService().filter()
-        assert len(log_type) == 3, 'Should return 3 LogType objects'
-
-    def test_create(self):
-        """
-        Test LogType create service
-        """
-        state = mixer.blend('base.State')
-        log_type = LogTypeService().create(state=state, description='Incident1')
-        assert log_type is not None, 'Should create a LogType Object'
-        assert log_type.description == 'Incident1', ' LogType description is equals to Incident1'
-
-    def test_update(self):
-        """
-        Test LogType update service
-        """
-        log_type = mixer.blend('base.LogType')
-        log_type = LogTypeService().update(log_type.id, description='response2')
-        assert log_type is not None, 'Should create a System Monitor object'
-        assert log_type.description == 'response2', 'IncidentLog description has been updated to response2'
 
 
 class TestEventTypeService(object):
