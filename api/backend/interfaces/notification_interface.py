@@ -4,8 +4,6 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
-from django.contrib.auth.models import User
-
 from core.backend.services import NotificationService
 from base.backend.services import StateService, NotificationTypeService
 
@@ -34,20 +32,12 @@ class NotificationLogger(object):
 
 		try:
 			for recipient in recipients:
-				if message_type == 'Email':
-					data = NotificationService().create(
-						message = message,
-						notification_type = NotificationTypeService().get(name = message_type),
-						recipient = User.objects.get(email=recipient),
-						state = StateService().get(name = 'Active')
-					)
-				else:
-					data = NotificationService().create(
-						message = message,
-						notification_type = NotificationTypeService().get(name = message_type),
-						recipient = User.objectst.get(phone_number = recipient),
-						state = StateService().get(name = 'Active')
-					)
+				data = NotificationService().create(
+					message = message,
+					notification_type = NotificationTypeService().get(name = message_type),
+					recipient = recipient,
+					state = StateService().get(name = 'Active')
+				)
 
 				if data is not None:
 					message_data = {

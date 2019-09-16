@@ -101,11 +101,26 @@ class SystemMonitor(BaseModel):
         return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_speed)
 
 
+class Recipient(BaseModel):
+    """
+    Model for managing the recipient of a system
+    """
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=255)
+    phone_number = models.CharField(max_length=100)
+    user = models.ForeignKey(User, null = True, blank = True)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s %s %s %s %s" % (self.first_name, self.last_name, self.email, self.phone_number, self.state)
+
+
 class SystemRecipient(BaseModel):
     """
     Model for managing recipient and a system
     """
-    recipient = models.ForeignKey(User)
+    recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
     escalation_level = models.ForeignKey(EscalationLevel)
@@ -201,7 +216,7 @@ class Notification(BaseModel):
     """
     message = models.TextField(max_length=255)
     notification_type = models.ForeignKey(NotificationType)
-    recipient = models.ForeignKey(User)
+    recipient = models.CharField(max_length = 255)
     state = models.ForeignKey(State)
 
     def __str__(self):
