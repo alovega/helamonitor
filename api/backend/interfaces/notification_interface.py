@@ -5,7 +5,6 @@ Class for creating new incidents and logging incident updates
 import logging
 
 from core.backend.services import NotificationService, RecipientService
-from django.contrib.auth.models import User
 from base.backend.services import StateService, NotificationTypeService
 
 import datetime
