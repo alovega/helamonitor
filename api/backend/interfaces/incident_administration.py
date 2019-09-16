@@ -134,9 +134,9 @@ class IncidentAdministrator(object):
 				system_recipients = SystemRecipientService().filter(
 					escalation_level = escalation_level, system = incident.system).values('recipient')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
-				mail_list = [recipient["email"] for recipient in recipients.values("email")]
 				notification = NotificationLogger().send_notification(
-					message = incident_log.description, message_type = "Email", recipients = mail_list
+					message = incident_log.description, message_type = "Email",
+					recipients = [recipient["email"] for recipient in recipients.values("email")]
 				)
 				if notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
@@ -159,9 +159,9 @@ class IncidentAdministrator(object):
 		try:
 			system = SystemService().get(name = system, state__name = 'Active')
 			incident = IncidentService().filter(pk = incident_id, system = system)
-			if system is None and incident is None:
+			if system is None or incident is None:
 				return {'code': '800.400.200'}
 			return {'code': '800.200.001', 'data': list(incident.values())}
 		except Exception as ex:
 			lgr.exception("Incident Administration Exception: %s" % ex)
-		return {'code': '800.400.001 %s' % ex}
+		return {'code': '800.400.001'}
