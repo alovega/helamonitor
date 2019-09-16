@@ -53,6 +53,11 @@ class TestCoreModels(object):
         assert system_monitor is not None, 'Should create a SystemMonitor model'
         assert type(str(system_monitor)) == str, 'system_monitor should be a str object'
 
+    def test_recipient(self):
+        recipient = mixer.blend('core.Recipient')
+        assert recipient is not None, 'Should create a Recipient model'
+        assert type(str(recipient)) == str, 'recipient should be a str object'
+
     def test_system_recipient(self):
         system_recipient = mixer.blend('core.SystemRecipient')
         assert system_recipient is not None, 'should create a SystemRecipient model'

@@ -8,7 +8,7 @@ from django.core import serializers
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
-	SystemRecipientService
+	SystemRecipientService, RecipientService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
 lgr = logging.getLogger(__name__)
@@ -80,10 +80,10 @@ class IncidentAdministrator(object):
 							lgr.error("Error creating incident-events")
 				system_recipients = SystemRecipientService().filter(
 					escalation_level = escalation_level, system = incident.system, state__name = 'Active')
-				# recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
+				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
 				notification = NotificationLogger().send_notification(
 					message = incident.description, message_type = "Email",
-					# recipients = [recipient["email"] for recipient in recipients.values("email")]
+					recipients = [recipient["email"] for recipient in recipients.values("email")]
 				)
 				if notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")

@@ -8,8 +8,8 @@ from mixer.backend.django import mixer
 from django.contrib.auth.models import User
 
 # noinspection SpellCheckingInspection
-from core.backend.services import SystemService, InterfaceService, SystemCredentialService, SystemRecipientService, \
-    SystemMonitorService, EventService, IncidentService,\
+from core.backend.services import SystemService, InterfaceService, SystemCredentialService, \
+    RecipientService, SystemRecipientService, SystemMonitorService, EventService, IncidentService,\
     IncidentEventService, IncidentLogService, EndpointService, EscalationRuleService
 
 
@@ -182,6 +182,46 @@ class TestSystemMonitorService(object):
         )
         assert system_monitor is not None, 'Should create a System Monitor object'
         assert system_monitor.response_time == datetime.timedelta(milliseconds = 300), 'Response time is equals to 300c'
+
+
+class TestRecipientService(object):
+    """
+    Tests for Recipient model Service
+    """
+    def test_get(self):
+        """
+        Test Recipient get service
+        """
+        mixer.blend('core.Recipient', first_name='Victor')
+        recipient = RecipientService().get(first_name='Victor')
+        assert recipient is not None, 'Should return a recipient object'
+        assert recipient.first_name == 'Victor', 'First name is equals to Victor'
+
+    def test_filter(self):
+        """
+        Test Recipient filter service
+        """
+        mixer.cycle(3).blend('core.Recipient')
+        recipients = RecipientService().filter()
+        assert len(recipients) == 3, 'Should return 3 Recipients'
+
+    def test_create(self):
+        """
+        Test Recipient Create Service
+        """
+        state = mixer.blend('base.State')
+        recipient = RecipientService().create(first_name='Victor', last_name='Joseph', state=state)
+        assert recipient is not None, 'Should create a recipient object'
+        assert recipient.last_name == 'Joseph', 'Last name is equals to Joseph'
+
+    def test_update(self):
+        """
+        Test Recipient update Service
+        """
+        recipient = mixer.blend('core.Recipient')
+        recipient = RecipientService().update(recipient.id, first_name='Victor')
+        assert recipient is not None, 'Should create a recipient object'
+        assert recipient.first_name == 'Victor', 'First name is equals to Victor'
 
 
 class TestSystemRecipientService(object):
