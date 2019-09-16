@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
+from api.backend.interfaces.notification_interface import NotificationLogger
 from base.backend.utilities import get_request_data
 
 lgr = logging.getLogger(__name__)
@@ -82,17 +83,37 @@ def update_incident(request):
 @csrf_exempt
 def health_check(request):
 	"""
-		Updates an existing incident's priority, resolution status or user assignment
-		@param request: The Django WSGI Request to process
-		@type request: WSGIRequest
-		@return: A response code of a success/fail and a data containing dictionary containing a list of registered
-		system statuses
-		@rtype:dict
+	Performs health check for all registered systems
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code of a success/fail and a data containing dictionary containing a list of registered
+	system statuses
+	@rtype:dict
 	"""
 	try:
 		data = MonitorInterface().perform_health_check()
 		return JsonResponse(data)
 
 	except Exception as ex:
-		lgr.exception('Incident update Exception: %s' % ex)
+		lgr.exception('Health check interface  Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def send_notification(request):
+	"""
+	Sends notifications
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate a general success for notification creation and sending or otherwise
+	@rtype:dict
+	"""
+	try:
+		data = get_request_data(request)
+		notification = NotificationLogger().send_notification(
+			message = data.get('message'), message_type = data.get('message_type'), recipients = data.get('recipients')
+		)
+		return JsonResponse(notification)
+	except Exception as ex:
+		lgr.exception('Notification interface exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
