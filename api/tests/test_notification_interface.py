@@ -2,7 +2,8 @@ import pytest
 from mixer.backend.django import mixer
 
 from api.backend.interfaces.notification_interface import NotificationLogger
-from core.backend.services import SystemRecipientService, RecipientService
+from django.contrib.auth.models import User
+from core.backend.services import SystemRecipientService
 
 pytestmark = pytest.mark.django_db
 
@@ -16,10 +17,9 @@ class TestIncidentLogger(object):
 		state2 = mixer.blend('base.State', name = 'Sent')
 		state3 = mixer.blend('base.State', name = 'Failed')
 		state = mixer.blend('base.State', name = 'Active')
-		recipient1 = mixer.blend('core.Recipient', first_name = 'Kevin', phone_number= +254776054478,
-		                         email = 'alovegakevin@gmail.com', state = state)
-		recipient2 = mixer.blend(
-			'core.Recipient', first_name = 'Elly', phone_number = +2541136575757, email='kevin@yahoo.com', state = state
+		recipient1 = mixer.blend(User, first_name = 'Kevin', email = 'alovegakevin@gmail.com', state = state)
+		recipient2 = mixer.blend(User, first_name = 'Elly', email='kevin@yahoo.com',
+		                         state = state
 		)
 		message_type = mixer.blend('base.NotificationType', name = 'Email')
 
@@ -38,19 +38,9 @@ class TestIncidentLogger(object):
 		state = mixer.blend('base.State', name = 'Active')
 		system = mixer.blend('core.System', state = state)
 		escalation_level = mixer.blend('base.EscalationLevel')
-		recipient1 = mixer.blend('core.Recipient', first_name = 'Kevin', phone_number = +254776054478, state = state)
-		recipient2 = mixer.blend(
-			'core.Recipient', first_name = 'Elly', phone_number = +2541136575757, state = state
-		)
+		recipient1 = mixer.blend(User, first_name = 'Kevin', email = 'alovegakevin@gmail.com')
+		recipient2 = mixer.blend(User, first_name = 'Elly', email='alwavegaKevin@gmail.com')
 
-		system_recipient = SystemRecipientService().create(
-			recipient = RecipientService().get(phone_number = recipient1.phone_number), system = system, state = state,
-			escalation_level = escalation_level
-		)
-		system_recipient = SystemRecipientService().create(
-			recipient = RecipientService().get(phone_number = recipient2.phone_number), system = system, state = state,
-			escalation_level = escalation_level
-		)
 		message_type = mixer.blend('base.NotificationType', name = 'SMS')
 
 		message = 'Hey Listen to BBC news today'
@@ -67,19 +57,8 @@ class TestIncidentLogger(object):
 		state = mixer.blend('base.State', name = 'Active')
 		system = mixer.blend('core.System', state = state)
 		escalation_level = mixer.blend('base.EscalationLevel')
-		recipient1 = mixer.blend('core.Recipient', first_name = 'Kevin', phone_number= +254776054478, state = state)
-		recipient2 = mixer.blend(
-			'core.Recipient', first_name = 'Elly', phone_number = +2541136575757, state = state
-		)
-
-		system_recipient = SystemRecipientService().create(
-			recipient = RecipientService().get(phone_number=recipient1.phone_number), system = system, state = state,
-			escalation_level = escalation_level
-		)
-		system_recipient = SystemRecipientService().create(
-			recipient = RecipientService().get(phone_number = recipient2.phone_number), system = system, state = state,
-			escalation_level = escalation_level
-		)
+		recipient1 = mixer.blend(User, first_name = 'Kevin', phone_number= +254776054478)
+		recipient2 = mixer.blend(User, first_name = 'Elly', email= 'alovegakevin@gmail.com')
 		message_type = mixer.blend('base.NotificationType', name = 'SMS')
 
 		message = 'Hey Listen to BBC news today'

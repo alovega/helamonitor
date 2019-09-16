@@ -4,7 +4,7 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
-from core.backend.services import NotificationService, RecipientService
+from core.backend.services import NotificationService
 from base.backend.services import StateService, NotificationTypeService
 
 import datetime
@@ -27,24 +27,17 @@ class NotificationLogger(object):
 		@return: returns a dict of a code for success or failure
 		@rtype: dict
 		"""
-		if not recipients or message.split() is None or message_type.split() is None:
+		if not (recipients or message or message_type):
 			return {"code": "800.400.002"}
+
 		try:
 			for recipient in recipients:
-				if message_type == 'Email':
-					data = NotificationService().create(
-						message = message,
-						notification_type = NotificationTypeService().get(name = message_type),
-						recipient = RecipientService().get(email=recipient),
-						state = StateService().get(name = 'Active')
-					)
-				else:
-					data = NotificationService().create(
-						message = message,
-						notification_type = NotificationTypeService().get(name = message_type),
-						recipient = RecipientService().get(phone_number = recipient),
-						state = StateService().get(name = 'Active')
-					)
+				data = NotificationService().create(
+					message = message,
+					notification_type = NotificationTypeService().get(name = message_type),
+					recipient = recipient,
+					state = StateService().get(name = 'Active')
+				)
 
 				if data is not None:
 					message_data = {

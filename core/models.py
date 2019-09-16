@@ -216,7 +216,7 @@ class Notification(BaseModel):
     """
     message = models.TextField(max_length=255)
     notification_type = models.ForeignKey(NotificationType)
-    recipient = models.ForeignKey(Recipient)
+    recipient = models.CharField(max_length = 255)
     state = models.ForeignKey(State)
 
     def __str__(self):
