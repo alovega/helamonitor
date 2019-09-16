@@ -31,6 +31,7 @@ class NotificationLogger(object):
 		"""
 		if not (recipients or message or message_type):
 			return {"code": "800.400.002"}
+
 		try:
 			for recipient in recipients:
 				if message_type == 'Email':
