@@ -4,6 +4,7 @@ Class for incident Administration
 """
 import logging
 from django.contrib.auth.models import User
+from django.core import serializers
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
@@ -143,3 +144,24 @@ class IncidentAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Incident Administration exception %s" % ex)
 		return {'code': '800.400.001'}
+
+	@staticmethod
+	def get_incident(system, incident_id):
+		"""
+		Retrieves a single incident within a system
+		@param system: System where the incident is created in
+		@type system: str
+		@param incident_id: Id of the incident to be retrieved
+		@type incident_id: str
+		@return: incident | response code to indicate errors retrieving the incident
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().get(name = system, state__name = 'Active')
+			incident = IncidentService().filter(pk = incident_id, system = system)
+			if system is None and incident is None:
+				return {'code': '800.400.200'}
+			return {'code': '800.200.001', 'data': list(incident.values())}
+		except Exception as ex:
+			lgr.exception("Incident Administration Exception: %s" % ex)
+		return {'code': '800.400.001 %s' % ex}
