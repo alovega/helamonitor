@@ -164,4 +164,4 @@ class IncidentAdministrator(object):
 			return {'code': '800.200.001', 'data': list(incident.values())}
 		except Exception as ex:
 			lgr.exception("Incident Administration Exception: %s" % ex)
-		return {'code': '800.400.001 %s' % ex}
+		return {'code': '800.400.001'}
