@@ -70,7 +70,7 @@ def update_incident(request):
 	try:
 		data = get_request_data(request)
 		updated_incident = IncidentAdministrator().update_incident(
-			incident_id = data.get('incident'), escalation_level = data.get(
+			incident_id = data.get('incident_id'), escalation_level = data.get(
 				'escalation_level'), state = data.get('state'), description = data.get('description'), user = data.get(
 				'user'), priority_level = data.get('priority_level')
 		)
@@ -116,4 +116,24 @@ def send_notification(request):
 		return JsonResponse(notification)
 	except Exception as ex:
 		lgr.exception('Notification interface exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def get_incident(request):
+	"""
+	Get a specific incident
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested incident or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		incident = IncidentAdministrator().get_incident(
+			system = data.get('system'), incident_id = data.get('incident_id')
+		)
+		return JsonResponse(incident)
+	except Exception as ex:
+		lgr.exception('Incident get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
