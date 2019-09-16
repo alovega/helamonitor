@@ -33,7 +33,7 @@ class TestIncidentLogger(object):
 		investigating_state = mixer.blend('base.state', name = 'Identified')
 		incident = mixer.blend('core.Incident', state = investigating_state)
 		incident_update = IncidentAdministrator().update_incident(
-			incident.id, state = investigating_state.name, escalation_level = escalation_level,
+			incident.id, state = investigating_state.name, escalation_level = escalation_level, name = incident.name,
 			description = "Priority Level Increased to 4 with increased error occurrence", priority_level = "4"
 		)
 

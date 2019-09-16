@@ -127,7 +127,6 @@ class IncidentAdministrator(object):
 			if incident is None or escalation_level is None or state is None:
 				return {'code': '800.400.002'}
 			priority_level = int(priority_level) if priority_level is not None else incident.priority_level
-
 			incident_log = IncidentLogService().create(
 				description = description, incident = incident, user = User.objects.filter(username = user).first(),
 				priority_level = priority_level, state = StateService().get(name = state)
