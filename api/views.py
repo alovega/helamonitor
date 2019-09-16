@@ -50,7 +50,8 @@ def create_incident(request):
 			incident_type = data.get('incident_type'), system = data.get('system'), name = data.get('name'),
 			escalation_level = data.get('escalation_level'), description = data.get('description'),
 			priority_level = data.get('priority_level'), event_type = data.get('event_type', None),
-			state = data.get('state', 'Investigating'), escalated_events = data.get('escalated_events', None)
+			state = data.get('state', 'Investigating'), escalated_events = data.get('escalated_events', None),
+			scheduled_for = data.get('scheduled_for'), scheduled_until = data.get('scheduled_until')
 		)
 		return JsonResponse(incident)
 	except Exception as ex:
@@ -70,9 +71,9 @@ def update_incident(request):
 	try:
 		data = get_request_data(request)
 		updated_incident = IncidentAdministrator().update_incident(
-			incident_id = data.get('incident_id'), escalation_level = data.get(
-				'escalation_level'), state = data.get('state'), description = data.get('description'), user = data.get(
-				'user'), priority_level = data.get('priority_level')
+			incident_id = data.get('incident_id'), escalation_level = data.get('escalation_level'),
+			state = data.get('state'), description = data.get('description'), user = data.get('user'),
+			priority_level = data.get('priority_level'), name = data.get('name')
 		)
 		return JsonResponse(updated_incident)
 	except Exception as ex:

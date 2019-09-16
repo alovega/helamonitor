@@ -174,6 +174,10 @@ class Incident(GenericBaseModel):
     """
     incident_type = models.ForeignKey(IncidentType)
     priority_level = models.IntegerField(default = 1)
+    scheduled_for = models.DateTimeField(
+        null = True, blank = True, help_text = "Time the scheduled maintenance should begin")
+    scheduled_until = models.DateTimeField(
+        null = True, blank = True, help_text = "Time the scheduled maintenance should end")
     event_type = models.ForeignKey(EventType, null=True, blank=True)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
