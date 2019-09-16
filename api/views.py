@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
+from api.backend.interfaces.health_monitor import MonitorInterface
 from base.backend.utilities import get_request_data
 
 lgr = logging.getLogger(__name__)
@@ -73,6 +74,25 @@ def update_incident(request):
 				'user'), priority_level = data.get('priority_level')
 		)
 		return JsonResponse(updated_incident)
+	except Exception as ex:
+		lgr.exception('Incident update Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def health_check(request):
+	"""
+		Updates an existing incident's priority, resolution status or user assignment
+		@param request: The Django WSGI Request to process
+		@type request: WSGIRequest
+		@return: A response code of a success/fail and a data containing dictionary containing a list of registered
+		system statuses
+		@rtype:dict
+	"""
+	try:
+		data = MonitorInterface().perform_health_check()
+		return JsonResponse(data)
+
 	except Exception as ex:
 		lgr.exception('Incident update Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
