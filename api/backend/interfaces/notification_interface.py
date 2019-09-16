@@ -27,7 +27,7 @@ class NotificationLogger(object):
 		@return: returns a dict of a code for success or failure
 		@rtype: dict
 		"""
-		if not (recipients or message or message_type):
+		if not (len(recipients) > 1 and message and message_type):
 			return {"code": "800.400.002"}
 
 		try:
