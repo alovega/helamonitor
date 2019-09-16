@@ -165,13 +165,17 @@ class IncidentAdministrator(object):
 			system = SystemService().get(name = system, state__name = 'Active')
 			incident = IncidentService().filter(pk = incident_id, system = system).values(
 				'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
-				type = F('incident_type__name'),
+				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
 				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name'),
-				eventtype = F('event_type__name')
 			).first()
 			if system is None or incident is None:
 				return {'code': '800.400.200'}
+			incident_updates = list(IncidentLogService().filter(incident__id = incident_id).values(
+				'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user'),
+				status = F('state__name')
+			).order_by('-date_created'))
+			incident.update(incident_updates = incident_updates)
 			return {'code': '800.200.001', 'data': incident}
 		except Exception as ex:
 			lgr.exception("Incident Administration Exception: %s" % ex)
-		return {'code': '800.400.001 %s' % ex}
+		return {'code': '800.400.001'}
