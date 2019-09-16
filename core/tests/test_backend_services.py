@@ -8,8 +8,8 @@ from mixer.backend.django import mixer
 from django.contrib.auth.models import User
 
 # noinspection SpellCheckingInspection
-from core.backend.services import SystemService, InterfaceService, SystemCredentialService, \
-    RecipientService, SystemRecipientService, SystemMonitorService, EventService, IncidentService,\
+from core.backend.services import SystemService, InterfaceService, SystemCredentialService, SystemRecipientService, \
+    SystemMonitorService, EventService, IncidentService,\
     IncidentEventService, IncidentLogService, EndpointService, EscalationRuleService
 
 
