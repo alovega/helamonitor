@@ -8,8 +8,7 @@ from django.contrib.auth.models import User
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
 	SystemRecipientService, RecipientService
-from base.backend.services import LogTypeService, StateService, EscalationLevelService, EventTypeService, \
-	IncidentTypeService
+from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
 lgr = logging.getLogger(__name__)
 
@@ -61,7 +60,7 @@ class IncidentAdministrator(object):
 				if incident:
 					priority_level = incident.priority_level + 1
 					return IncidentAdministrator().update_incident(
-						incident = incident.name, escalation_level = escalation_level.name, log_type = "PriorityUpdate",
+						incident_id = incident.id, escalation_level = escalation_level.name,
 						state = incident.state.name, priority_level = str(priority_level),
 						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
 					)
@@ -79,11 +78,11 @@ class IncidentAdministrator(object):
 						if not incident_event:
 							lgr.error("Error creating incident-events")
 				system_recipients = SystemRecipientService().filter(
-					escalation_level = escalation_level, system = incident.system)
+					escalation_level = escalation_level, system = incident.system, state__name = 'Active')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
-				mail_list = [recipient["email"] for recipient in recipients.values("email")]
 				notification = NotificationLogger().send_notification(
-					message = incident.description, message_type = "Email", recipients = mail_list
+					message = incident.description, message_type = "Email",
+					recipients = [recipient["email"] for recipient in recipients.values("email")]
 				)
 				if notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
@@ -94,19 +93,18 @@ class IncidentAdministrator(object):
 
 	@staticmethod
 	def update_incident(
-			incident, log_type, escalation_level, state, description = None, user = None, priority_level = None):
+			incident_id, escalation_level, state, description, user = None,
+			priority_level = None):
 		"""
 		Logs incident updates e.g changes in resolution state or priority level of an incident
-		@param incident: The incident to be updated
-		@type incident: str
-		@param log_type: The type of update to be done on the incident
-		@type log_type: str
+		@param incident_id: The id of the incident to be updated
+		@type incident_id: str
 		@param escalation_level: Level at which to send notifications to configured users
 		@type escalation_level: str
 		@param state: New resolution state of the incident
 		@type state: str
 		@param description: Detailed information on the incident update
-		@type description: str | None
+		@type description: str
 		@param user: User assigned to the incident
 		@type user: str | None
 		@param priority_level: New priority level of the incident
@@ -116,10 +114,9 @@ class IncidentAdministrator(object):
 		"""
 		try:
 			state = StateService().get(name = state)
-			incident = IncidentService().get(name = incident)
-			log_type = LogTypeService().get(name = log_type, state__name = 'Active')
+			incident = IncidentService().get(pk = incident_id)
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
-			if incident is None or log_type is None or escalation_level is None or state is None:
+			if incident is None or escalation_level is None or state is None:
 				return {'code': '800.400.002'}
 			if priority_level is not None:
 				priority_level = int(priority_level)
@@ -127,7 +124,7 @@ class IncidentAdministrator(object):
 				priority_level = incident.priority_level
 			incident_log = IncidentLogService().create(
 				description = description, incident = incident, user = User.objects.filter(username = user).first(),
-				log_type = log_type, priority_level = priority_level, state = StateService().get(name = state)
+				priority_level = priority_level, state = StateService().get(name = state)
 			)
 			updated_incident = IncidentService().update(
 				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state)

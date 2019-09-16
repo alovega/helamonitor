@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.db import models
-from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, LogType,\
+from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, \
     IncidentType, EndpointType, EscalationLevel
 
 
@@ -200,7 +200,6 @@ class IncidentLog(BaseModel):
     """
     description = models.TextField(max_length=255, blank=True, null=True)
     incident = models.ForeignKey(Incident)
-    log_type = models.ForeignKey(LogType, null = True)
     priority_level = models.IntegerField()
     user = models.ForeignKey(User, null=True, blank=True)
     state = models.ForeignKey(State)

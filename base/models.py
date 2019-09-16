@@ -110,13 +110,3 @@ class EventType(GenericBaseModel):
 
     def __str__(self):
         return "%s" % self.name
-
-
-class LogType(GenericBaseModel):
-    """
-    Manages Types of logs to identify each incident log
-    """
-    state = models.ForeignKey(State)
-
-    def __str__(self):
-        return "%s" % self.name
