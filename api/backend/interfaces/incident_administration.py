@@ -3,8 +3,9 @@
 Class for incident Administration
 """
 import logging
+import dateutil.parser
 from django.contrib.auth.models import User
-from django.db.models import F
+from django.db.models import F, Q
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
@@ -22,7 +23,7 @@ class IncidentAdministrator(object):
 	@staticmethod
 	def log_incident(
 			incident_type, system, escalation_level, name, description, priority_level, event_type = None,
-			state = "Investigating", escalated_events = None, **kwargs):
+			state = "Investigating", escalated_events = None, scheduled_for = None, scheduled_until = None, **kwargs):
 		"""
 		Creates a realtime incident based on escalated events or scheduled incident based on user reports
 		@param incident_type: Type of the incident to be created
@@ -43,6 +44,10 @@ class IncidentAdministrator(object):
 		@type priority_level: str
 		@param escalation_level: Level at which an escalation is configured with a set of recipients
 		@type escalation_level: str
+		@param scheduled_for: Time the scheduled maintenance should begin if the incident is scheduled
+		@type scheduled_for: str | None
+		@param scheduled_until: Time the scheduled maintenance should end if the incident is scheduled
+		@type scheduled_until: str | None
 		@param kwargs: Extra key-value arguments to pass for incident logging
 		@return: Response code dictionary to indicate if the incident was created or not
 		@rtype: dict
@@ -54,21 +59,23 @@ class IncidentAdministrator(object):
 				name = escalation_level, state__name = "Active")
 			if system is None or incident_type is None or escalation_level is None:
 				return {"code": "800.400.002"}
-
 			if incident_type.name == "Realtime" and event_type is not None:
 				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
-					state__name = 'Resolved').order_by('-date_created').first()
+					Q(state__name = 'Resolved'), Q(state__name = 'Completed')).order_by('-date_created').first()
 				if incident:
 					priority_level = incident.priority_level + 1
 					return IncidentAdministrator().update_incident(
-						incident_id = incident.id, escalation_level = escalation_level.name,
+						incident_id = incident.id, escalation_level = escalation_level.name, name = incident.name,
 						state = incident.state.name, priority_level = str(priority_level),
 						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
 					)
+			if scheduled_for and scheduled_until:
+				scheduled_for = dateutil.parser.parse(scheduled_for)
+				scheduled_until = dateutil.parser.parse(scheduled_until)
 			incident = IncidentService().create(
-				name = name, description = description, state = StateService().get(name = state),
-				incident_type = incident_type, system = system, event_type = EventTypeService().get(
-					name = event_type), priority_level = int(priority_level)
+				name = name, description = description, state = StateService().get(name = state), system = system,
+				incident_type = incident_type, scheduled_for = scheduled_for, scheduled_until = scheduled_until,
+				event_type = EventTypeService().get(name = event_type), priority_level = int(priority_level)
 			)
 			if incident is not None:
 				if escalated_events is not None:
@@ -93,13 +100,13 @@ class IncidentAdministrator(object):
 		return {"code": "800.400.001"}
 
 	@staticmethod
-	def update_incident(
-			incident_id, escalation_level, state, description, user = None,
-			priority_level = None):
+	def update_incident(incident_id, name, escalation_level, state, description, user = None, priority_level = None):
 		"""
 		Logs incident updates e.g changes in resolution state or priority level of an incident
 		@param incident_id: The id of the incident to be updated
 		@type incident_id: str
+		@param name: The name of the incident to be updated
+		@type name: str
 		@param escalation_level: Level at which to send notifications to configured users
 		@type escalation_level: str
 		@param state: New resolution state of the incident
@@ -119,16 +126,15 @@ class IncidentAdministrator(object):
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
 			if incident is None or escalation_level is None or state is None:
 				return {'code': '800.400.002'}
-			if priority_level is not None:
-				priority_level = int(priority_level)
-			else:
-				priority_level = incident.priority_level
+			priority_level = int(priority_level) if priority_level is not None else incident.priority_level
+
 			incident_log = IncidentLogService().create(
 				description = description, incident = incident, user = User.objects.filter(username = user).first(),
 				priority_level = priority_level, state = StateService().get(name = state)
 			)
 			updated_incident = IncidentService().update(
-				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state)
+				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state),
+				name = name
 			)
 			if incident_log and updated_incident:
 				system_recipients = SystemRecipientService().filter(
