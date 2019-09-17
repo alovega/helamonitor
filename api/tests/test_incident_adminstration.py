@@ -23,7 +23,7 @@ class TestIncidentLogger(object):
 			scheduled_until = '2019-09-20'
 		)
 
-		assert incident.get('code') == '800.200.001', "Should create an incident %s " % incident
+		assert incident.get('code') == '800.200.001', "Should create an incident"
 
 	def test_update_incident(self):
 		"""
