@@ -23,11 +23,6 @@ class TestBaseModels(object):
         assert event_type is not None, 'should create an EventType model'
         assert type(str(event_type)) == str, 'event_type should be a str object'
 
-    def test_log_type(self):
-        log_type = mixer.blend('base.LogType')
-        assert log_type is not None, 'should create a LogType model'
-        assert type(str(log_type)) == str, 'log_type should be a str object'
-
     def test_endpoint_type(self):
         endpoint_type = mixer.blend('base.EndpointType')
         assert endpoint_type is not None, 'should create an EndpointType model'

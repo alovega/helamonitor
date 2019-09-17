@@ -1,5 +1,4 @@
-from base.models import State, EndpointType, LogType, EventType, IncidentType,\
-                        NotificationType,EscalationLevel
+from base.models import State, EndpointType, EventType, IncidentType, NotificationType, EscalationLevel
 
 from servicebase import ServiceBase
 
@@ -16,13 +15,6 @@ class EndpointTypeService(ServiceBase):
     service for EndpointType CRUD
     """
     manager = EndpointType.objects
-
-
-class LogTypeService(ServiceBase):
-    """
-    service for LogType CRUD
-    """
-    manager = LogType.objects
 
 
 class EventTypeService(ServiceBase):

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 # Register your models here.
-from base.models import State, EndpointType, NotificationType, IncidentType, EventType, LogType, EscalationLevel
+from base.models import State, EndpointType, NotificationType, IncidentType, EventType, EscalationLevel
 
 
 @admin.register(State)
@@ -66,17 +66,6 @@ class IncidentTypeAdmin(admin.ModelAdmin):
 class EventTypeAdmin(admin.ModelAdmin):
     """
     Admin for EventType model
-    """
-    list_filter = ('date_created',)
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('name', 'description')
-
-
-@admin.register(LogType)
-class LogTypeAdmin(admin.ModelAdmin):
-    """
-    Admin for LogType model
     """
     list_filter = ('date_created',)
     list_display = ('name', 'description', 'state', 'date_modified', 'date_created')

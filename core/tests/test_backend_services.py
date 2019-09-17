@@ -283,7 +283,7 @@ class TestEventService(object):
         state = mixer.blend('base.State')
         mixer.blend(
             'core.Event', system=system, interface=interface, event_type=event_type, state=state, method='Some',
-            response='response', code='234', response_time= datetime.timedelta(milliseconds =111)
+            response='response', code='200'
         )
         event = EventService().get(system=system.id)
         assert event is not None, 'Should get a created Event object'
@@ -306,7 +306,6 @@ class TestEventService(object):
         state = mixer.blend('base.State')
         event = EventService().create(system=system, interface=interface, state=state, event_type=event_type)
         assert event is not None, 'Should create an Event Object'
-        assert event.code is not None, 'Event Created should have a code'
 
     def test_update(self):
         """
@@ -423,7 +422,9 @@ class TestIncidentLogService(object):
         incident = mixer.blend('core.Incident')
         user = mixer.blend(User)
         state = mixer.blend('base.State')
-        mixer.blend('core.IncidentLog', incident=incident, user=user, state=state)
+        mixer.blend(
+            'core.IncidentLog', incident=incident, user=user, state=state, priority_level =
+            incident.priority_level)
         incident_log = IncidentLogService().get(incident=incident.id)
         assert incident_log is not None, 'Should get a created IncidentLog object'
         return user
@@ -443,7 +444,9 @@ class TestIncidentLogService(object):
         incident = mixer.blend('core.Incident')
         user = mixer.blend(User)
         state = mixer.blend('base.State')
-        incident_log = IncidentLogService().create(incident=incident, user=user, state=state, description='Incident1')
+        incident_log = IncidentLogService().create(
+            incident=incident, user=user, state=state, description='Incident1', priority_level =
+            incident.priority_level)
         assert incident_log is not None, 'Should create an IncidentLog Object'
         assert incident_log.description == 'Incident1', ' IncidentLog description is equals to Incident1'
 
