@@ -24,7 +24,7 @@ def report_event(request):
 	"""
 	try:
 		data = get_request_data(request)
-		event = EventLog().log_event(
+		event = EventLog.log_event(
 			event_type = data.get('event_type'), system = data.get('system'), interface = data.get('interface'),
 			response = data.get('response'), request = data.get('request'), code = data.get('code'),
 			description = data.get('description')
@@ -46,7 +46,7 @@ def create_incident(request):
 	"""
 	try:
 		data = get_request_data(request)
-		incident = IncidentAdministrator().log_incident(
+		incident = IncidentAdministrator.log_incident(
 			incident_type = data.get('incident_type'), system = data.get('system'), name = data.get('name'),
 			escalation_level = data.get('escalation_level'), description = data.get('description'),
 			priority_level = data.get('priority_level'), event_type = data.get('event_type', None),
@@ -56,7 +56,7 @@ def create_incident(request):
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -70,7 +70,7 @@ def update_incident(request):
 	"""
 	try:
 		data = get_request_data(request)
-		updated_incident = IncidentAdministrator().update_incident(
+		updated_incident = IncidentAdministrator.update_incident(
 			incident_id = data.get('incident_id'), escalation_level = data.get('escalation_level'),
 			state = data.get('state'), description = data.get('description'), user = data.get('user'),
 			priority_level = data.get('priority_level'), name = data.get('name')
@@ -78,7 +78,7 @@ def update_incident(request):
 		return JsonResponse(updated_incident)
 	except Exception as ex:
 		lgr.exception('Incident update Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 %s ' % ex})
 
 
 @csrf_exempt
@@ -92,7 +92,7 @@ def health_check(request):
 	@rtype:dict
 	"""
 	try:
-		data = MonitorInterface().perform_health_check()
+		data = MonitorInterface.perform_health_check()
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('Health check interface  Exception: %s' % ex)
@@ -110,7 +110,7 @@ def send_notification(request):
 	"""
 	try:
 		data = get_request_data(request)
-		notification = NotificationLogger().send_notification(
+		notification = NotificationLogger.send_notification(
 			message = data.get('message'), message_type = data.get('message_type'), recipients = data.get('recipients')
 		)
 		return JsonResponse(notification)
@@ -130,7 +130,7 @@ def get_incident(request):
 	"""
 	try:
 		data = get_request_data(request)
-		incident = IncidentAdministrator().get_incident(
+		incident = IncidentAdministrator.get_incident(
 			system = data.get('system'), incident_id = data.get('incident_id')
 		)
 		return JsonResponse(incident)

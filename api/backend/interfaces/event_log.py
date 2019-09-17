@@ -55,7 +55,7 @@ class EventLog(object):
 				interface = InterfaceService().get(name = interface, state__name = "Active", system = system),
 			)
 			if event is not None:
-				escalation = EventLog().escalate_event(event)
+				escalation = EventLog.escalate_event(event)
 				if escalation.get('code') != '800.200.001':
 					lgr.error('%s event escalation Failed' % event_type)
 				return {'code': '800.200.001'}
@@ -81,7 +81,7 @@ class EventLog(object):
 					event_type = event.event_type, date_created__range = (now - matched_rule.duration, now)
 				)
 				if escalated_events.count() >= matched_rule.nth_event > 0:
-					return IncidentAdministrator().log_incident(
+					return IncidentAdministrator.log_incident(
 						name = "%s event" % event.event_type.name, incident_type = "Realtime",
 						system = event.system.name, state = "Investigating", escalated_events = escalated_events,
 						escalation_level = matched_rule.escalation_level, event_type = event.event_type.name,

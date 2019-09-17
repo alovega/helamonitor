@@ -19,7 +19,8 @@ class TestIncidentLogger(object):
 		incident = IncidentAdministrator().log_incident(
 			incident_type = incident_type, system = system, escalation_level = escalation_level,
 			name = 'Scheduled Maintenance', description = 'Scheduled Maintenance for Hela-Plan', priority_level = "4",
-			state = mixer.blend('base.state', name = "Identified").name
+			state = mixer.blend('base.state', name = "Scheduled").name, scheduled_for = '2019-09-19',
+			scheduled_until = '2019-09-20'
 		)
 
 		assert incident.get('code') == '800.200.001', "Should create an incident %s " % incident
