@@ -7,7 +7,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
-from api.backend.interfaces.notification_interface import NotificationLogger
 from base.backend.utilities import get_request_data
 
 lgr = logging.getLogger(__name__)

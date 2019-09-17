@@ -4,7 +4,7 @@ The URLs for API endpoints
 """
 from django.conf.urls import url
 
-from api.views import report_event, create_incident, update_incident, health_check, send_notification, get_incident
+from api.views import report_event, create_incident, update_incident, health_check, get_incident
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
