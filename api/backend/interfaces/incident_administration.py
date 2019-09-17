@@ -55,6 +55,7 @@ class IncidentAdministrator(object):
 		try:
 			system = SystemService().get(name = system, state__name = "Active")
 			incident_type = IncidentTypeService().get(name = incident_type, state__name = "Active")
+			state = state if incident_type.name == 'Realtime' else "Scheduled"
 			escalation_level = EscalationLevelService().get(
 				name = escalation_level, state__name = "Active")
 			if system is None or incident_type is None or escalation_level is None:
@@ -69,7 +70,7 @@ class IncidentAdministrator(object):
 						state = incident.state.name, priority_level = str(priority_level),
 						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
 					)
-			if scheduled_for and scheduled_until:
+			if incident_type.name == 'Scheduled':
 				scheduled_for = dateutil.parser.parse(scheduled_for)
 				scheduled_until = dateutil.parser.parse(scheduled_until)
 			incident = IncidentService().create(
@@ -78,7 +79,7 @@ class IncidentAdministrator(object):
 				event_type = EventTypeService().get(name = event_type), priority_level = int(priority_level)
 			)
 			if incident is not None:
-				if escalated_events is not None:
+				if escalated_events:
 					for event in escalated_events:
 						incident_event = IncidentEventService().create(
 							event = event, incident = incident, state = StateService().get(name = "Active")

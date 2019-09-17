@@ -69,7 +69,7 @@ class MonitorInterface(object):
 						})
 
 				if status_data.get("event_type") is not None:
-					event = EventLog().log_event(
+					event = EventLog.log_event(
 						event_type = status_data.get("event_type").name, system = status_data.get("system").name,
 						description = status_data.get("description"), response = status_data.get('response'),
 						request = health_state.request
