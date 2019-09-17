@@ -11,6 +11,5 @@ urlpatterns = [
     url(r'^create_incident/$', create_incident, name = 'create_incident'),
     url(r'^update_incident/$', update_incident, name = 'update_incident'),
     url(r'^health_check/$', health_check, name = 'health_check'),
-    url(r'^send_notification', send_notification, name = 'send_notification'),
     url(r'^get_incident/$', get_incident, name = 'get_incident')
 ]

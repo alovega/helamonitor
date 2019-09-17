@@ -100,26 +100,6 @@ def health_check(request):
 
 
 @csrf_exempt
-def send_notification(request):
-	"""
-	Sends notifications
-	@param request: The Django WSGI Request to process
-	@type request: WSGIRequest
-	@return: A response code to indicate a general success for notification creation and sending or otherwise
-	@rtype:dict
-	"""
-	try:
-		data = get_request_data(request)
-		notification = NotificationLogger.send_notification(
-			message = data.get('message'), message_type = data.get('message_type'), recipients = data.get('recipients')
-		)
-		return JsonResponse(notification)
-	except Exception as ex:
-		lgr.exception('Notification interface exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
-
-
-@csrf_exempt
 def get_incident(request):
 	"""
 	Get a specific incident
