@@ -49,7 +49,7 @@ class TestIncidentLogger(object):
 			recipients = [0773444333], message = message, message_type = message_type.name,
 		)
 
-		assert notification == {'code': '200.400.005'}, "Should create a notification %s " % notification
+		assert notification == {'code': '800.200.001'}, "Should create a notification %s " % notification
 
 	def test_calling_send_notification_with_missing_parameters(self):
 		state2 = mixer.blend('base.State', name = 'Sent')
