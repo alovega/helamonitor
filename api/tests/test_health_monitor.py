@@ -34,4 +34,4 @@ class TestMonitorInterface(object):
 		)
 		failed_monitor = MonitorInterface.perform_health_check()
 		assert monitor_manager.get('code') == "800.200.001", "Should return a general success code"
-		assert failed_monitor.get('code') == "800.400.001", "Should return a general success code"
+		assert failed_monitor.get('code') == "800.400.001", "Should return a general error code"
