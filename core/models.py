@@ -5,9 +5,6 @@ core Models
 from __future__ import unicode_literals
 
 from datetime import timedelta
-from django.conf import settings
-from django.utils import timezone
-
 from django.contrib.auth.models import User
 from django.db import models
 from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, \
@@ -228,23 +225,3 @@ class Notification(BaseModel):
 
     def __str__(self):
         return "%s %s %s" % (self.message, self.notification_type, self.state)
-
-
-def token_expiry():
-    """
-    Calculates token expiry time from the current time and extends it with the configured expiry time
-    @return: Time at which the token will expire
-    @rtype: datetime
-    """
-    return timezone.now() + timedelta(minutes = settings.EXPIRY_SETTINGS)
-
-
-class Oauth(BaseModel):
-    """
-    Manages authentication tokens for configured apps and users
-    """
-    app = models.ForeignKey(App)
-    token = models.CharField(max_length = 255)
-    user = models.ForeignKey(User)
-    expires_at = models.DateTimeField(default = token_expiry)
-    state = models.ForeignKey(State)
