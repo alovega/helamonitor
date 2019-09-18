@@ -9,7 +9,7 @@ from mixer.backend.django import mixer
 
 from django.test import TestCase, RequestFactory
 
-from api.views import report_event, create_incident, update_incident, get_incident
+from api.views import report_event, create_incident, update_incident, get_incident, health_check
 
 pytestmark = pytest.mark.django_db
 
@@ -38,3 +38,17 @@ class TestViews(TestCase):
 		response = report_event(request)
 		response = json.loads(response.content)
 		assert response.get('code') == '800.200.001', 'Should log a reported incident successfully'
+
+	def test_health_check_view(self):
+		state = mixer.blend('base.State', name='Active')
+		system = mixer.blend('core.System', name='github', state=state)
+		endpoint_type = mixer.blend('base.EndpointType', state=state, is_queried=True, name='healthcheck-endpoint')
+		mixer.blend(
+			'core.Endpoint', system=system, state=state, endpoint_type=endpoint_type, endpoint= 'https://github.com'
+		)
+		request = self.factory.get('api/health_check')
+		response = health_check(request)
+		response = json.loads(response.content)
+		assert response.get('code') == '800.200.001', 'should return a general success code'
+
+
