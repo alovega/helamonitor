@@ -26,7 +26,12 @@ class TestEventLog(object):
             system=system.name, event_type=event_type.name, description = "Test Event description",
             interface = interface.name, state = state.name, code = "12345"
         )
+        failing_event = EventLog.log_event(
+            system='system', event_type=event_type.name, description = "Test Event description",
+            interface = 'interface', state = state.name, code = "12345"
+        )
         assert event.get('code') == '800.200.001', "Should create an event successfully"
+        assert failing_event.get('code') != '800.200.001', "Should fail during event creation"
 
     def test_escalate_event(self):
         """
@@ -47,6 +52,5 @@ class TestEventLog(object):
             "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
             duration = timedelta(seconds=5), escalation_level=escalation_level
         )
-
         event_escalation = EventLog().escalate_event(event)
         assert event_escalation.get('code') == '800.200.001', "Should escalate event successfully"

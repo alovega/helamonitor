@@ -29,7 +29,11 @@ class TestMonitorInterface(object):
 		event_type = mixer.blend('base.EventType', name='Critical', state=state1)
 
 		monitor_manager = MonitorInterface.perform_health_check()
-		print (monitor_manager)
-		assert monitor_manager is not None, "Should log systems statuses %s "
+		endpoint2 = mixer.blend(
+			'core.Endpoint', endpoint="url", system=system, endpoint_type=endpoint_type,
+			optimal_response_time = datetime.timedelta(milliseconds = 5), state = system.state
+		)
+		failed_monitor = MonitorInterface.perform_health_check()
 		assert monitor_manager.get('code') == "800.200.001", "Should return a general success code"
+		assert failed_monitor.get('code') == "800.400.001", "Should return a general success code"
 

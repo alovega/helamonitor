@@ -76,7 +76,7 @@ class TestViews(TestCase):
 		response = json.loads(response.content)
 		assert response.get('code') == '800.200.001', 'Should update an incident successfully'
 
-	def test_health_check_view(self):
+	def test_health_check(self):
 		state = mixer.blend('base.State', name = 'Active')
 		system = mixer.blend('core.System', name = 'github', state = state)
 		endpoint_type = mixer.blend(
@@ -97,5 +97,7 @@ class TestViews(TestCase):
 		request = self.factory.get('api/get_incident', {'system': system.name, 'incident_id': incident.id})
 		response = get_incident(request)
 		response = json.loads(response.content)
+		bad_response = json.loads(get_incident("test").content)
 		assert response.get('code') == '800.200.001', 'Should get an incident successfully'
 		assert response.get('data').get('affected_system') == "HP", 'Should match the corresponding system name'
+		assert bad_response.get('code') == '800.400.002', 'Should return the status code for bad request parameters'
