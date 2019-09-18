@@ -2,7 +2,7 @@
 Services for Core module
 """
 from core.models import System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, \
-    Incident, IncidentEvent, IncidentLog, Notification, Endpoint, EscalationRule
+    Incident, IncidentEvent, IncidentLog, Notification, Endpoint, EscalationRule, Oauth
 
 from base.backend.servicebase import ServiceBase
 
@@ -96,3 +96,10 @@ class EscalationRuleService(ServiceBase):
     Service For EscalationRule CRUD
     """
     manager = EscalationRule.objects
+
+
+class OauthService(ServiceBase):
+    """
+    Class for Oauth CRUD
+    """
+    manager = Oauth.objects
