@@ -170,7 +170,7 @@ class IncidentAdministrator(object):
 				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name'),
 			).first()
 			if system is None or incident is None:
-				return {'code': '800.400.200'}
+				return {'code': '800.400.002'}
 			incident_updates = list(IncidentLogService().filter(incident__id = incident_id).values(
 				'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user'),
 				status = F('state__name')

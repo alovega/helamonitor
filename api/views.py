@@ -80,7 +80,7 @@ def update_incident(request):
 		return JsonResponse(updated_incident)
 	except Exception as ex:
 		lgr.exception('Incident update Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s ' % ex})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
