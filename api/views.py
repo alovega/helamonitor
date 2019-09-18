@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import User
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
@@ -116,3 +118,26 @@ def get_incident(request):
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+
+def get_access_token(request):
+	"""
+	Generates an access token for valid systems or extends the token expiry for those with expired tokens
+	@param request:
+	@type request: DJANGO WSGIRequest
+	@return:
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		app = AppService().get(pk = data.get('client_id'), state__name = 'Active')
+		if app is not None:
+			api_user = APIUserService().get(app_id = data.get('client_id'), username = data.get('username'))
+			if api_user is not None:
+				user_password = check_password(data.get('password'), api_user.password)
+				if user_password:
+					oauth = OauthService().get(
+						app__id = app.id, user =
+					)
+	except Exception as ex:
+		lgr.exception("Get Access token Exception %s " % ex)
