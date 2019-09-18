@@ -23,13 +23,13 @@ class TestMonitorInterface(object):
 		state = mixer.blend('base.State', name = 'Down')
 		endpoint_type = mixer.blend('base.EndpointType', is_queried = True)
 		endpoint = mixer.blend(
-			'core.Endpoint', endpoint="http://127.0.0.1:8000/a", system=system, endpoint_type=endpoint_type,
+			'core.Endpoint', endpoint="https://github.com/", system=system, endpoint_type=endpoint_type,
 			optimal_response_time = datetime.timedelta(milliseconds = 5), state = system.state
 		)
 		event_type = mixer.blend('base.EventType', name='Critical', state=state1)
 
 		monitor_manager = MonitorInterface.perform_health_check()
 		print (monitor_manager)
-		assert monitor_manager is not None, "Should log systems statuses %s " % monitor_manager
+		assert monitor_manager is not None, "Should log systems statuses %s "
 		assert monitor_manager.get('code') == "800.200.001", "Should return a general success code"
 
