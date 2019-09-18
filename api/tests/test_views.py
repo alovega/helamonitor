@@ -51,4 +51,12 @@ class TestViews(TestCase):
 		response = json.loads(response.content)
 		assert response.get('code') == '800.200.001', 'should return a general success code'
 
-
+	def test_get_incident(self):
+		state = mixer.blend('base.State', name = 'Active')
+		system = mixer.blend('core.System', state = state, name= 'github')
+		incident = mixer.blend('core.Incident', state=state, system=system)
+		request = self.factory.get('api/health_check',{'system': system.name, 'incident_id': incident.id})
+		response = get_incident(request)
+		response = json.loads(response.content)
+		print response
+		assert response.get('code') == '800.200.001', 'should return a general success code'
