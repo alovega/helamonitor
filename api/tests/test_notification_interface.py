@@ -30,7 +30,7 @@ class TestIncidentLogger(object):
 			message_type.name,
 		)
 
-		assert notification == {'code': '800.200.001'}, "Should create an incident %s " % notification
+		assert notification == {'code': '800.200.001'}, "Should create an incident %s "
 
 	def test_fail_notification_logger(self):
 		state2 = mixer.blend('base.State', name = 'Sent')
