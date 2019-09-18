@@ -15,11 +15,11 @@ class TestAppModels(object):
 	"""
 
 	def test_app(self):
-		event = mixer.blend("api.App")
-		assert event is not None, "Should create an app model"
-		assert type(str(event)) == str, "app Should be a str object"
+		app = mixer.blend("api.App")
+		assert app is not None, "Should create an app model"
+		assert type(str(app)) == str, "app Should be a str object"
 
-	def test_incident(self):
-		incident = mixer.blend("api.ApiUser")
-		assert incident is not None, "Should create an ApiUser"
-		assert type(str(incident)) == str, "ApiUser Should be a str object"
+	def test_app_user(self):
+		app_user = mixer.blend("api.AppUser")
+		assert app_user is not None, "Should create an ApiUser"
+		assert type(str(app_user)) == str, "ApiUser Should be a str object"
