@@ -2,7 +2,7 @@
 Services for Api module
 """
 from base.backend.services import ServiceBase
-from api.models import ApiUser, App
+from api.models import AppUser, App
 
 
 class AppService(ServiceBase):
@@ -12,8 +12,8 @@ class AppService(ServiceBase):
 	manager = App.objects
 
 
-class ApiUserService(ServiceBase):
+class AppUserService(ServiceBase):
 	"""
 	Class for ApiUser CRUD
 	"""
-	manager = ApiUser.objects
+	manager = AppUser.objects
