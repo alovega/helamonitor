@@ -4,6 +4,7 @@ api models
 """
 from __future__ import unicode_literals
 
+from django.contrib.auth.models import User
 from django.db import models
 from base.models import BaseModel, GenericBaseModel, State
 from core.models import System
@@ -18,10 +19,9 @@ class App(GenericBaseModel):
 
 
 class AppUser(BaseModel):
-	username = models.CharField(max_length = 240)
-	password = models.CharField(max_length = 240)
-	app = models.ForeignKey(App, unique = True)
+	user = models.ForeignKey(User)
+	app = models.OneToOneField(App)
 	state = models.ForeignKey(State)
 
 	def __str__(self):
-		return "%s" % self.username
+		return "%s" % self.user

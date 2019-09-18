@@ -24,6 +24,6 @@ class AppUserAdmin(admin.ModelAdmin):
 	Admin for ApiUser Model
 	"""
 	list_filter = ('date_created',)
-	list_display = ('username', 'app', 'state', 'date_modified', 'date_created')
+	list_display = ('user', 'app', 'state', 'date_modified', 'date_created')
 	ordering = ('-date_created',)
-	search_fields = ('username', 'app__name')
+	search_fields = ('user', 'app__name')
