@@ -38,19 +38,19 @@ class TestEventLog(object):
         Tests if a created event is escalated successfully
         """
         state = mixer.blend('base.State', name='Active')
-        investigating_state = mixer.blend('base.state', name = "Investigating")
+        mixer.blend('base.state', name = "Investigating")
         system = mixer.blend('core.System', state=state)
         interface = mixer.blend('core.Interface', system=system, state=state)
         event_type = mixer.blend('base.EventType', state=state, name='Critical')
         escalation_level = mixer.blend("base.EscalationLevel", state=state, name='High')
-        incident_type = mixer.blend('base.IncidentType', state=state, name="Realtime")
+        mixer.blend('base.IncidentType', state=state, name="Realtime")
+        mixer.blend(
+            "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
+            duration = timedelta(seconds=5), escalation_level=escalation_level
+        )
         event = mixer.blend(
             'core.Event', event_type=event_type, system=system, interface=interface, state=state,
             description='description', code='123'
-        )
-        escalation_rule = mixer.blend(
-            "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
-            duration = timedelta(seconds=5), escalation_level=escalation_level
         )
         event_escalation = EventLog().escalate_event(event)
         assert event_escalation.get('code') == '800.200.001', "Should escalate event successfully"
