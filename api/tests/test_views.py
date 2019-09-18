@@ -37,4 +37,41 @@ class TestViews(TestCase):
 		)
 		response = report_event(request)
 		response = json.loads(response.content)
-		assert response.get('code') == '800.200.001', 'Should log a reported incident successfully'
+		assert response.get('code') == '800.200.001', 'Should log a reported event successfully'
+
+	def test_create_incident(self):
+		"""Tests create_incident view"""
+		state = mixer.blend('base.State', name = 'Active')
+		system = mixer.blend('core.System', state = state)
+		escalation_level = mixer.blend('base.EscalationLevel', state = state)
+		mixer.blend('base.State', name = 'Scheduled')
+		mixer.blend('base.IncidentType', name = 'Scheduled', state = state)
+		request = self.factory.post(
+			'api/create_incident', {
+				'incident_type': 'Scheduled', 'system': system.name, 'escalation_level': escalation_level.name,
+				'name': 'HP Upgrade', 'description': 'Scheduled Upgrade of HP to v3', 'scheduled_for': '2019-09-20',
+				'scheduled_until': '2019-09-21', 'state': 'Scheduled', 'priority_level': '5'
+			}
+		)
+		response = create_incident(request)
+		response = json.loads(response.content)
+		assert response.get('code') == '800.200.001', 'Should create an incident successfully'
+
+	def test_update_incident(self):
+		"""Tests update incident view"""
+		state = mixer.blend('base.State', name = 'Active')
+		system = mixer.blend('core.System', state = state)
+		incident = mixer.blend('core.Incident')
+		escalation_level = mixer.blend('base.EscalationLevel', state = state)
+		mixer.blend('base.State', name = 'Identified')
+		# mixer.blend('base.IncidentType', name = 'Scheduled', state = state)
+		request = self.factory.post(
+			'api/update_incident', {
+				'incident_id': incident.id, 'name': 'Increased number of errors in HP', 'state': 'Identified',
+				'escalation_level': escalation_level.name, 'description': 'Increased errors affecting TakeLoan',
+				'priority_level': '4'
+			}
+		)
+		response = update_incident(request)
+		response = json.loads(response.content)
+		assert response.get('code') == '800.200.001', 'Should update an incident successfully'
