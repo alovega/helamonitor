@@ -30,6 +30,6 @@ class TestMonitorInterface(object):
 
 		monitor_manager = MonitorInterface.perform_health_check()
 		print (monitor_manager)
-		assert monitor_manager is not None, "Should log systems statuses %s " % monitor_manager
+		assert monitor_manager is not None, "Should log systems statuses %s "
 		assert monitor_manager.get('code') == "800.200.001", "Should return a general success code"
 

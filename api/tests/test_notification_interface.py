@@ -67,4 +67,4 @@ class TestIncidentLogger(object):
 			recipients ='', message = '', message_type = '',
 		)
 
-		assert notification == {'code': '800.400.002'}, "Should return code for missing parameters %s " % notification
+		assert notification == {'code': '800.400.002'}, "Should return code for missing parameters %s "
