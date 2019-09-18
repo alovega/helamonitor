@@ -20,7 +20,7 @@ class App(GenericBaseModel):
 class AppUser(BaseModel):
 	username = models.CharField(max_length = 240)
 	password = models.CharField(max_length = 240)
-	app = models.ForeignKey(App)
+	app = models.ForeignKey(App, unique = True)
 	state = models.ForeignKey(State)
 
 	def __str__(self):
