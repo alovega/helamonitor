@@ -3,13 +3,18 @@ from __future__ import unicode_literals
 
 import logging
 import calendar
+import base64
+from datetime import timedelta
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
+from django.conf import settings
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
+from api.backend.services import OauthService, AppService, AppUserService
+from base.backend.services import StateService
 from base.backend.utilities import get_request_data
 
 lgr = logging.getLogger(__name__)
@@ -139,8 +144,13 @@ def get_access_token(request):
 				oauth = OauthService().filter(
 					app_user = app_user, expires_at__gt = timezone.now(), state__name = 'Active').first()
 				if oauth is None:
-					# TODO add token generation logic
-					pass
+					token = base64.urlsafe_b64encode('%s:%s' % (data.get('username'), data.get('password')))
+					oauth = OauthService().create(
+						app_user = app_user, token = token, state = StateService().get(name = 'Active')
+					)
+					if oauth is None:
+						return{'code': '800.400.001'}
+				oauth.expires_at = timezone.now() + timedelta(minutes = settings.EXPIRY_SETTINGS)
 				return {'code': '800.200.001', 'data': {
 					'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
 				}

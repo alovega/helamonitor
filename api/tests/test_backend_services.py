@@ -52,7 +52,6 @@ class TestAppService(object):
     """
     Test the App Model Services
     """
-
     def test_get(self):
         """
         Test System get service
