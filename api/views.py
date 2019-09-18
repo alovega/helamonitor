@@ -2,10 +2,11 @@
 from __future__ import unicode_literals
 
 import logging
+import calendar
+from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import User
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
@@ -132,12 +133,18 @@ def get_access_token(request):
 		data = get_request_data(request)
 		app = AppService().get(pk = data.get('client_id'), state__name = 'Active')
 		if app is not None:
-			api_user = APIUserService().get(app_id = data.get('client_id'), username = data.get('username'))
-			if api_user is not None:
-				user_password = check_password(data.get('password'), api_user.password)
-				if user_password:
-					oauth = OauthService().get(
-						app__id = app.id, user =
-					)
+			app_user = AppUserService().get(app__id = app.id, user__username = data.get('username'))
+			user = check_password(data.get('password'), app_user.user.password)
+			if app_user is not None and user is not None:
+				oauth = OauthService().filter(
+					app_user = app_user, expires_at__gt = timezone.now(), state__name = 'Active').first()
+				if oauth is None:
+					# TODO add token generation logic
+					pass
+				return {'code': '800.200.001', 'data': {
+					'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
+				}
+			return {'code': '800.400.002'}  # TODO add invalid credentials response code
 	except Exception as ex:
 		lgr.exception("Get Access token Exception %s " % ex)
+	return {'code': '800.400.001'}

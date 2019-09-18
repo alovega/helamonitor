@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
+
 from base.models import BaseModel, State
 
 
@@ -23,9 +23,8 @@ class Oauth(BaseModel):
     """
     Manages authentication tokens for configured apps and users
     """
-    app = models.ForeignKey(App)
+    app_user = models.ForeignKey(AppUser)
     token = models.CharField(max_length = 255)
-    user = models.ForeignKey(User)
     expires_at = models.DateTimeField(default = token_expiry)
     state = models.ForeignKey(State)
 
