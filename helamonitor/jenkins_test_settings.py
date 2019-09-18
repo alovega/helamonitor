@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-The Jenkins test settings for Hela Monitor project
+The Jenkins test settings for HelaMonitor project
 """
 from .settings import *
 
