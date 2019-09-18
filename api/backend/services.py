@@ -13,3 +13,19 @@ class OauthService(ServiceBase):
     manager = Oauth.objects
 
 
+from api.models import AppUser, App
+
+
+class AppService(ServiceBase):
+    """
+    Class for App CRUD
+    """
+    manager = App.objects
+
+
+class AppUserService(ServiceBase):
+    """
+    Class for ApiUser CRUD
+    """
+    manager = AppUser.objects
+

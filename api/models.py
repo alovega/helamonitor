@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+api models
+"""
 from __future__ import unicode_literals
 
-from django.utils import timezone
 from datetime import timedelta
 
+from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import models
-
-from base.models import BaseModel, State
+from core.models import System
+from base.models import BaseModel, GenericBaseModel, State
 
 
 def token_expiry():
@@ -19,9 +23,26 @@ def token_expiry():
     return timezone.now() + timedelta(minutes = settings.EXPIRY_SETTINGS)
 
 
+class App(GenericBaseModel):
+    system = models.ForeignKey(System)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.name
+
+
+class AppUser(BaseModel):
+    user = models.ForeignKey(User)
+    app = models.OneToOneField(App)
+    state = models.ForeignKey(State)
+
+    def __str__(self):
+        return "%s" % self.user
+
+
 class Oauth(BaseModel):
     """
-    Manages authentication tokens for configured apps and users
+    Manages access tokens for configured apps and users
     """
     app_user = models.ForeignKey(AppUser)
     token = models.CharField(max_length = 255)
@@ -29,4 +50,4 @@ class Oauth(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s %s %s" % (self.app.name, self.user.username, self.token, self.state)
+        return "%s %s %s %s" % (self.app_user.app.name, self.app_user.user.username, self.token, self.state)
