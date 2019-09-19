@@ -4,7 +4,7 @@ Decorators used in the API
 """
 import json
 from datetime import timedelta
-from time import timezone
+from django.utils import timezone
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, JsonResponse
@@ -33,7 +33,7 @@ def ensure_authenticated(view_func):
 				if client_id and token:
 					is_checked = True
 					oauth = OauthService().filter(
-						app_user__id = client_id, token = token, expires_at__gt = timezone.now(),
+						app_user__app__id = client_id, token = token, expires_at__gt = timezone.now(),
 						state__name = "Active").first()
 					if not oauth:
 						response = HttpResponse(
