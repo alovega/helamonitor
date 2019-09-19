@@ -134,21 +134,20 @@ def get_access_token(request):
 	"""
 	try:
 		data = get_request_data(request)
-		# return JsonResponse({'username': data.get('username'), 'client_id': data.get('client_id')})
 		app_user = AppUserService().get(app__id = data.get('client_id'), user__username = data.get('username'))
 		if app_user is not None:
 			user = check_password(data.get('password'), app_user.user.password)
 			if user:
 				oauth = OauthService().filter(
 					app_user = app_user, expires_at__gt = timezone.now(), state__name = 'Active').first()
-				if oauth is None:
+				if oauth:
+					oauth = OauthService().update(pk = oauth.id, expires_at = token_expiry())
+				else:
 					oauth = OauthService().create(
 						app_user = app_user, token = generate_access_token(), state = StateService().get(name = 'Active')
 					)
-					if oauth is None:
-						return JsonResponse({'code': '800.400.001'})
-				else:
-					oauth.expires_at = token_expiry()
+				if not oauth:
+					return JsonResponse({'code': '800.400.001'})
 				return JsonResponse({'code': '800.200.001', 'data': {
 					'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
 				})
