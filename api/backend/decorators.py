@@ -3,7 +3,6 @@
 Decorators used in the API
 """
 import json
-from datetime import timedelta
 from django.utils import timezone
 
 from django.core.handlers.wsgi import WSGIRequest
@@ -12,8 +11,8 @@ from django.utils.decorators import available_attrs
 from django.utils.six import wraps
 
 from api.backend.services import OauthService
+from api.models import token_expiry
 from base.backend.utilities import get_request_data
-from helamonitor import settings
 
 
 def ensure_authenticated(view_func):
@@ -43,7 +42,7 @@ def ensure_authenticated(view_func):
 							content_type = 'application/json', status = 401)
 						response['WWW-Authenticate'] = 'Bearer realm=api'
 						return response
-					oauth.expires_at = timezone.now() + timedelta(minutes = settings.EXPIRY_SETTINGS)
+					oauth.expires_at = oauth.expires_at = token_expiry()
 					setattr(k, 'app_user', oauth.app_user)
 				else:
 					return JsonResponse({
