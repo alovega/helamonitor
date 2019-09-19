@@ -37,7 +37,8 @@ def ensure_authenticated(view_func):
 					if not oauth:
 						response = HttpResponse(
 							json.dumps({
-								'status': 'failed', 'message': 'Unauthorized. Invalid credentials.', 'code': '401'
+								'status': 'failed', 'message': 'Unauthorized. Invalid credentials.', 'code':
+									'800.403.001'
 							}),
 							content_type = 'application/json', status = 401)
 						response['WWW-Authenticate'] = 'Bearer realm=api'
@@ -47,11 +48,12 @@ def ensure_authenticated(view_func):
 				else:
 					return JsonResponse({
 						'status': 'failed', 'message': 'Unauthorized. Authorization parameters not Found!',
-						'code': '401'
+						'code': '800.403.001'
 					}, status = 401)
 		if not is_checked:
 			response = HttpResponse(
-				json.dumps({'status': 'failed', 'message': 'Unauthorized. Credentials not Provided.', 'code': '401'}),
+				json.dumps({'status': 'failed', 'message': 'Unauthorized. Credentials not Provided.',
+					           'code': '800.403.001'}),
 				content_type = 'application/json', status = 401)
 			response['WWW-Authenticate'] = 'Bearer realm=api'
 			return response
