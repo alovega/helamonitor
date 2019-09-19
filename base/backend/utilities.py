@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 lgr = logging.getLogger(__name__)
 
@@ -39,3 +40,12 @@ def get_request_data(request):
 	except Exception as e:
 		lgr.exception('get_request_data Exception: %s', e)
 	return dict()
+
+
+def generate_access_token():
+	"""
+	Generates an unique token to be used for authorizing access of api endpoints
+	@return: The token to be used for api authentication
+	@rtype: str
+	"""
+	return os.urandom(15).encode('hex')

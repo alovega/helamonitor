@@ -9,7 +9,7 @@ from mixer.backend.django import mixer
 
 from django.test import TestCase, RequestFactory
 
-from api.views import report_event, create_incident, update_incident, get_incident, health_check
+from api.views import report_event, create_incident, update_incident, get_incident, health_check, get_access_token
 
 pytestmark = pytest.mark.django_db
 
@@ -60,11 +60,10 @@ class TestViews(TestCase):
 	def test_update_incident(self):
 		"""Tests update incident view"""
 		state = mixer.blend('base.State', name = 'Active')
-		system = mixer.blend('core.System', state = state)
+		mixer.blend('core.System', state = state)
 		incident = mixer.blend('core.Incident')
 		escalation_level = mixer.blend('base.EscalationLevel', state = state)
 		mixer.blend('base.State', name = 'Identified')
-		# mixer.blend('base.IncidentType', name = 'Scheduled', state = state)
 		request = self.factory.post(
 			'api/update_incident', {
 				'incident_id': incident.id, 'name': 'Increased number of errors in HP', 'state': 'Identified',
@@ -101,3 +100,17 @@ class TestViews(TestCase):
 		assert response.get('code') == '800.200.001', 'Should get an incident successfully'
 		assert response.get('data').get('affected_system') == "HP", 'Should match the corresponding system name'
 		assert bad_response.get('code') == '800.400.002', 'Should return the status code for bad request parameters'
+
+	def test_get_access_code(self):
+		"""Tests get_access code view"""
+		pass
+		state = mixer.blend('base.State', name = 'Active')
+		app = mixer.blend('api.App', state =state)
+		app_user = mixer.blend('api.AppUser', app = app)
+		request = self.factory.post('api/get_access_token', {
+			'client_id': app.id, 'username': app_user.user.username, 'password': app_user.user.password})
+		response = get_access_token(request)
+		response = json.loads(response.content)
+		assert response.get('code') == '800.200.001', 'Should create an access token'
+		assert response['data'].get('token') is not None, 'Should return a token'
+
