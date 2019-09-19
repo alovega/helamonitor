@@ -42,7 +42,7 @@ def ensure_authenticated(view_func):
 							content_type = 'application/json', status = 401)
 						response['WWW-Authenticate'] = 'Bearer realm=api'
 						return response
-					oauth.expires_at = token_expiry()
+					OauthService().update(oauth.id, expires_at= token_expiry())
 					setattr(k, 'app_user', oauth.app_user)
 				else:
 					return JsonResponse({
