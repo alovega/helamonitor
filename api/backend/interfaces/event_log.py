@@ -48,7 +48,7 @@ class EventLog(object):
 			system = SystemService().get(name = system, state__name = "Active")
 			event_type = EventTypeService().get(name = event_type, state__name = "Active")
 			if system is None or event_type is None:
-				return {"code": "400.400.002"}
+				return {"code": "800.400.002"}
 			event = EventService().create(
 				event_type = event_type, system = system, method = method, response = response, request = request,
 				code = code, description = description, state = StateService().get(name = "Active"),
