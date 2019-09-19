@@ -9,13 +9,13 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
-from django.conf import settings
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
 from api.backend.services import OauthService, AppService, AppUserService
+from api.models import token_expiry
 from base.backend.services import StateService
-from base.backend.utilities import get_request_data
+from base.backend.utilities import get_request_data, generate_access_token
 
 lgr = logging.getLogger(__name__)
 
@@ -131,30 +131,28 @@ def get_access_token(request):
 	Generates an access token for valid systems or extends the token expiry for those with expired tokens
 	@param request:
 	@type request: DJANGO WSGIRequest
-	@return:
+	@return: An access token and its expiry time or a response code indicating invalid credentials supplied
 	@rtype: dict
 	"""
 	try:
 		data = get_request_data(request)
-		app = AppService().get(pk = data.get('client_id'), state__name = 'Active')
-		if app is not None:
-			app_user = AppUserService().get(app__id = app.id, user__username = data.get('username'))
-			user = check_password(data.get('password'), app_user.user.password)
-			if app_user is not None and user is not None:
-				oauth = OauthService().filter(
-					app_user = app_user, expires_at__gt = timezone.now(), state__name = 'Active').first()
+		app_user = AppUserService().get(app__id = data.get('client_id'), user__username = data.get('username'))
+		user = check_password(data.get('password'), app_user.user.password)
+		if app_user is not None and user is not None:
+			oauth = OauthService().filter(
+				app_user = app_user, expires_at__gt = timezone.now(), state__name = 'Active').first()
+			if oauth is None:
+				oauth = OauthService().create(
+					app_user = app_user, token = generate_access_token(), state = StateService().get(name = 'Active')
+				)
 				if oauth is None:
-					token = base64.urlsafe_b64encode('%s:%s' % (data.get('username'), data.get('password')))
-					oauth = OauthService().create(
-						app_user = app_user, token = token, state = StateService().get(name = 'Active')
-					)
-					if oauth is None:
-						return{'code': '800.400.001'}
-				oauth.expires_at = timezone.now() + timedelta(minutes = settings.EXPIRY_SETTINGS)
-				return {'code': '800.200.001', 'data': {
-					'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
-				}
-			return {'code': '800.400.002'}  # TODO add invalid credentials response code
+					return JsonResponse({'code': '800.400.001'})
+			else:
+				oauth.expires_at = token_expiry()
+			return JsonResponse ({'code': '800.200.001', 'data': {
+				'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
+			})
+		return JsonResponse({'code': '800.403.001'})
 	except Exception as ex:
 		lgr.exception("Get Access token Exception %s " % ex)
-	return {'code': '800.400.001'}
+	return JsonResponse({'code': '800.400.001'})
