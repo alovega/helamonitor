@@ -29,10 +29,12 @@ class TestViews(TestCase):
 		system = mixer.blend('core.System', state = state)
 		interface = mixer.blend('core.Interface', state = state)
 		event_type = mixer.blend('base.EventType', state = state)
+		oauth = mixer.blend('api.oauth', token = '12345', state = state)
 		request = self.factory.post(
 			'api/report_event', {
 				'system': system.name, 'event_type': event_type.name, 'interface': interface.name,
-				'response': 'response', 'request': 'request', 'code': '404', 'description': 'Error occurred'
+				'response': 'response', 'request': 'request', 'code': '404', 'description': 'Error occurred',
+				'client_id': oauth.app_user.app.id, 'token': '12345'
 			}
 		)
 		response = report_event(request)
@@ -44,13 +46,15 @@ class TestViews(TestCase):
 		state = mixer.blend('base.State', name = 'Active')
 		system = mixer.blend('core.System', state = state)
 		escalation_level = mixer.blend('base.EscalationLevel', state = state)
+		oauth = mixer.blend('api.oauth', token = '12345', state = state)
 		mixer.blend('base.State', name = 'Scheduled')
 		mixer.blend('base.IncidentType', name = 'Scheduled', state = state)
 		request = self.factory.post(
 			'api/create_incident', {
 				'incident_type': 'Scheduled', 'system': system.name, 'escalation_level': escalation_level.name,
 				'name': 'HP Upgrade', 'description': 'Scheduled Upgrade of HP to v3', 'scheduled_for': '2019-09-20',
-				'scheduled_until': '2019-09-21', 'state': 'Scheduled', 'priority_level': '5'
+				'scheduled_until': '2019-09-21', 'state': 'Scheduled', 'priority_level': '5',
+				'client_id': oauth.app_user.app.id, 'token': '12345'
 			}
 		)
 		response = create_incident(request)
@@ -63,12 +67,13 @@ class TestViews(TestCase):
 		mixer.blend('core.System', state = state)
 		incident = mixer.blend('core.Incident')
 		escalation_level = mixer.blend('base.EscalationLevel', state = state)
+		oauth = mixer.blend('api.oauth', token = '12345', state = state)
 		mixer.blend('base.State', name = 'Identified')
 		request = self.factory.post(
 			'api/update_incident', {
 				'incident_id': incident.id, 'name': 'Increased number of errors in HP', 'state': 'Identified',
 				'escalation_level': escalation_level.name, 'description': 'Increased errors affecting TakeLoan',
-				'priority_level': '4'
+				'priority_level': '4', 'client_id': oauth.app_user.app.id, 'token': '12345'
 			}
 		)
 		response = update_incident(request)
@@ -84,7 +89,8 @@ class TestViews(TestCase):
 			'core.Endpoint', system = system, state = state, endpoint_type = endpoint_type,
 			endpoint = 'https://github.com'
 		)
-		request = self.factory.get('api/health_check')
+		oauth = mixer.blend('api.oauth', token = '12345', state = state)
+		request = self.factory.get('api/health_check', {'client_id': oauth.app_user.app.id, 'token': '12345'})
 		response = health_check(request)
 		response = json.loads(response.content)
 		assert response.get('code') == '800.200.001', 'should return a general success code'
@@ -93,13 +99,18 @@ class TestViews(TestCase):
 		state = mixer.blend('base.State', name = 'Active')
 		system = mixer.blend('core.System', state = state, name = 'HP')
 		incident = mixer.blend('core.Incident', state = state, system = system)
-		request = self.factory.get('api/get_incident', {'system': system.name, 'incident_id': incident.id})
+		oauth = mixer.blend('api.oauth', token = '12345', state = state)
+		request = self.factory.get('api/get_incident', {
+			'system': system.name, 'incident_id': incident.id, 'client_id': oauth.app_user.app.id, 'token': '12345'
+		})
 		response = get_incident(request)
 		response = json.loads(response.content)
-		bad_response = json.loads(get_incident("test").content)
+		invalid_response = json.loads(get_incident(self.factory.get('api/get_incident', {
+			'client_id': oauth.app_user.app.id, 'token': '12345'
+		})).content)
 		assert response.get('code') == '800.200.001', 'Should get an incident successfully'
 		assert response.get('data').get('affected_system') == "HP", 'Should match the corresponding system name'
-		assert bad_response.get('code') == '800.400.002', 'Should return the status code for bad request parameters'
+		assert invalid_response.get('code') == '800.400.002', 'Should return the status code for invalid request'
 
 	def test_get_access_code(self):
 		"""Tests get_access code view"""
@@ -110,7 +121,8 @@ class TestViews(TestCase):
 		user.save()
 		app_user = mixer.blend('api.AppUser', app = app, user = user)
 		request = self.factory.post('api/get_access_token', {
-			'client_id': app.id, 'username': app_user.user.username, 'password': '12345'})
+			'client_id': app.id, 'username': app_user.user.username, 'password': '12345'
+		})
 		response = get_access_token(request)
 		response = json.loads(response.content)
 		assert response.get('code') == '800.200.001', 'Should create an access token %s' % request

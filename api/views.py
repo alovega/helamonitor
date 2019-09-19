@@ -13,12 +13,14 @@ from api.backend.interfaces.health_monitor import MonitorInterface
 from api.backend.services import OauthService, AppUserService
 from api.models import token_expiry
 from base.backend.services import StateService
+from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
 
 lgr = logging.getLogger(__name__)
 
 
 @csrf_exempt
+@ensure_authenticated
 def report_event(request):
 	"""
 	Creates an event reported from an external system
@@ -41,6 +43,7 @@ def report_event(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def create_incident(request):
 	"""
 	Creates incidents from users
@@ -65,6 +68,7 @@ def create_incident(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def update_incident(request):
 	"""
 	Updates an existing incident's priority, resolution status or user assignment
@@ -87,6 +91,7 @@ def update_incident(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def health_check(request):
 	"""
 	Performs health check for all registered systems
@@ -105,6 +110,7 @@ def health_check(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def get_incident(request):
 	"""
 	Get a specific incident
