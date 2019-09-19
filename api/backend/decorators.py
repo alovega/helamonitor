@@ -3,19 +3,21 @@
 Decorators used in the API
 """
 import json
+from django.utils import timezone
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import available_attrs
 from django.utils.six import wraps
 
-from core.backend.services import SystemCredentialService
-from base.backend.utilities import get_request_data, get_client_ip
+from api.backend.services import OauthService
+from api.models import token_expiry
+from base.backend.utilities import get_request_data
 
 
 def ensure_authenticated(view_func):
 	"""
-	Checks if the request is from a valid System. Checks the originating IP as well as supplied password.
+	Checks if the request is from a valid System. Checks the originating client_id as well as supplied token.
 	If successful, sets the `request.system` variable accordingly.
 	"""
 
@@ -25,31 +27,33 @@ def ensure_authenticated(view_func):
 		for k in args:
 			if isinstance(k, WSGIRequest):
 				request_data = get_request_data(k)
-				ip = get_client_ip(k)
-				code = request_data.get("code", None)
-				password = request_data.get("password", None)
-				if code and password:
+				client_id = request_data.get("client_id", None)
+				token = request_data.get("token", None)
+				if client_id and token:
 					is_checked = True
-					oauth = SystemCredentialService().filter(
-						system__code = code, password = password, allowed_ip = ip.strip(),
+					oauth = OauthService().filter(
+						app_user__app__id = client_id, token = token, expires_at__gt = timezone.now(),
 						state__name = "Active").first()
 					if not oauth:
 						response = HttpResponse(
 							json.dumps({
-								'status': 'failed', 'message': 'Unauthorized. Invalid credentials.', 'code': '401'
+								'status': 'failed', 'message': 'Unauthorized. Invalid credentials.', 'code':
+									'800.403.001'
 							}),
 							content_type = 'application/json', status = 401)
 						response['WWW-Authenticate'] = 'Bearer realm=api'
 						return response
-					setattr(k, 'system', oauth.system)
+					OauthService().update(oauth.id, expires_at= token_expiry())
+					setattr(k, 'app_user', oauth.app_user)
 				else:
 					return JsonResponse({
 						'status': 'failed', 'message': 'Unauthorized. Authorization parameters not Found!',
-						'code': '401'
+						'code': '800.403.001'
 					}, status = 401)
 		if not is_checked:
 			response = HttpResponse(
-				json.dumps({'status': 'failed', 'message': 'Unauthorized. Credentials not Provided.', 'code': '401'}),
+				json.dumps({'status': 'failed', 'message': 'Unauthorized. Credentials not Provided.',
+					           'code': '800.403.001'}),
 				content_type = 'application/json', status = 401)
 			response['WWW-Authenticate'] = 'Bearer realm=api'
 			return response

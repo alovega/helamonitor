@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 lgr = logging.getLogger(__name__)
 
@@ -41,42 +42,10 @@ def get_request_data(request):
 	return dict()
 
 
-def get_client_ip(request):
+def generate_access_token():
 	"""
-	Gets the client IP address.
-	@param request: The request we received from the request pipeline.
-	@type request: WSGIRequest
-	@return: The IP address of the client.
+	Generates an unique token to be used for authorizing access of api endpoints
+	@return: The token to be used for api authentication
 	@rtype: str
 	"""
-	try:
-		x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR', False)
-		if x_forwarded_for:
-			ip = x_forwarded_for.split(',')[0]
-		else:
-			ip = request.META.get('REMOTE_ADDR', None)
-		return ip
-	except Exception as e:
-		lgr.exception('get_client_ip Exception: %s' % e)
-	return ''
-
-
-def format_duration(duration):
-	seconds = int(duration.total_seconds())
-	periods = [
-		('year', 60 * 60 * 24 * 365),
-		('month', 60 * 60 * 24 * 30),
-		('day', 60 * 60 * 24),
-		('hour', 60 * 60),
-		('minute', 60),
-		('second', 1)
-	]
-
-	strings = []
-	for period_name, period_seconds in periods:
-		if seconds > period_seconds:
-			period_value, seconds = divmod(seconds, period_seconds)
-			is_plural = 's' if period_value > 1 else ''
-			strings.append("%s %s%s" % (period_value, period_name, is_plural))
-
-	return ", ".join(strings)
+	return os.urandom(15).encode('hex')

@@ -11,4 +11,6 @@ omit =
 	manage.py,
 	api/scripts/*.py,
 	api/data_migration/*.py,
-	api/sync/*.py
+	api/sync/*.py,
+	*wsgi.py,
+	*servicebase.py
