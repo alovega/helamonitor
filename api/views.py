@@ -5,7 +5,8 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
+from api.backend.interfaces.event_log import EventLog
+from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
 from base.backend.utilities import get_request_data
 
