@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 
 lgr = logging.getLogger(__name__)
 
@@ -46,6 +45,12 @@ def generate_access_token():
 	"""
 	Generates an unique token to be used for authorizing access of api endpoints
 	@return: The token to be used for api authentication
-	@rtype: str
+	@rtype: str | None
 	"""
-	return os.urandom(15).encode('hex')
+	import os
+	token = None
+	try:
+		token = os.urandom(15).encode('hex')
+	except Exception as ex:
+		lgr.exception('Generate access token exception %s' % ex)
+	return token
