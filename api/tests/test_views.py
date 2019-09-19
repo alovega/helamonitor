@@ -8,7 +8,7 @@ import pytest
 from mixer.backend.django import mixer
 
 from django.test import TestCase, RequestFactory
-
+from django.contrib.auth.models import User
 from api.views import report_event, create_incident, update_incident, get_incident, health_check, get_access_token
 
 pytestmark = pytest.mark.django_db
@@ -103,14 +103,15 @@ class TestViews(TestCase):
 
 	def test_get_access_code(self):
 		"""Tests get_access code view"""
-		pass
 		state = mixer.blend('base.State', name = 'Active')
-		app = mixer.blend('api.App', state =state)
-		app_user = mixer.blend('api.AppUser', app = app)
+		app = mixer.blend('api.App', state = state)
+		user = mixer.blend(User)
+		user.set_password('12345')
+		user.save()
+		app_user = mixer.blend('api.AppUser', app = app, user = user)
 		request = self.factory.post('api/get_access_token', {
-			'client_id': app.id, 'username': app_user.user.username, 'password': app_user.user.password})
+			'client_id': app.id, 'username': app_user.user.username, 'password': '12345'})
 		response = get_access_token(request)
 		response = json.loads(response.content)
-		assert response.get('code') == '800.200.001', 'Should create an access token'
+		assert response.get('code') == '800.200.001', 'Should create an access token %s' % request
 		assert response['data'].get('token') is not None, 'Should return a token'
-

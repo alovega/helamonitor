@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 
 import logging
 import calendar
-import base64
-from datetime import timedelta
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +10,7 @@ from django.contrib.auth.hashers import check_password
 
 from api.backend.interfaces.event_log import EventLog, IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
-from api.backend.services import OauthService, AppService, AppUserService
+from api.backend.services import OauthService, AppUserService
 from api.models import token_expiry
 from base.backend.services import StateService
 from base.backend.utilities import get_request_data, generate_access_token
@@ -136,22 +134,24 @@ def get_access_token(request):
 	"""
 	try:
 		data = get_request_data(request)
+		# return JsonResponse({'username': data.get('username'), 'client_id': data.get('client_id')})
 		app_user = AppUserService().get(app__id = data.get('client_id'), user__username = data.get('username'))
-		user = check_password(data.get('password'), app_user.user.password)
-		if app_user is not None and user is not None:
-			oauth = OauthService().filter(
-				app_user = app_user, expires_at__gt = timezone.now(), state__name = 'Active').first()
-			if oauth is None:
-				oauth = OauthService().create(
-					app_user = app_user, token = generate_access_token(), state = StateService().get(name = 'Active')
-				)
+		if app_user is not None:
+			user = check_password(data.get('password'), app_user.user.password)
+			if user:
+				oauth = OauthService().filter(
+					app_user = app_user, expires_at__gt = timezone.now(), state__name = 'Active').first()
 				if oauth is None:
-					return JsonResponse({'code': '800.400.001'})
-			else:
-				oauth.expires_at = token_expiry()
-			return JsonResponse ({'code': '800.200.001', 'data': {
-				'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
-			})
+					oauth = OauthService().create(
+						app_user = app_user, token = generate_access_token(), state = StateService().get(name = 'Active')
+					)
+					if oauth is None:
+						return JsonResponse({'code': '800.400.001'})
+				else:
+					oauth.expires_at = token_expiry()
+				return JsonResponse({'code': '800.200.001', 'data': {
+					'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
+				})
 		return JsonResponse({'code': '800.403.001'})
 	except Exception as ex:
 		lgr.exception("Get Access token Exception %s " % ex)
