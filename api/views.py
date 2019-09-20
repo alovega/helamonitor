@@ -8,14 +8,15 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
 
+from api.models import token_expiry
 from api.backend.interfaces.event_log import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
 from api.backend.services import OauthService, AppUserService
-from api.models import token_expiry
-from base.backend.services import StateService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
+from base.backend.services import StateService
+
 
 lgr = logging.getLogger(__name__)
 
@@ -133,7 +134,7 @@ def get_incident(request):
 
 def get_access_token(request):
 	"""
-	Generates an access token for valid systems or extends the token expiry for those with expired tokens
+	Generates an access token for valid app users
 	@param request:
 	@type request: DJANGO WSGIRequest
 	@return: An access token and its expiry time or a response code indicating invalid credentials supplied
