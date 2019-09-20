@@ -1,5 +1,6 @@
 import json
 import logging
+import base64
 
 lgr = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ def generate_access_token():
 	import os
 	token = None
 	try:
-		token = os.urandom(15).encode('hex')
+		token = base64.b64encode(os.urandom(15).encode('hex'))
 	except Exception as ex:
 		lgr.exception('Generate access token exception %s' % ex)
 	return token
