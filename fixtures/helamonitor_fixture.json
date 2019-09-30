@@ -698,7 +698,7 @@
          "description":"Hela Plan System",
          "code":"12345",
          "version":"1",
-         "admin":1,
+         "admin":3,
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
    },
@@ -712,7 +712,7 @@
          "last_name":"Joseph",
          "email":"victornjoseph@gmail.com",
          "phone_number":"0714309973",
-         "user":1,
+         "user":3,
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
    },
@@ -735,7 +735,7 @@
       "fields":{
          "date_modified":"2019-09-17T07:30:50.037Z",
          "date_created":"2019-09-17T07:30:50.037Z",
-         "description":"The problem hase been discovered to be a recent commit. This will be rollbacked to previous commit",
+         "description":"The problem has been discovered to be a recent commit. This will be rollbacked to previous commit",
          "incident":"3ec2e845-cf48-41c7-96bc-739342973480",
          "priority_level":6,
          "user":null,
