@@ -132,6 +132,7 @@ def get_incident(request):
 	return JsonResponse({'code': '800.500.001'})
 
 
+@csrf_exempt
 def get_access_token(request):
 	"""
 	Generates an access token for valid app users
