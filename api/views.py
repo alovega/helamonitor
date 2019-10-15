@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import check_password
 from api.models import token_expiry
 from api.backend.interfaces.event_log import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
+from api.backend.interfaces.endpoint_administration import EndpointAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
@@ -164,3 +165,43 @@ def get_access_token(request):
 	except Exception as ex:
 		lgr.exception("Get Access token Exception %s " % ex)
 	return JsonResponse({'code': '800.400.001'})
+
+
+def get_endpoints(request):
+	"""
+	Get a specific incident
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested incident or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		endpoints = EndpointAdministrator.get_system_endpoints(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(endpoints)
+	except Exception as ex:
+		lgr.exception('Endpoint get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+def create_endpoints(request):
+	"""
+	Creates incidents from users
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful incident creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		endpoint = EndpointAdministrator.create_endpoint(
+			endpoint_type_id = data.get('endpoint_type_id'), system_id = data.get('system_id'), name = data.get('name'),
+			response_time = data.get('response_time'), description = data.get('description'),
+			endpoint = data.get('endpoint'), state_id = data.get('state_id')
+		)
+		return JsonResponse(endpoint)
+	except Exception as ex:
+		lgr.exception('Endpoint creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
