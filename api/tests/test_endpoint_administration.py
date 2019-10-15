@@ -54,3 +54,15 @@ class TestEndpointAdministration(object):
 		)
 		assert updated_endpoint.get('code') == '800.200.001', "Should update an endpoint"
 		assert updated_endpoint2.get('code') == '800.400.002', "Should update an endpoint"
+
+	def test_get_system_endpoints(self):
+		state = mixer.blend('base.State', name = 'Active')
+		system1 = mixer.blend('core.System', state = state)
+		system2 = mixer.blend('core.System', state = state)
+		endpoints1 = mixer.cycle(4).blend('core.Endpoint', state=state, system=system1)
+		endpoints2 = mixer.cycle(5).blend('core.Endpoint', state=state, system=system2)
+		endpoints = EndpointAdministrator.get_system_endpoints(system_id = system1.id)
+		endpoints2 = EndpointAdministrator.get_system_endpoints(system_id = system2)
+
+		assert endpoints.get('code') == '800.200.001', "should get system endpoints"
+		assert endpoints2.get('code') == '800.400.002'

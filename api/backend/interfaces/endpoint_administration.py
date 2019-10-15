@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+from django.db.models import F
+
 from core.backend.services import SystemService, EndpointService
 from base.backend.services import StateService, EndpointTypeService
 
@@ -85,3 +87,30 @@ class EndpointAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception %s" % ex)
 		return {"code": "200.400.007"}
+
+	@staticmethod
+	def get_system_endpoints(system_id):
+		"""
+
+		@param system_id: id for an existing system
+		@type: char
+		@return: endpoints:a dictionary containing a success code and a list of dictionaries containing  system
+							endpoints data
+		@rtype: dict
+		"""
+		try:
+			endpoint = {}
+			system = SystemService().get(id = system_id)
+			if not system:
+				return {"code": "800.400.002", "message": "It seems there is no existing system with such endpoints"}
+			endpoints = list(EndpointService().filter(system = system).values(
+				'id', 'name', 'description', 'endpoint','optimal_response_time',
+				'date_created', 'date_modified', system_name=F('system'), endpoint_type_name=F('endpoint_type'),
+				status = F(
+					'state__name')
+			).order_by('-date_created'))
+			endpoint.update(endpoints = endpoints)
+			return {'code': '800.200.001', 'data': endpoint}
+		except Exception as ex:
+			lgr.exception("Endpoint Administration exception %s" % ex)
+		return {'code': '200.400.007'}
