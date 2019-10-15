@@ -28,7 +28,7 @@ class EndpointAdministrator(object):
 		@type endpoint_type_id: int
 		@param state_id: the id of  initial state of the created endpoint will have
 		@type state_id: int
-		@return: Response code dictionary to indicate if the incident was created or not
+		@return: Response code dictionary to indicate if the endpoint was created or not
 		@rtype:dict
 		"""
 		try:
@@ -38,9 +38,10 @@ class EndpointAdministrator(object):
 
 			if not(system and endpoint_type and state and name and description and response_time and endpoint):
 				return {"code": "800.400.002"}
-			exist = EndpointService().filter(system = system, endpoint=endpoint)
+			exist = True if EndpointService().filter(system = system, endpoint=endpoint) \
+				else EndpointService().filter(system=system, name=name)
 			if exist:
-				return {"code": "200.400.007", "message": "An endpoint with this url exists"}
+				return {"code": "200.400.007", "message": "An endpoint with this url or name exists"}
 			endpoint = EndpointService().create(
 				name=name, description=description, endpoint=endpoint, system = system, endpoint_type=endpoint_type,
 				optimal_response_time=datetime.timedelta(seconds=response_time), state=state
@@ -51,7 +52,36 @@ class EndpointAdministrator(object):
 		return {"code": "200.400.007"}
 
 	@staticmethod
-	def update_endpoint():
-		pass
+	def update_endpoint(endpoint_id, state_id, description, endpoint, response_time, name):
+		"""
+		@param endpoint_id: id of the endpoint to be edited
+		@type endpoint_id: char
+		@param name: name of endpoint to be created
+		@type name: str
+		@param description: description of endpoint to be created
+		@type description: str
+		@param endpoint:url of endpoint to be created
+		@type endpoint: str
+		@param response_time:average response time the endpoint should take
+		@type response_time: int
+		@param state_id:the id of  initial state of the created endpoint will have
+		@type state_id: int
+		@return: Response code dictionary to indicate if the endpoint was updated or not
+		@rtype: dict
+		"""
 
+		try:
+			state = StateService().get(id=state_id)
+			update_endpoint = EndpointService().get(id = endpoint_id)
+			if not(state and name and description and response_time and endpoint and update_endpoint):
+				return {"code": "800.400.002"}
 
+			endpoint = EndpointService().update(
+				pk= update_endpoint.id, description= description, state= state,
+				optimal_response_time=datetime.timedelta(seconds=response_time), endpoint=endpoint
+			)
+			return {"code": "800.200.001", "message": "successfully updated endpoint: %s" % endpoint.name}
+
+		except Exception as ex:
+			lgr.exception("Endpoint Administration exception %s" % ex)
+		return {"code": "200.400.007"}
