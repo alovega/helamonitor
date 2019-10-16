@@ -43,7 +43,7 @@ class RecipientAdministrator(object):
 			system = SystemService().get(id = system_id)
 			state = StateService().get(id = state_id)
 			escalation_level = EscalationLevelService().get(id = escalation_level_id)
-			user = User.objects.get(id = user_id)
+			user = User.objects.get(id = int(user_id))
 			notification_type = NotificationTypeService().get(id = notification_type_id)
 
 			if not (system and state and escalation_level and user and notification_type and first_name and last_name
@@ -72,7 +72,7 @@ class RecipientAdministrator(object):
 
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Error while creating a recipient"}
+		return {"code": "800.400.001", "message": "Error while creating a recipient: %s" % ex}
 
 	@staticmethod
 	def create_system_recipient(escalation_level, system, recipient, state):
@@ -180,10 +180,11 @@ class RecipientAdministrator(object):
 				return {"code": "800.400.002", "message": "It seems there is no existing system"}
 			system_recipients = list(SystemRecipientService().filter(system = system,
 			                                                         escalation_level = escalation_level).values(
-				'id', 'escalation_level__name', 'state__name',  first_name= F('recipient__first_name'),
+				'id', 'escalation_level__name', 'state__name',  first_name= F(
+					'recipient__first_name'),
 				last_name= F('recipient__last_name'),  phone_number= F('recipient__phone_number'),
 				email = F('recipient__email'),  recipient_id= F('recipient__id'),
-				notification_type= F('recipient__notification_type')
+				notification_type= F('recipient__notification_type__name')
 			).order_by('-date_created'))
 			recipients.update(recipients = system_recipients)
 			return {'code': '800.200.001', 'data': recipients}
