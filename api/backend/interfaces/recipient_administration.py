@@ -50,7 +50,7 @@ class RecipientAdministrator(object):
 			        and email and phone_number):
 				return {"code": "800.400.002", "message": "invalid required parameters"}
 			# check if a recipient with the details given exist
-			exist = RecipientService().filter(user = user, email = email, phone_number = phone_number)
+			exist = RecipientService().filter(user = user)
 			if exist:
 				system_recipient = RecipientAdministrator.create_system_recipient(system = system, state = state,
 				                                                                  escalation_level = escalation_level,
