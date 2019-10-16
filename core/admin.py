@@ -67,7 +67,7 @@ class RecipientAdmin(admin.ModelAdmin):
     Admin for Recipient Model
     """
     list_filter = ('date_created', )
-    list_display = ('first_name', 'last_name', 'email', 'state', 'date_modified', 'date_created')
+    list_display = ('first_name', 'last_name', 'email', 'notification_type', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('first_name', 'last_name')
 
