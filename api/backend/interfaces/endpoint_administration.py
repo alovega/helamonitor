@@ -38,7 +38,7 @@ class EndpointAdministrator(object):
 			state = StateService().get(id = state_id)
 
 			if not (system and endpoint_type and state and name and description and response_time and endpoint):
-				return {"code": "800.400.002"}
+				return {"code": "800.400.002", "message": "Missing parameters"}
 			exist = EndpointService().filter(system = system, endpoint = endpoint, name = name)
 			if exist:
 				return {"code": "200.400.007", "message": "An endpoint with this url or name exists"}

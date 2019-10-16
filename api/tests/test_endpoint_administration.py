@@ -34,6 +34,7 @@ class TestEndpointAdministration(object):
 		assert endpoint2.get('code') == '200.400.007', "Should return error code"
 		assert endpoint2.get('message') == 'An endpoint with this url or name exists'
 		assert endpoint3.get('code') == '800.400.002', "Should return error code for missing parameters"
+		assert endpoint3.get('message') == 'Missing parameters'
 
 	def test_update_endpoint(self):
 		state = mixer.blend('base.State', name = 'Active')
