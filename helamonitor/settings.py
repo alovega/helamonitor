@@ -123,3 +123,44 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 EXPIRY_SETTINGS = 30
+
+VENV_ROOT = '/opt/logs/helamonitor/'
+
+LOGGING = {
+	'version': 1,
+	'disable_existing_loggers': False,
+	'formatters': {
+		'verbose': {
+			'format': '%(asctime)s-%(name)s %(module)s %(process)d %(thread)d-(%(threadName)-2s) %(levelname)s-%(message)s'
+		},
+		'simple': {
+			'format': '%(levelname)s %(message)s'
+		},
+	},
+	'filters': {
+		'special': {
+			'()': 'django.utils.log.RequireDebugFalse',
+		}
+	},
+	'handlers': {
+		'rotating_file': {
+			'level': 'INFO',
+			'formatter': 'verbose',
+			'class': 'logging.handlers.TimedRotatingFileHandler',
+			'filename': os.path.join(VENV_ROOT, '', 'helaplan_reference_manager.log'),
+			'when': 'midnight',
+			'interval': 1,
+			'backupCount': 7,
+		},
+	},
+	'loggers': {
+		'core': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
+		'api': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
+	},
+}

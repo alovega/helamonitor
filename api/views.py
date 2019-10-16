@@ -166,10 +166,10 @@ def get_access_token(request):
 		lgr.exception("Get Access token Exception %s " % ex)
 	return JsonResponse({'code': '800.400.001'})
 
-
+@csrf_exempt
 def get_endpoints(request):
 	"""
-	Get a specific incident
+	Get a specific systems endpoints
 	@param request: The Django WSGI Request to process
 	@type request: WSGIRequest
 	@return: The requested incident or a status code indicating errors if any.
@@ -186,9 +186,10 @@ def get_endpoints(request):
 	return JsonResponse({'code': '800.500.001'})
 
 
+@csrf_exempt
 def create_endpoints(request):
 	"""
-	Creates incidents from users
+	Creates endpoints from users
 	@param request: The Django WSGI Request to process
 	@type request: WSGIRequest
 	@return: A response code to indicate successful incident creation or otherwise
@@ -197,11 +198,33 @@ def create_endpoints(request):
 	try:
 		data = get_request_data(request)
 		endpoint = EndpointAdministrator.create_endpoint(
-			endpoint_type_id = data.get('endpoint_type_id'), system_id = data.get('system_id'), name = data.get('name'),
-			response_time = data.get('response_time'), description = data.get('description'),
-			endpoint = data.get('endpoint'), state_id = data.get('state_id')
+			state_id = data.get('state_id'), endpoint_type_id = data.get('endpoint_type_id'),
+			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
+			endpoint = data.get('endpoint'), response_time = data.get('response_time')
 		)
 		return JsonResponse(endpoint)
 	except Exception as ex:
 		lgr.exception('Endpoint creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def update_endpoint(request):
+	"""
+	Updates an existing incident's priority, resolution status or user assignment
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful incident creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		updated_endpoint = EndpointAdministrator.update_endpoint(
+			endpoint_id = data.get('endpoint_id'), state_id = data.get('state_id'),
+			response_time = data.get('response_time'), description = data.get('description'),
+			endpoint = data.get('endpoint'), name = data.get('name')
+		)
+		return JsonResponse(updated_endpoint)
+	except Exception as ex:
+		lgr.exception('Endpoint update Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
