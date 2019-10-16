@@ -114,7 +114,7 @@ class Recipient(BaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s %s %s %s" % (self.first_name, self.last_name, self.email, self.phone_number, self.state)
+        return "%s %s " % (self.first_name, self.last_name)
 
 
 class SystemRecipient(BaseModel):
