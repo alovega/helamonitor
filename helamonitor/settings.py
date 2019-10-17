@@ -162,5 +162,9 @@ LOGGING = {
 			'handlers': ['rotating_file'],
 			'level': 'INFO',
 		},
+		'base': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
 	},
 }

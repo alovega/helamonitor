@@ -72,7 +72,7 @@ class RecipientAdministrator(object):
 
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Error while creating a recipient: %s" % ex}
+		return {"code": "800.400.001", "message": "Error while creating a recipient"}
 
 	@staticmethod
 	def create_system_recipient(escalation_level, system, recipient, state):
