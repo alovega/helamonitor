@@ -159,7 +159,7 @@ class EscalationRule(GenericBaseModel):
         help_text="Time period within which the nth occurrence of an event type will be escalated", null=True,
         blank = True
     )
-    event_type = models.ForeignKey(EventType)
+    event_type = models.ForeignKey(EventType, null = True, blank = True)
     escalation_level = models.ForeignKey(EscalationLevel)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)
