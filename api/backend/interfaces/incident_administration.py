@@ -180,3 +180,42 @@ class IncidentAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Incident Administration Exception: %s" % ex)
 		return {'code': '800.400.001'}
+
+	@staticmethod
+	def get_incidents(system, start_date, end_date):
+		"""
+		Retrieves a incidents within the specified start and end date range within a system
+		@param system: System where the incident is created in
+		@type system: str
+		@param start_date: Start date limit applied
+		@type start_date: str
+		@param end_date: End date limit to be applied
+		@type end_date: str
+		@return: incidents | response code to indicate errors retrieving the incident
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().get(name = system, state__name = 'Active')
+			start_date = dateutil.parser.parse(start_date)
+			end_date = dateutil.parser.parse(end_date)
+			if not system:
+				return {'code': '800.400.002'}
+			incidents = list(IncidentService().filter(
+				system = system, date_created__gte = start_date, date_created__lte = end_date
+			).values(
+				'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
+				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
+				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name')
+			).order_by('-date_created'))
+			for incident in incidents:
+				incident_updates = list(IncidentLogService().filter(incident__id = incident.get('incident_id')).values(
+					'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user'),
+					status = F('state__name')
+				).order_by('-date_created'))
+				incident.update(incident_updates = incident_updates)
+
+			return {'code': '800.200.001', 'data': incidents}
+
+		except Exception as ex:
+			lgr.exception("Get incidents exception %s" % ex)
+		return {'code': '800.400.001', 'error': ex}

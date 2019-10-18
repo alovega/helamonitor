@@ -13,7 +13,7 @@ class SystemAdmin(admin.ModelAdmin):
     Admin for System model
     """
     list_filter = ('date_created', )
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
+    list_display = ('id','name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name',)
 

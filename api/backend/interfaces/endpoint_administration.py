@@ -113,3 +113,25 @@ class EndpointAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
 		return {'code': '200.400.007'}
+
+	@staticmethod
+	def get_endpoint(endpoint_id):
+		"""
+		@param endpoint_id: id of the endpoint that is being fetched
+		@type endpoint_id:str
+		@return: endpoints:a dictionary containing a success code and a list of dictionary containing endpoint data
+		@rtype: dict
+		"""
+		try:
+			data = {}
+			endpoint = list(EndpointService().filter(id = endpoint_id).values(
+				'id', 'name', 'description', 'endpoint', 'optimal_response_time',
+				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
+			))
+			if not endpoint:
+				return {'code': '800.400.001', 'message': 'The endpoint requested does not exist'}
+			data.update(endpoint = endpoint)
+			return {'code': '800.200.001', 'data': data}
+		except Exception as ex:
+			lgr.exception("Endpoint Administration exception: %s" % ex)
+		return {'code': '200.400.007'}

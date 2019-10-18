@@ -89,3 +89,25 @@ class TestRecipientAdministration(object):
 
 		assert recipient1.get('code') == '800.200.001', "should get system endpoints"
 		assert recipient3.get('code') == '800.400.002'
+
+	def test_get_system_recipient(self):
+		state = mixer.blend('base.State', name = 'Active')
+		escalation_level = mixer.blend('base.EscalationLevel', state = state, name = "Level 1")
+		recipient = mixer.blend('core.Recipient', state = state)
+		recipient2 = mixer.blend('core.Recipient', state = state)
+		system1 = mixer.blend('core.System', state = state)
+		system2 = mixer.blend('core.System', state = state)
+		system_recipients1 = mixer.cycle(4).blend('core.SystemRecipient', state=state, system=system1,
+		                                          recipient=recipient, escalation_level=escalation_level)
+		system_recipients2 = mixer.cycle(5).blend('core.SystemRecipient', state=state, system=system2,
+		                                          recipient=recipient2, escalation_level=escalation_level)
+		recipient1 = RecipientAdministrator.get_system_recipient(
+			system_id = system1.id,
+			recipient_id = recipient.id, escalation_level_id = escalation_level.id
+		)
+		recipient3 = RecipientAdministrator.get_system_recipient(
+			recipient_id = system1.id, escalation_level_id = escalation_level, system_id = system1.id
+		 )
+
+		assert recipient1.get('code') == '800.200.001', "should get system endpoints"
+		assert recipient3.get('code') == '800.400.002'

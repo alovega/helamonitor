@@ -18,6 +18,7 @@ from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
 from base.backend.services import StateService
+from core.backend.services import SystemService
 
 
 lgr = logging.getLogger(__name__)
@@ -135,6 +136,46 @@ def get_incident(request):
 
 
 @csrf_exempt
+@ensure_authenticated
+def get_incidents(request):
+	"""
+	Get incidents within a specified date range
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested incidents or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		incident = IncidentAdministrator.get_incidents(
+			system = data.get('system'), start_date = data.get('start_date'), end_date = data.get('end_date')
+		)
+		return JsonResponse(incident)
+	except Exception as ex:
+		lgr.exception('Incident get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001', 'data': ex})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_systems(request):
+	"""
+	Get active systems
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: All active systems or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		systems = list(SystemService().filter(state__name = 'Active').values().order_by('-date_created'))
+		return JsonResponse({'code': '800.200.001', 'data': systems})
+	except Exception as ex:
+		lgr.exception('Incident get Exception: %s' % ex)
+		print(ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
 def get_access_token(request):
 	"""
 	Generates an access token for valid app users
@@ -169,6 +210,7 @@ def get_access_token(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def get_endpoints(request):
 	"""
 	Get a specific systems endpoints
@@ -297,3 +339,45 @@ def update_recipient(request):
 	except Exception as ex:
 		lgr.exception('Recipient update Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_endpoint(request):
+	"""
+	Get a specific endpoint
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested endpoint or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		endpoint = EndpointAdministrator.get_endpoint(endpoint_id = data.get('endpoint_id')
+		)
+		return JsonResponse(endpoint)
+	except Exception as ex:
+		lgr.exception('Endpoint get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_recipient(request):
+	"""
+	Get a specific endpoint
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested recipient or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		recipient = RecipientAdministrator.get_system_recipient(
+			recipient_id = data.get('recipient_id'), escalation_level_id = data.get('escalation_level_id'),
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(recipient)
+	except Exception as ex:
+		lgr.exception('recipient get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001 %s' % ex})
