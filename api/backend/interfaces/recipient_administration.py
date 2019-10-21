@@ -202,7 +202,7 @@ class RecipientAdministrator(object):
 		@param escalation_level_id: id of the escalation level the recipient belong to
 		@type escalation_level_id:str
 		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
-							recipients data
+							recipient data
 		@rtype:dict
 		"""
 

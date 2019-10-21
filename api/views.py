@@ -14,6 +14,7 @@ from api.backend.interfaces.event_log import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.endpoint_administration import EndpointAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
+from api.backend.interfaces.look_up_interface import LookUpInterface
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
@@ -380,4 +381,18 @@ def get_recipient(request):
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('recipient get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+def get_look_up_data(request):
+	"""
+	Get a specific endpoint
+	@return: The requested recipient or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = LookUpInterface.get_look_up_data()
+		return JsonResponse(data)
+	except Exception as ex:
+		lgr.exception('Look up data get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001 %s' % ex})

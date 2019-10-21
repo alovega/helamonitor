@@ -6,7 +6,7 @@ from django.conf.urls import url
 
 from api.views import report_event, create_incident, update_incident, health_check, get_incident, get_access_token, \
     get_endpoints, create_endpoints, update_endpoint, get_recipients, create_recipient, update_recipient, get_systems, \
-    get_incidents, get_endpoint, get_recipient
+    get_incidents, get_endpoint, get_recipient, get_look_up_data
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -24,5 +24,6 @@ urlpatterns = [
     url(r'^get_systems/$', get_systems, name = 'get_systems'),
     url(r'get_endpoint/$', get_endpoint, name = 'get_endpoint'),
     url(r'^get_recipient', get_recipient, name = 'get_recipient'),
+    url(r'^get_lookup', get_look_up_data, name = 'get_look_up_data'),
     url(r'^get_access_token/$', get_access_token, name = 'get_access_token'),
 ]
