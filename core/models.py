@@ -34,9 +34,8 @@ class System(GenericBaseModel):
     """
     Model for managing defined system
     """
-    code = models.CharField(max_length = 100, unique=True, db_index=True)
     version = models.CharField(max_length = 5, choices=versions(), default='1')
-    admin = models.ForeignKey(User)
+    admin = models.ForeignKey(User, null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):
