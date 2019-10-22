@@ -310,10 +310,10 @@ def create_recipient(request):
 	try:
 		data = get_request_data(request)
 		recipient = RecipientAdministrator.create_recipient(
-			state_id = data.get('state_id'), notification_type_id = data.get('notification_type_id'),
-			system_id = data.get('system_id'), escalation_level_id = data.get('escalation_level_id'),
+			state_id = data.get('state'), notification_type_id = data.get('notification_type'),
+			system_id = data.get('system_id'), escalation_level_id = data.get('escalation_level'),
 			first_name = data.get('first_name'), last_name = data.get('last_name'),
-			email = data.get('email'), phone_number = data.get('phone_number'), user_id = data.get('user_id')
+			email = data.get('email'), phone_number = data.get('phone_number'), user_id = data.get('user')
 		)
 		return JsonResponse(recipient)
 	except Exception as ex:
@@ -322,6 +322,7 @@ def create_recipient(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def update_recipient(request):
 	"""
 	Updates an existing incident's priority, resolution status or user assignment
