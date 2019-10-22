@@ -161,7 +161,7 @@ class RecipientAdministrator(object):
 		return {"code": "800.400.001", "message": "Error while updating System recipient"}
 
 	@staticmethod
-	def get_system_recipients(system_id, escalation_level_id):
+	def get_system_recipients(system_id):
 		"""
 		@param system_id:id of the system the recipients belong to
 		@type system_id: str
@@ -176,11 +176,10 @@ class RecipientAdministrator(object):
 			data = {}
 			system = SystemService().get(id = system_id)
 			recipients = list(RecipientService().filter().values(
-				'first_name', 'last_name', 'email', 'user__username', 'phone_number','notification_type__name',
-				recipient_id = F('id'),
+				'first_name', 'last_name', 'email', 'user__username', 'phone_number', 'notification_type__name',
+				'date_created', 'date_modified', 'state__name', recipient_id = F('id')
 			))
-			escalation_level = EscalationLevelService().get(id = escalation_level_id)
-			if not (system and escalation_level):
+			if not (system):
 				return {"code": "800.400.002", "message": "It seems there is no existing system"}
 			for recipient in recipients:
 
@@ -191,11 +190,11 @@ class RecipientAdministrator(object):
 					).order_by('-date_created'))
 				recipient.update(system_recipients=system_recipients)
 			recipients = [recipient for recipient in recipients if recipient.get('system_recipients')]
-			data.update(recipients = recipients)
+			data.update(recipients=recipients)
 			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception:  %s" % ex)
-		return {"code": "800.400.001", "message": "Error while fetching recipients"}
+		return {"code": "800.400.001 %s" %ex, "message": "Error while fetching recipients"}
 
 	@staticmethod
 	def get_system_recipient(system_id, recipient_id, escalation_level_id):

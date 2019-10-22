@@ -290,7 +290,7 @@ def get_recipients(request):
 	try:
 		data = get_request_data(request)
 		recipients = RecipientAdministrator.get_system_recipients(
-			system_id = data.get('system_id'), escalation_level_id = data.get('escalation_level_id')
+			system_id = data.get('system_id')
 		)
 		return JsonResponse(recipients)
 	except Exception as ex:
