@@ -232,6 +232,7 @@ def get_endpoints(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def create_endpoints(request):
 	"""
 	Creates endpoints from users
@@ -243,9 +244,9 @@ def create_endpoints(request):
 	try:
 		data = get_request_data(request)
 		endpoint = EndpointAdministrator.create_endpoint(
-			state_id = data.get('state_id'), endpoint_type_id = data.get('endpoint_type_id'),
+			state_id = data.get('state'), endpoint_type_id = data.get('endpoint_type'),
 			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
-			endpoint = data.get('endpoint'), response_time = data.get('response_time')
+			endpoint = data.get('endpoint'), response_time = data.get('optimal_response_time')
 		)
 		return JsonResponse(endpoint)
 	except Exception as ex:
@@ -254,6 +255,7 @@ def create_endpoints(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def update_endpoint(request):
 	"""
 	Updates an existing incident's priority, resolution status or user assignment
@@ -265,8 +267,8 @@ def update_endpoint(request):
 	try:
 		data = get_request_data(request)
 		updated_endpoint = EndpointAdministrator.update_endpoint(
-			endpoint_id = data.get('endpoint_id'), state_id = data.get('state_id'),
-			response_time = data.get('response_time'), description = data.get('description'),
+			endpoint_id = data.get('endpoint_id'), state_id = data.get('state'),
+			response_time = data.get('optimal_response_time'), description = data.get('description'),
 			endpoint = data.get('endpoint'), name = data.get('name')
 		)
 		return JsonResponse(updated_endpoint)
@@ -276,6 +278,7 @@ def update_endpoint(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def get_recipients(request):
 	"""
 	Get a specific systems endpoints
@@ -292,7 +295,7 @@ def get_recipients(request):
 		return JsonResponse(recipients)
 	except Exception as ex:
 		lgr.exception('Recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 %s' %ex})
 
 
 @csrf_exempt
