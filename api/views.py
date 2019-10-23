@@ -334,11 +334,9 @@ def update_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_recipient(
-			recipient_id = data.get('recipient_id'), state_id = data.get('state_id'),
-			system_recipient_id = data.get('system_recipient_id'), notification_type_id = data.get(
-				'notification_type_id'),
-			first_name = data.get('first_name'), last_name = data.get('last_name'), email = data.get('email'),
-			phone_number = data.get('phone_number')
+			recipient_id = data.get('recipient_id'), state_id = data.get('state'),
+			notification_type_id = data.get('notification_type'),first_name = data.get('first_name'),
+			last_name = data.get('last_name'), email = data.get('email'),phone_number = data.get('phone_number')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
@@ -379,8 +377,7 @@ def get_recipient(request):
 	try:
 		data = get_request_data(request)
 		recipient = RecipientAdministrator.get_system_recipient(
-			recipient_id = data.get('recipient_id'), escalation_level_id = data.get('escalation_level_id'),
-			system_id = data.get('system_id')
+			recipient_id = data.get('recipient_id')
 		)
 		return JsonResponse(recipient)
 	except Exception as ex:

@@ -47,12 +47,12 @@ class RecipientAdministrator(object):
 			notification_type = NotificationTypeService().get(id = notification_type_id)
 
 			if not (system and state and escalation_level and user and notification_type):
-				return {"code": "800.400.002", "message":"invalid required parameters"}
+				return {"code": "800.400.002", "message": "invalid required parameters"}
 			# check if a recipient with the details given exist
-			exit = list(RecipientService().filter(user = user))
-			if exit:
+			recipients = list(RecipientService().filter(user = user))
+			if recipients:
 				system_recipient = RecipientAdministrator.create_system_recipient(
-					recipient = exit[0], system = system, state = state, escalation_level = escalation_level
+					recipient = recipients[0], system = system, state = state, escalation_level = escalation_level
 				)
 				if system_recipient.get("code") == "200.400.009":
 					return {"code": "200.400.008", "message": "Recipient already exist consider updating the recipient"}
@@ -68,7 +68,7 @@ class RecipientAdministrator(object):
 				)
 				if system_recipient.get("code") != '800.200.001':
 					return {"code": "800.400.002", "message": "Error while creating system recipient"}
-				return {"code": "800.200.001", "message": "recipient successfully created"}
+				return {"code": "800.200.001", "message": "recipient successfully updated"}
 
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception: %s" % ex)
@@ -102,11 +102,8 @@ class RecipientAdministrator(object):
 			lgr.exception("Recipient Administration Exception %s" % ex)
 
 	@staticmethod
-	def update_recipient(recipient_id, system_recipient_id, notification_type_id, state_id, first_name, last_name,
-	                     email, phone_number):
+	def update_recipient(recipient_id, notification_type_id, state_id, first_name, last_name, email, phone_number):
 		"""
-		@param system_recipient_id:  id of the system_recipient
-		@type system_recipient_id:str
 		@param recipient_id:id of the recipient that is going to be edited
 		@type recipient_id: str
 		@param notification_type_id:id of the notification_type the recipient will be tied to
@@ -126,20 +123,15 @@ class RecipientAdministrator(object):
 		"""
 		try:
 			updated_recipient = RecipientService().get(id = recipient_id)
-			updated_system_recipient = SystemRecipientService().get(id = system_recipient_id)
 			notification_type = NotificationTypeService().get(id = notification_type_id)
 			state = StateService().get(id = state_id)
-			if not (state and updated_recipient and updated_system_recipient and first_name and last_name and
-			        email and phone_number and notification_type):
+			if not (state and updated_recipient and notification_type):
 				return {"code": "800.400.002", "message": "missing parameters"}
 			recipient = RecipientService().update(pk = recipient_id, first_name = first_name, last_name = last_name,
 			                                      email = email,
 			                                      notification_type = notification_type, phone_number = phone_number)
 			if recipient:
-				system_recipient = RecipientAdministrator.update_system_recipient(
-					system_recipient_id = system_recipient_id, state = state)
-				if system_recipient.get('code') == '800.200.001':
-					return {"code": "800.200.001", "message": "successfully updated system recipient"}
+				return {"code": "800.200.001", "message": "successfully updated system recipient"}
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception:  %s" % ex)
 		return {"code": "800.400.001", "message": "Error while updating recipient"}
@@ -196,14 +188,10 @@ class RecipientAdministrator(object):
 		return {"code": "800.400.001 %s" % ex, "message": "Error while fetching recipients"}
 
 	@staticmethod
-	def get_system_recipient(system_id, recipient_id, escalation_level_id):
+	def get_system_recipient(recipient_id):
 		"""
-		@param system_id: id of the system the recipient belongs to
-		@type system_id: str
 		@param recipient_id:id of the recipient belong you are fetching
 		@type recipient_id: str
-		@param escalation_level_id: id of the escalation level the recipient belong to
-		@type escalation_level_id:str
 		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
 							recipient data
 		@rtype:dict
@@ -211,21 +199,14 @@ class RecipientAdministrator(object):
 
 		try:
 			data = {}
-			system = SystemService().get(id = system_id)
-			recipient = RecipientService().get(id = recipient_id)
-			escalation_level = EscalationLevelService().get(id = escalation_level_id)
-			if not (system and recipient and escalation_level):
-				return {"code": "800.400.002", "message": "It seems there is no such recipient"}
-			system_recipient = list(SystemRecipientService().filter(recipient = recipient, system = system,
-			                                                        escalation_level = escalation_level).values(
-				'id', 'escalation_level__name', 'state__name', first_name = F(
-					'recipient__first_name'),
-				last_name = F('recipient__last_name'), phone_number = F('recipient__phone_number'),
-				email = F('recipient__email'), recipient_id = F('recipient__id'),
-				notification_type = F('recipient__notification_type__name')
+			recipient = list(RecipientService().filter(id = recipient_id).values(
+				'state__name', 'first_name', 'last_name', 'phone_number',
+				'email', 'notification_type__name', recipient_id = F('id'),
 			))
-			data.update(recipient = system_recipient)
-			return {'code': '800.200.001', 'data': data}
+			if recipient:
+				data.update(recipient = recipient)
+				return {'code': '800.200.001', 'data': data}
+			return {'code': '800.400.001', 'message': 'No such recipient with the given id'}
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception:  %s" % ex)
 		return {"code": "800.400.001", "message": "Error while fetching recipient"}
