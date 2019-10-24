@@ -4,7 +4,7 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
-from core.backend.services import NotificationService
+from core.backend.services import NotificationService, SystemService
 from base.backend.services import StateService, NotificationTypeService
 
 import datetime
@@ -15,9 +15,11 @@ lgr = logging.getLogger(__name__)
 class NotificationLogger(object):
 
 	@staticmethod
-	def send_notification(message, message_type, recipients):
+	def send_notification(message, message_type, recipients, system_id):
 		"""
 		Create and sends a notification
+		@param system_id: id of the system the notification is created from
+		@type system_id:str
 		@param message: a string of the content to be sent
 		@type:str
 		@param message_type: a string indicating the notification type
@@ -36,6 +38,7 @@ class NotificationLogger(object):
 					message = message,
 					notification_type = NotificationTypeService().get(name = message_type),
 					recipient = recipient,
+					system_id = SystemService().get(pk=system_id),
 					state = StateService().get(name = 'Active')
 				)
 
@@ -62,3 +65,25 @@ class NotificationLogger(object):
 		except Exception as e:
 			lgr.exception("Notification logger exception %s" % e)
 		return {"code": "800.400.001", "message": "error in sending notification interface"}
+
+	@staticmethod
+	def get_system_notification(system_id):
+		"""
+
+		@param system_id: the id of the system the notification are from
+		@type:str
+		@return:returns a dict of a code for success or failure and data containing systems notifications
+		@rtype:dict
+		"""
+		try:
+			data = {}
+			if not system_id:
+				return {"code": "800.400.002", "message":"Missing parameter system_id"}
+			notifications = list(NotificationService().filter(system__id= system_id).values(
+				'message', 'recipient', 'notification_type__name', 'date_created', 'state__name'))
+			data.update(notifications=notifications)
+			return {"code": "800.200.001", "data":data}
+
+		except Exception as ex:
+			lgr.exception("Notification logger exception %s" % ex)
+		return {"code": "800.400.001", "message": "error in fetching systems notifications"}

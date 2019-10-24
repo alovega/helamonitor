@@ -14,6 +14,7 @@ from api.backend.interfaces.event_log import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.endpoint_administration import EndpointAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
+from api.backend.interfaces.notification_interface import NotificationLogger
 from api.backend.interfaces.look_up_interface import LookUpInterface
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
@@ -396,4 +397,60 @@ def get_look_up_data(request):
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('Look up data get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001 %s' % ex})
+
+
+@csrf_exempt
+@ensure_authenticated
+def delete_recipient(request):
+	"""
+	Delete a specific Recipient
+	@param request:
+	@return:dict
+	"""
+	try:
+		data = get_request_data(request)
+		recipient = RecipientAdministrator.delete_recipient(
+			recipient_id = data.get('recipient_id')
+		)
+		return JsonResponse(recipient)
+
+	except Exception as ex:
+		lgr.exception('recipient get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001 %s' % ex})
+
+
+@csrf_exempt
+@ensure_authenticated
+def delete_endpoint(request):
+	"""
+	Delete a specific Recipient
+	@param request:
+	@return:dict
+	"""
+	try:
+		data = get_request_data(request)
+		endpoint = EndpointAdministrator.delete_endpoint(endpoint_id = data.get('endpoint_id'))
+		return JsonResponse(endpoint)
+
+	except Exception as ex:
+		lgr.exception('recipient get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001 %s' % ex})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_notifications(request):
+	"""
+	Delete a specific Recipient
+	@param request:
+	@return:dict
+	"""
+	try:
+		data = get_request_data(request)
+		notifications = NotificationLogger.get_system_notification(system_id = data.get('system_id'))
+		return JsonResponse(notifications)
+
+	except Exception as ex:
+		lgr.exception('notifications get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001 %s' % ex})

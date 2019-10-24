@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models import F
 
 from core.backend.services import SystemService, RecipientService, SystemRecipientService
+from core.models import Recipient
 from base.backend.services import StateService, EscalationLevelService, NotificationTypeService
 
 lgr = logging.getLogger(__name__)
@@ -210,3 +211,22 @@ class RecipientAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception:  %s" % ex)
 		return {"code": "800.400.001", "message": "Error while fetching recipient"}
+
+	@staticmethod
+	def delete_recipient(recipient_id):
+		"""
+		@param recipient_id:id of the recipient belong you are fetching
+		@type recipient_id: str
+		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
+							recipient data
+		@rtype:dict
+		"""
+		try:
+			if not recipient_id:
+				return {"code": "800.400.002", "message": "invalid parameter"}
+			recipient = Recipient.objects.get(id = recipient_id)
+			recipient.delete()
+			return {'code': '800.200.001', 'message': 'successfully deleted the recipient'}
+		except Exception as ex:
+			lgr.exception("Recipient Administration Exception: %s" % ex)
+		return {"code": "800.400.001", "message": "Error while deleting recipient"}
