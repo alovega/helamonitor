@@ -8,10 +8,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import check_password
 
+from api.backend.interfaces.recipient_administration import RecipientAdministrator
 from api.models import token_expiry
 from api.backend.interfaces.event_log import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.rules_administration import EscalationRuleAdministrator
+from api.backend.interfaces.endpoint_administration import EndpointAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
 from api.backend.interfaces.system_administration import SystemAdministrator
 from api.backend.interfaces.user_administration import UserAdministrator
@@ -20,7 +22,6 @@ from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
 from base.backend.services import StateService
 from core.backend.services import SystemService
-
 
 lgr = logging.getLogger(__name__)
 
@@ -491,4 +492,135 @@ def get_users(request):
 		return JsonResponse(users)
 	except Exception as ex:
 		lgr.exception('Get User Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def get_endpoints(request):
+	"""
+	Get a specific systems endpoints
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested endpoints or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		endpoints = EndpointAdministrator.get_system_endpoints(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(endpoints)
+	except Exception as ex:
+		lgr.exception('Endpoint get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def create_endpoints(request):
+	"""
+	Creates endpoints from users
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful endpoint creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		endpoint = EndpointAdministrator.create_endpoint(
+			state_id = data.get('state_id'), endpoint_type_id = data.get('endpoint_type_id'),
+			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
+			endpoint = data.get('endpoint'), response_time = data.get('response_time')
+		)
+		return JsonResponse(endpoint)
+	except Exception as ex:
+		lgr.exception('Endpoint creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def update_endpoint(request):
+	"""
+	Updates an existing incident's priority, resolution status or user assignment
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful endpoint update or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		updated_endpoint = EndpointAdministrator.update_endpoint(
+			endpoint_id = data.get('endpoint_id'), state_id = data.get('state_id'),
+			response_time = data.get('response_time'), description = data.get('description'),
+			endpoint = data.get('endpoint'), name = data.get('name')
+		)
+		return JsonResponse(updated_endpoint)
+	except Exception as ex:
+		lgr.exception('Endpoint update Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def get_recipients(request):
+	"""
+	Get a specific systems endpoints
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested recipients or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		recipients = RecipientAdministrator.get_system_recipients(
+			system_id = data.get('system_id'), escalation_level_id = data.get('escalation_level_id')
+		)
+		return JsonResponse(recipients)
+	except Exception as ex:
+		lgr.exception('Recipient get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def create_recipient(request):
+	"""
+	Creates endpoints from users
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful recipient creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		recipient = RecipientAdministrator.create_recipient(
+			state_id = data.get('state_id'), notification_type_id = data.get('notification_type_id'),
+			system_id = data.get('system_id'), escalation_level_id = data.get('escalation_level_id'),
+			first_name = data.get('first_name'), last_name = data.get('last_name'),
+			email = data.get('email'), phone_number = data.get('phone_number'), user_id = data.get('user_id')
+		)
+		return JsonResponse(recipient)
+	except Exception as ex:
+		lgr.exception('Recipient creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def update_recipient(request):
+	"""
+	Updates an existing incident's priority, resolution status or user assignment
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful recipient update or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		updated_recipient = RecipientAdministrator.update_recipient(
+			recipient_id = data.get('recipient_id'), state_id = data.get('state_id'),
+			system_recipient_id = data.get('system_recipient_id'), notification_type_id = data.get(
+				'notification_type_id'),
+			first_name = data.get('first_name'), last_name = data.get('last_name'), email = data.get('email'),
+			phone_number = data.get('phone_number')
+		)
+		return JsonResponse(updated_recipient)
+	except Exception as ex:
+		lgr.exception('Recipient update Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})

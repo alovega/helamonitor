@@ -22,7 +22,7 @@ class AppAdmin(admin.ModelAdmin):
 	Admin for App model
 	"""
 	list_filter = ('date_created',)
-	list_display = ('name', 'state', 'date_modified', 'date_created')
+	list_display = ('id','name', 'state', 'date_modified', 'date_created')
 	ordering = ('-date_created',)
 	search_fields = ('name',)
 
