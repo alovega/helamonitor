@@ -52,16 +52,20 @@ class EscalationRuleAdministrator(object):
 				return {"code": "800.400.002"}
 			escalation_rule = EscalationRuleService().create(
 				name = name, description = description, system = system, nth_event = int(nth_event),
-				duration = timedelta(seconds = int(duration)), state = state, escalation_level = escalation_level
+				duration = int(duration), state = state, escalation_level = escalation_level
 			)
 
 			if escalation_rule is not None:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id, system = system).values(
-					'name', 'description', 'date_created', 'date_modified', 'system_id',
+					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
 					'nth_event', rule_id = F('id'), escalation = F('escalation_level__name'),
 					eventtype = F('event_type__name'), status = F('state__name'), system_name = F('system__name')
 				).first()
-				rule.update(duration = str(escalation_rule.duration))
+				duration = int(rule.get('duration'))
+				hours, remainder = divmod(duration, 60 * 60)
+				minutes, seconds = divmod(remainder, 60)
+				rule.update(duration_str = '{} hrs {} mins {} secs'.format(hours, minutes, seconds))
+				rule.update(duration = duration)
 				return {'code': '800.200.001', 'data': rule}
 		except Exception as ex:
 			lgr.exception("Escalation Rule Creation exception %s" % ex)
@@ -100,7 +104,7 @@ class EscalationRuleAdministrator(object):
 			name = name if name is not None else escalation_rule.name
 			description = description if description is not None else escalation_rule.description
 			nth_event = int(nth_event) if nth_event is not None else escalation_rule.nth_event
-			duration = timedelta(seconds = int(duration)) if duration is not None else escalation_rule.duration
+			duration = int(duration) if duration is not None else escalation_rule.duration
 			escalation_level = EscalationLevelService().filter(
 				name = escalation_level, state__name = 'Active').first() if escalation_level is not None else \
 				escalation_rule.escalation_level
@@ -116,15 +120,19 @@ class EscalationRuleAdministrator(object):
 
 			if updated_escalation_rule is not None:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id).values(
-					'name', 'description', 'date_created', 'date_modified', 'system_id',
+					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
 					'nth_event',  rule_id = F('id'), escalation = F('escalation_level__name'), eventtype = F(
 						'event_type__name'), status = F('state__name'), system_name = F('system__name')
 				).first()
-				rule.update(duration = str(updated_escalation_rule.duration))
+				duration = int(rule.get('duration'))
+				hours, remainder = divmod(duration, 60 * 60)
+				minutes, seconds = divmod(remainder, 60)
+				rule.update(duration_str = '{} hrs {} mins {} secs'.format(hours, minutes, seconds))
+				rule.update(duration = duration)
 				return {'code': '800.200.001', 'data': rule}
 		except Exception as ex:
 			lgr.exception("Escalation Rule Update exception %s" % ex)
-		return {"code": "800.400.001"}
+		return {"code": "800.400.001", "err": str(ex)}
 
 	@staticmethod
 	def get_rule(rule_id, system_id, **kwargs):
@@ -146,11 +154,15 @@ class EscalationRuleAdministrator(object):
 			escalation_rule = EscalationRuleService().filter(pk = rule_id, system = system).first()
 			if escalation_rule:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id).values(
-					'name', 'description', 'date_created', 'date_modified', 'system_id',
+					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
 					'nth_event',  rule_id = F('id'), escalation = F('escalation_level__name'), eventtype = F(
 						'event_type__name'), status = F('state__name'), system_name = F('system__name')
 				).first()
-				rule.update(duration = str(escalation_rule.duration))
+				duration = int(rule.get('duration'))
+				hours, remainder = divmod(duration, 60 * 60)
+				minutes, seconds = divmod(remainder, 60)
+				rule.update(duration_str = '{} hrs {} mins {} secs'.format(hours, minutes, seconds))
+				rule.update(duration = duration)
 				return {'code': '800.200.001', 'data': rule}
 		except Exception as ex:
 			lgr.exception("Escalation Rule Update exception %s" % ex)
@@ -168,14 +180,21 @@ class EscalationRuleAdministrator(object):
 		"""
 		try:
 			system = SystemService().filter(pk = system_id, state__name = 'Active').first()
+
 			if system is None:
 				return {"code": "800.400.002"}
 			escalation_rules = list(EscalationRuleService().filter(system = system).values(
 				'name', 'description', 'date_created', 'duration', 'date_modified', 'system_id',
 				'nth_event',  rule_id = F('id'), escalation = F('escalation_level__name'), eventtype = F(
-					'event_type__name'), status = F('state__name'), system_name = F('system__name')))
-			if escalation_rules:
-				return {'code': '800.200.001', 'data': escalation_rules}
+					'event_type__name'), status = F('state__name'), system_name = F('system__name')).order_by(
+				'-date_created'))
+			for rule in escalation_rules:
+				duration = int(rule.get('duration'))
+				hours, remainder = divmod(duration, 60 * 60)
+				minutes, seconds = divmod(remainder, 60)
+				rule.update(duration_str = '{} hrs {} mins {} secs'.format(hours, minutes, seconds))
+				rule.update(duration = duration)
+			return {'code': '800.200.001', 'data': escalation_rules}
 		except Exception as ex:
 			lgr.exception("Escalation Rule Update exception %s" % ex)
 		return {"code": "800.400.001"}

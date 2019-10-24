@@ -14,6 +14,7 @@ from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.rules_administration import EscalationRuleAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
 from api.backend.interfaces.system_administration import SystemAdministrator
+from api.backend.interfaces.user_administration import UserAdministrator
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
@@ -44,6 +45,27 @@ def report_event(request):
 		return JsonResponse(event)
 	except Exception as ex:
 		lgr.exception("Event logging Exception: %s" % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_error_rates(request):
+	"""
+	Retrieves error rates for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful error rate retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		event = EventLog.get_error_rate(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(event)
+	except Exception as ex:
+		lgr.exception("Event error rate get Exception: %s" % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -157,6 +179,27 @@ def get_incidents(request):
 
 
 @csrf_exempt
+@ensure_authenticated
+def delete_incident(request):
+	"""
+	Deletes an incident
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A message and a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		incident = IncidentAdministrator.delete_incident(
+			incident_id = data.get('incident_id'), system_id = data.get('system_id')
+		)
+		return JsonResponse(incident)
+	except Exception as ex:
+		lgr.exception('Incident delete Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
 def get_access_token(request):
 	"""
 	Generates an access token for valid app users
@@ -233,7 +276,7 @@ def update_rule(request):
 		return JsonResponse(rule)
 	except Exception as ex:
 		lgr.exception('Rule creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
 
 
 @csrf_exempt
@@ -389,4 +432,63 @@ def delete_system(request):
 		return JsonResponse(deleted_system)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def create_user(request):
+	"""
+	Creates a user
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.create_user(
+			username = data.get('username'), password = data.get('password'), email = data.get('email'), first_name =
+			data.get('first_name'), last_name = data.get('last_name'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('User creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_user(request):
+	"""
+	Retrieves a user
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful user retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.get_user(user_id = data.get('user_id'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('Get User Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_users(request):
+	"""
+	Retrieves all users
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful users retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		users = UserAdministrator.get_users()
+		return JsonResponse(users)
+	except Exception as ex:
+		lgr.exception('Get User Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
