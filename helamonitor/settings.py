@@ -125,6 +125,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 EXPIRY_SETTINGS = 30
+CORS_ORIGIN_ALLOW_ALL = True
 VENV_ROOT = '/opt/logs/helamonitor/'
 
 LOGGING = {
@@ -169,4 +170,4 @@ LOGGING = {
 		},
 	},
 }
-CORS_ORIGIN_ALLOW_ALL = True
+

@@ -126,7 +126,7 @@ class IncidentAdministrator(object):
 			incident = IncidentService().get(pk = incident_id)
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
 			if incident is None or escalation_level is None or state is None:
-				return {'code': '800.400.002'}
+				return {'code': '800.400.002 %s %s %s' % (incident, escalation_level, state)}
 			priority_level = int(priority_level) if priority_level is not None else incident.priority_level
 			incident_log = IncidentLogService().create(
 				description = description, incident = incident, user = User.objects.filter(username = user).first(),
@@ -219,3 +219,27 @@ class IncidentAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Get incidents exception %s" % ex)
 		return {'code': '800.400.001', 'error': ex}
+
+	@staticmethod
+	def delete_incident(incident_id, system_id, **kwargs):
+		"""
+		Deletes an incident for a selected system.
+		@param incident_id: The id of the incident to be deleted
+		@type incident_id: str
+		@param system_id: System where the incident is defined in
+		@type system_id: str
+		@param kwargs: Extra key-value arguments to pass for incident deleting
+		@return: Response code dictionary to indicate if the incident was deleted or not
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().filter(pk = system_id, state__name = 'Active').first()
+			if system is None:
+				return {"code": "800.400.002"}
+			incident = IncidentService().filter(pk = incident_id, system = system).first()
+			if incident:
+				if incident.delete():
+					return {'code': '800.200.001', 'Message': 'Incident deleted successfully'}
+		except Exception as ex:
+			lgr.exception("Incident Delete exception %s" % ex)
+		return {"code": "800.400.001"}

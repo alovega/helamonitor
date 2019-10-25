@@ -12,16 +12,18 @@ from api.backend.interfaces.recipient_administration import RecipientAdministrat
 from api.models import token_expiry
 from api.backend.interfaces.event_log import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
+from api.backend.interfaces.rules_administration import EscalationRuleAdministrator
 from api.backend.interfaces.endpoint_administration import EndpointAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
 from api.backend.interfaces.notification_interface import NotificationLogger
 from api.backend.interfaces.look_up_interface import LookUpInterface
+from api.backend.interfaces.system_administration import SystemAdministrator
+from api.backend.interfaces.user_administration import UserAdministrator
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
 from base.backend.services import StateService
 from core.backend.services import SystemService
-
 
 lgr = logging.getLogger(__name__)
 
@@ -46,6 +48,27 @@ def report_event(request):
 		return JsonResponse(event)
 	except Exception as ex:
 		lgr.exception("Event logging Exception: %s" % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_error_rates(request):
+	"""
+	Retrieves error rates for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful error rate retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		event = EventLog.get_error_rate(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(event)
+	except Exception as ex:
+		lgr.exception("Event error rate get Exception: %s" % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -155,25 +178,27 @@ def get_incidents(request):
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'data': ex})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
 @ensure_authenticated
-def get_systems(request):
+def delete_incident(request):
 	"""
-	Get active systems
+	Deletes an incident
 	@param request: The Django WSGI Request to process
 	@type request: WSGIRequest
-	@return: All active systems or a status code indicating errors if any.
+	@return: A message and a status code indicating errors if any.
 	@rtype: dict
 	"""
 	try:
-		systems = list(SystemService().filter(state__name = 'Active').values().order_by('-date_created'))
-		return JsonResponse({'code': '800.200.001', 'data': systems})
+		data = get_request_data(request)
+		incident = IncidentAdministrator.delete_incident(
+			incident_id = data.get('incident_id'), system_id = data.get('system_id')
+		)
+		return JsonResponse(incident)
 	except Exception as ex:
-		lgr.exception('Incident get Exception: %s' % ex)
-		print(ex)
+		lgr.exception('Incident delete Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -209,6 +234,267 @@ def get_access_token(request):
 	except Exception as ex:
 		lgr.exception("Get Access token Exception %s " % ex)
 	return JsonResponse({'code': '800.400.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def create_rule(request):
+	"""
+	Creates Escalation rules
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		rule = EscalationRuleAdministrator.create_rule(
+			name = data.get('name'), description = data.get('description'), system = data.get('system'),
+			nth_event = data.get('nth_event'), state = data.get('state'), duration = data.get('duration'),
+			escalation_level = data.get('escalation_level')
+		)
+		return JsonResponse(rule)
+	except Exception as ex:
+		lgr.exception('Rule creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def update_rule(request):
+	"""
+	Updates Escalation rules
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		rule = EscalationRuleAdministrator.update_rule(
+			rule_id = data.get('rule_id'), name = data.get('name'), description = data.get('description'),
+			nth_event = data.get('nth_event'), state = data.get('state'), duration = data.get('duration'),
+			escalation_level = data.get('escalation_level'), event_type = data.get('event_type')
+		)
+		return JsonResponse(rule)
+	except Exception as ex:
+		lgr.exception('Rule creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_rule(request):
+	"""
+	Retrieves an Escalation rule
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		rule = EscalationRuleAdministrator.get_rule(
+			rule_id = data.get('rule_id'), system_id = data.get('system_id')
+		)
+		return JsonResponse(rule)
+	except Exception as ex:
+		lgr.exception('Rule creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_rules(request):
+	"""
+	Retrieves all rules for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		rules = EscalationRuleAdministrator.get_rules(system_id = data.get('system_id'))
+		return JsonResponse(rules)
+	except Exception as ex:
+		lgr.exception('Rule creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def delete_rule(request):
+	"""
+	Delete a rule for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		rules = EscalationRuleAdministrator.delete_rule(
+			rule_id = data.get('rule_id'), system_id = data.get('system_id'))
+		return JsonResponse(rules)
+	except Exception as ex:
+		lgr.exception('Rule creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def create_system(request):
+	"""
+	Creates a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		rules = SystemAdministrator.create_system(
+			name = data.get('name'), description = data.get('description'))
+		return JsonResponse(rules)
+	except Exception as ex:
+		lgr.exception('System creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def update_system(request):
+	"""
+	Updates a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		rules = SystemAdministrator.update_system(
+			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'))
+		return JsonResponse(rules)
+	except Exception as ex:
+		lgr.exception('System creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_system(request):
+	"""
+	Retrieve a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return:The system or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		system = SystemAdministrator.get_system(system_id = data.get('system_id'))
+		return JsonResponse(system)
+	except Exception as ex:
+		lgr.exception('Incident get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_systems(request):
+	"""
+	Retrieve a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return:The system or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		systems = SystemAdministrator.get_systems()
+		return JsonResponse(systems)
+	except Exception as ex:
+		lgr.exception('Incident get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def delete_system(request):
+	"""
+	Deletes a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return:The system or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		deleted_system = SystemAdministrator.delete_system(system_id = data.get('system_id'))
+		return JsonResponse(deleted_system)
+	except Exception as ex:
+		lgr.exception('Incident get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def create_user(request):
+	"""
+	Creates a user
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.create_user(
+			username = data.get('username'), password = data.get('password'), email = data.get('email'), first_name =
+			data.get('first_name'), last_name = data.get('last_name'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('User creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_user(request):
+	"""
+	Retrieves a user
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful user retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.get_user(user_id = data.get('user_id'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('Get User Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_users(request):
+	"""
+	Retrieves all users
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful users retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		users = UserAdministrator.get_users()
+		return JsonResponse(users)
+	except Exception as ex:
+		lgr.exception('Get User Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
