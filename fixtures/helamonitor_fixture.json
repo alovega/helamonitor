@@ -241,7 +241,7 @@
          "date_created":"2019-09-13T08:07:54.519Z",
          "name":"healthcheck",
          "description":"healthcheck",
-         "endpoint":"https://www.google.com/",
+         "url":"https://www.google.com/",
          "system":"07b562ad-1c83-48ed-a100-d60c35fdb712",
          "optimal_response_time":"00:00:03",
          "endpoint_type":"1cf40b3f-4de4-4016-9fc8-5063f2a60589",
@@ -256,7 +256,7 @@
          "date_created":"2019-09-13T08:07:54.519Z",
          "name":"Stack Overflow",
          "description":"This is a link to stack overflow",
-         "endpoint":"https://stackoverflow.com/questions/58484038/new-angular-8-application-return-http-400#",
+         "url":"https://stackoverflow.com/questions/58484038/new-angular-8-application-return-http-400#",
          "system":"07b562ad-1c83-48ed-a100-d60c35fdb712",
          "optimal_response_time":"00:00:10",
          "endpoint_type":"1cf40b3f-4de4-4016-9fc8-5063f2a60589",
@@ -271,7 +271,7 @@
          "date_created":"2019-09-13T08:07:54.519Z",
          "name":"Angular Url",
          "description":"This is an initial endpoint for helaMonitor",
-         "endpoint":"https://www.freakyjolly.com/angular-7-8-httpclient-service-tutorial-to-consume-restfull-api-from-server/",
+         "url":"https://www.freakyjolly.com/angular-7-8-httpclient-service-tutorial-to-consume-restfull-api-from-server/",
          "system":"42b8cdc7-f23c-47f9-b695-b4d684377304",
          "optimal_response_time":"00:00:03",
          "endpoint_type":"1cf40b3f-4de4-4016-9fc8-5063f2a60589",
@@ -530,7 +530,7 @@
          "name":"Increased Errors in HelaPlan",
          "description":"Escalated every 3 errors reported from HelaPlan within an hour",
          "nth_event":3,
-         "duration":"00:16:40",
+         "duration":3600,
          "event_type":"a67351da-f7e1-49df-9a45-5089d0a565b7",
          "escalation_level":"3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "system":"07b562ad-1c83-48ed-a100-d60c35fdb712",
@@ -546,7 +546,7 @@
          "name":"Critical Events in HelaPlan",
          "description":"Escalates every critical event occurrence reported from Hela Plan",
          "nth_event":1,
-         "duration":"00:06:00",
+         "duration":3600,
          "event_type":"1cb729dc-093f-46b2-b9e4-2d9cabb6aaa5",
          "escalation_level":"d34740e0-a508-4a48-9a7b-f0fd5d88567b",
          "system":"07b562ad-1c83-48ed-a100-d60c35fdb712",
@@ -736,7 +736,6 @@
          "date_created":"2019-08-30T08:20:28.667Z",
          "name":"Helaplan",
          "description":"Hela Plan System",
-         "code":"12345",
          "version":"1",
          "admin":3,
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
@@ -750,7 +749,6 @@
          "date_created":"2019-08-30T08:20:28.667Z",
          "name":"HelaMonitor",
          "description":"Hela monitor System",
-         "code":"12345",
          "version":"1",
          "admin":3,
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
@@ -762,11 +760,7 @@
       "fields":{
          "date_modified":"2019-09-16T07:56:06.540Z",
          "date_created":"2019-09-16T07:56:06.540Z",
-         "first_name":"Victor",
-         "last_name":"Joseph",
-         "email":"victornjoseph@gmail.com",
          "phone_number":"0714309973",
-         "notification_type": "ec78d986-96ea-45da-bd83-c7479ada8b70",
          "user":3,
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
@@ -920,6 +914,7 @@
          "date_created":"2019-09-30T07:16:48.874Z",
          "recipient":"b85dd69a-c364-4176-ad33-b77f5a160d67",
          "system":"42b8cdc7-f23c-47f9-b695-b4d684377304",
+         "notification_type": "a629d7e2-7093-4d64-9f6a-eaa2fe6ed7d6",
          "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
@@ -933,6 +928,7 @@
          "date_created":"2019-09-30T07:16:48.874Z",
          "recipient":"b85dd69a-c364-4176-ad33-b77f5a160d67",
          "system":"42b8cdc7-f23c-47f9-b695-b4d684377304",
+         "notification_type": "a629d7e2-7093-4d64-9f6a-eaa2fe6ed7d6",
          "escalation_level": "ac5a7a98-0428-4837-96f7-e7164b74e8f2",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
@@ -946,6 +942,7 @@
          "date_created":"2019-09-30T07:16:48.874Z",
          "recipient":"b85dd69a-c364-4176-ad33-b77f5a160d67",
          "system":"07b562ad-1c83-48ed-a100-d60c35fdb712",
+         "notification_type": "a629d7e2-7093-4d64-9f6a-eaa2fe6ed7d6",
          "escalation_level": "d34740e0-a508-4a48-9a7b-f0fd5d88567b",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
@@ -953,26 +950,13 @@
 
    {
       "model":"core.notification",
-      "pk":"2d424738-9efe-4f35-8587-049ffd2cdf72",
+      "pk":"2d424738-9efe-4f35-8587-049ffd2cdf74",
       "fields":{
          "date_modified":"2019-09-30T07:16:48.874Z",
          "date_created":"2019-09-30T07:16:48.874Z",
-         "notification_type":"ec78d986-96ea-45da-bd83-c7479ada8b70",
+         "notification_type": "a629d7e2-7093-4d64-9f6a-eaa2fe6ed7d6",
          "system":"42b8cdc7-f23c-47f9-b695-b4d684377304",
          "recipient": "sample@gmail.com",
-         "state":"dead86b5-93fe-436e-8d72-fcf9071b503e"
-      }
-   },
-
-   {
-      "model":"core.notification",
-      "pk":"849e1f24-7caf-431a-bcbb-7f03774987ff",
-      "fields":{
-         "date_modified":"2019-09-30T07:16:48.874Z",
-         "date_created":"2019-09-30T07:16:48.874Z",
-         "notification_type":"",
-         "system":"42b8cdc7-f23c-47f9-b695-b4d684377304",
-         "recipient": "0712-xxx-yyy",
          "state":"dead86b5-93fe-436e-8d72-fcf9071b503e"
       }
    }

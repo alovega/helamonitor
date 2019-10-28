@@ -15,10 +15,10 @@ from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.rules_administration import EscalationRuleAdministrator
 from api.backend.interfaces.endpoint_administration import EndpointAdministrator
 from api.backend.interfaces.health_monitor import MonitorInterface
-from api.backend.interfaces.notification_interface import NotificationLogger
-from api.backend.interfaces.look_up_interface import LookUpInterface
 from api.backend.interfaces.system_administration import SystemAdministrator
 from api.backend.interfaces.user_administration import UserAdministrator
+from api.backend.interfaces.notification_interface import NotificationLogger
+from api.backend.interfaces.look_up_interface import LookUpInterface
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
@@ -48,6 +48,27 @@ def report_event(request):
 		return JsonResponse(event)
 	except Exception as ex:
 		lgr.exception("Event logging Exception: %s" % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_events(request):
+	"""
+	Get events of a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested recipient or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		recipient = EventLog.get_events(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(recipient)
+	except Exception as ex:
+		lgr.exception('Get events Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -218,6 +239,27 @@ def delete_incident(request):
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident delete Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_incident_events(request):
+	"""
+	Retrieves the events that have caused the incident in a selected system.
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested incident_events or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		incident_events = IncidentAdministrator.get_incident_events(
+			system_id = data.get('system_id'), incident_id = data.get('incident_id')
+		)
+		return JsonResponse(incident_events)
+	except Exception as ex:
+		lgr.exception('Incident events get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -499,6 +541,25 @@ def get_user(request):
 
 @csrf_exempt
 @ensure_authenticated
+def delete_user(request):
+	"""
+	Deletes a user
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful user deletion or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.delete_user(user_id = data.get('user_id'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('Delete User Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
 def get_users(request):
 	"""
 	Retrieves all users
@@ -552,12 +613,12 @@ def create_endpoints(request):
 		endpoint = EndpointAdministrator.create_endpoint(
 			state_id = data.get('state'), endpoint_type_id = data.get('endpoint_type'),
 			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
-			endpoint = data.get('endpoint'), response_time = data.get('optimal_response_time')
+			url = data.get('url'), response_time = data.get('optimal_response_time')
 		)
 		return JsonResponse(endpoint)
 	except Exception as ex:
 		lgr.exception('Endpoint creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 '})
 
 
 @csrf_exempt
@@ -575,7 +636,7 @@ def update_endpoint(request):
 		updated_endpoint = EndpointAdministrator.update_endpoint(
 			endpoint_id = data.get('endpoint_id'), state_id = data.get('state'),
 			response_time = data.get('optimal_response_time'), description = data.get('description'),
-			endpoint = data.get('endpoint'), name = data.get('name')
+			url = data.get('url'), name = data.get('name')
 		)
 		return JsonResponse(updated_endpoint)
 	except Exception as ex:

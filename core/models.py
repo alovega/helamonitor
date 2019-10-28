@@ -11,22 +11,12 @@ from base.models import BaseModel, GenericBaseModel, State, NotificationType, Ev
     IncidentType, EndpointType, EscalationLevel
 
 
-def versions():
-    """
-    returns a collection of version choices to chose from
-    @return: version choices
-    @retype tuple
-    """
-    return ('1', '1.0.0'),
-
-
 def response_time_speed():
     """
     returns a collection of response time state to chose from
     @return: response_time states
     @retype tuple
     """
-
     return ('Slow', 'Slow'), ('Normal', 'Normal'),
 
 
@@ -34,8 +24,8 @@ class System(GenericBaseModel):
     """
     Model for managing defined system
     """
-    version = models.CharField(max_length = 5, choices=versions(), default='1')
-    admin = models.ForeignKey(User, null = True, blank = True)
+    version = models.CharField(max_length = 10, default='1.0.0')
+    admin = models.ForeignKey(User)
     state = models.ForeignKey(State)
 
     def __str__(self):
@@ -57,10 +47,10 @@ class Endpoint(GenericBaseModel):
     """
     Model for managing endpoint of a system
     """
-    endpoint = models.CharField(max_length=100)
     system = models.ForeignKey(System)
-    optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
+    url = models.CharField(max_length=250)
+    optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     state = models.ForeignKey(State)
 
     def __str__(self):
@@ -71,11 +61,11 @@ class SystemCredential(BaseModel):
     """
     Model for managing credentials for system users
     """
+    system = models.ForeignKey(System)
     username = models.CharField(max_length=100, help_text='Similar to a client_ID')
     password = models.CharField(max_length=100, help_text='Similar to a client_Secret')
     token = models.CharField(max_length=100, help_text='Authorization token')
     expires_at = models.DateTimeField(null=True, blank=True, help_text='Expiry time of the authorization token')
-    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):
@@ -104,26 +94,23 @@ class Recipient(BaseModel):
     """
     Model for managing the recipient of a system
     """
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    email = models.EmailField(max_length=255)
+    user = models.ForeignKey(User)
     phone_number = models.CharField(max_length=100)
-    user = models.ForeignKey(User, null = True, blank = True)
-    notification_type = models.ForeignKey(NotificationType)
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s %s " % (self.first_name, self.last_name)
+        return "%s" % self.user
 
 
 class SystemRecipient(BaseModel):
     """
     Model for managing recipient and a system
     """
-    recipient = models.ForeignKey(Recipient)
     system = models.ForeignKey(System)
-    state = models.ForeignKey(State)
+    recipient = models.ForeignKey(Recipient)
     escalation_level = models.ForeignKey(EscalationLevel)
+    notification_type = models.ForeignKey(NotificationType)
+    state = models.ForeignKey(State)
 
     def __str__(self):
         return "%s %s %s" % (self.recipient, self.system, self.state)
@@ -133,16 +120,17 @@ class Event(BaseModel):
     """
     Model for managing events
     """
-    description = models.CharField(max_length=100, help_text="Informative description of the event", null=True,
-                                   blank=True)
-    interface = models.ForeignKey(Interface, null=True, blank=True)
     system = models.ForeignKey(System)
     event_type = models.ForeignKey(EventType)
-    state = models.ForeignKey(State)
+    interface = models.ForeignKey(Interface, null=True, blank=True)
     method = models.CharField(max_length=100, null=True, help_text="Method where the error is origination from")
-    response = models.TextField(max_length=255, null=True, blank=True)
-    request = models.TextField(max_length=255, null=True, blank=True)
+    request = models.TextField(max_length=1000, null=True, blank=True)
+    response = models.TextField(max_length=1000, null=True, blank=True)
+    stack_trace = models.TextField(max_length=1000, null=True, blank=True)
+    description = models.TextField(max_length=100, help_text="Informative description of the event", null=True,
+                                   blank=True)
     code = models.CharField(max_length=100, null=True, blank=True)
+    state = models.ForeignKey(State)
 
     def __str__(self):
         return "%s %s %s" % (
@@ -159,7 +147,7 @@ class EscalationRule(GenericBaseModel):
         help_text="Time period within which the nth occurrence of an event type will be escalated", null=True,
         blank = True
     )
-    event_type = models.ForeignKey(EventType, null = True, blank = True)
+    event_type = models.ForeignKey(EventType)
     escalation_level = models.ForeignKey(EscalationLevel)
     system = models.ForeignKey(System)
     state = models.ForeignKey(State)

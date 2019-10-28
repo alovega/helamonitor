@@ -6,6 +6,7 @@ import logging
 from datetime import timedelta, datetime
 
 from django.utils import timezone
+from django.db.models import F
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
 from api.backend.interfaces.incident_administration import IncidentAdministrator
@@ -122,4 +123,48 @@ class EventLog(object):
 			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
+		return {'code': '800.400.001'}
+
+	@staticmethod
+	def get_event(event_id, system_id):
+		"""
+		Retrieves an event logged for a certain system
+		@param: event_id: Id of the event
+		@type event_id: str
+		@param: system_id: Id of the system
+		@type system_id: str
+		@return: Response code indicating status and logged event
+		"""
+		try:
+			system = SystemService().get(pk = system_id, state__name = 'Active')
+			if not system:
+				return {'code': '800.400.200'}
+			event = EventService().filter(pk = event_id, system = system, state__name = 'Active').values(
+				'date_created', 'interface', 'method', 'request', 'response', 'stack_trace', 'description', 'code',
+				status = F('state__name'), system_name = F('system__name'), eventtype = F('event_type__name')
+			).first()
+			return {'code': '800.200.001', 'data': event}
+		except Exception as ex:
+			lgr.exception("Get event Exception %s" % ex)
+		return {'code': '800.400.001'}
+
+	@staticmethod
+	def get_events(system_id):
+		"""
+		Retrieves events logged for a certain system
+		@param: system_id: Id of the system
+		@type system_id: str
+		@return: Response code indicating status and logged events
+		"""
+		try:
+			system = SystemService().get(pk = system_id, state__name = 'Active')
+			if not system:
+				return {'code': '800.400.200'}
+			events = list(EventService().filter(system = system, state__name = 'Active').values(
+				'date_created', 'interface', 'method', 'request', 'response', 'stack_trace', 'description', 'code',
+				status = F('state__name'), system_name = F('system__name'), eventtype = F('event_type__name')
+			).order_by('-date_created'))
+			return {'code': '800.200.001', 'data': events}
+		except Exception as ex:
+			lgr.exception("Get events Exception %s" % ex)
 		return {'code': '800.400.001'}

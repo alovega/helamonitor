@@ -48,11 +48,15 @@ class EndpointType(GenericBaseModel):
     """
     EndpointType model to manage types of endpoints to be used in the system
     """
+    is_queried = models.BooleanField(default = False)
     state = models.ForeignKey(State)
-    is_queried = models.BooleanField()
 
     def __str__(self):
         return "%s" % self.name
+
+    class Meta(object):
+        ordering = ('name',)
+        unique_together = ('name',)
 
 
 class NotificationType(GenericBaseModel):
@@ -64,6 +68,10 @@ class NotificationType(GenericBaseModel):
     def __str__(self):
         return "%s" % self.name
 
+    class Meta(object):
+        ordering = ('name',)
+        unique_together = ('name',)
+
 
 class EscalationLevel(GenericBaseModel):
     """
@@ -74,6 +82,10 @@ class EscalationLevel(GenericBaseModel):
     def __str__(self):
         return "%s" % self.name
 
+    class Meta(object):
+        ordering = ('name',)
+        unique_together = ('name',)
+
 
 class IncidentType(GenericBaseModel):
     """
@@ -83,6 +95,10 @@ class IncidentType(GenericBaseModel):
 
     def __str__(self):
         return "%s" % self.name
+
+    class Meta(object):
+        ordering = ('name',)
+        unique_together = ('name',)
 
 
 class EventType(GenericBaseModel):
@@ -110,3 +126,7 @@ class EventType(GenericBaseModel):
 
     def __str__(self):
         return "%s" % self.name
+
+    class Meta(object):
+        ordering = ('name',)
+        unique_together = ('name',)
