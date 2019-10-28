@@ -8,7 +8,8 @@ from api.views import report_event, get_events, get_error_rates, create_incident
     get_incident, get_access_token, get_incidents, get_incident_events, delete_incident, get_system, create_rule, \
     update_rule, get_rule, get_rules, delete_rule, create_system, update_system, get_systems, delete_system, \
     create_user, get_user, delete_user, get_users, get_endpoints, create_endpoints, update_endpoint, get_recipients, \
-    create_recipient, update_recipient, get_systems, get_incidents, get_endpoint, get_recipient, get_look_up_data
+    create_recipient, update_recipient, get_systems, get_incidents, get_endpoint, get_recipient, get_look_up_data, \
+    delete_recipient, delete_endpoint, get_notifications
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -33,7 +34,10 @@ urlpatterns = [
     url(r'^get_systems/$', get_systems, name = 'get_systems'),
     url(r'^get_endpoint/$', get_endpoint, name = 'get_endpoint'),
     url(r'^get_recipient', get_recipient, name = 'get_recipient'),
+    url(r'^delete_recipient', delete_recipient, name = 'delete_recipient'),
+    url(r'^delete_endpoint', delete_endpoint, name = 'delete_endpoint'),
     url(r'^get_lookup', get_look_up_data, name = 'get_look_up_data'),
+    url(r'^get_notifications', get_notifications, name = 'get_notifications'),
     url(r'^get_access_token/$', get_access_token, name = 'get_access_token'),
     url(r'^create_rule/$', create_rule, name = 'create_rule'),
     url(r'^update_rule/$', update_rule, name = 'update_rule'),

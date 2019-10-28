@@ -2,6 +2,7 @@ import datetime
 import logging
 
 from core.backend.services import SystemService, EndpointService
+from core.models import Endpoint
 from base.backend.services import StateService, EndpointTypeService
 
 lgr = logging.getLogger(__name__)
@@ -77,11 +78,7 @@ class EndpointAdministrator(object):
 			state = StateService().get(id = state_id)
 			if not (state and name and description and response_time and endpoint and update_endpoint):
 				return {
-					"code": "800.400.002 %s, %s, %s, %s, %s, %s" %(state, name, description, response_time, endpoint,
-					update_endpoint),
-					"message": "Error "
-					                                                                                      "missing "
-					                                                                           "parameters"
+					"code": "800.400.002", "message": "Error missing parameters"
 				}
 			endpoint = EndpointService().update(
 				pk = update_endpoint.id, description = description, state = state,
@@ -139,3 +136,22 @@ class EndpointAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
 		return {'code': '800.400.001', "message": "Error when fetching an endpoint"}
+
+	@staticmethod
+	def delete_endpoint(endpoint_id):
+		"""
+		@param endpoint_id:id of the recipient belong you are fetching
+		@type endpoint_id: str
+		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
+							endpoint data
+		@rtype:dict
+		"""
+		try:
+			if not endpoint_id:
+				return {"code": '800.400.002 %s' %endpoint_id}
+			endpoint = Endpoint.objects.get(id = endpoint_id)
+			endpoint.delete()
+			return {'code': '800.200.001', 'message': 'successfully deleted the endpoint'}
+		except Exception as ex:
+			lgr.exception("Endpoint Administration Exception: %s" % ex)
+		return {"code": "800.400.001 %s" %ex, "message": "Error while deleting endpoint"}
