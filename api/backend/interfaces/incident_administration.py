@@ -129,7 +129,7 @@ class IncidentAdministrator(object):
 				return {'code': '800.400.002 %s %s %s' % (incident, escalation_level, state)}
 			priority_level = int(priority_level) if priority_level is not None else incident.priority_level
 			incident_log = IncidentLogService().create(
-				description = description, incident = incident, user = User.objects.filter(username = user).first(),
+				description = description, incident = incident, user = User.objects.filter(id = user).first(),
 				priority_level = priority_level, state = StateService().get(name = state)
 			)
 			updated_incident = IncidentService().update(
@@ -172,7 +172,7 @@ class IncidentAdministrator(object):
 			if system is None or incident is None:
 				return {'code': '800.400.002'}
 			incident_updates = list(IncidentLogService().filter(incident__id = incident_id).values(
-				'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user'),
+				'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user__username'),
 				status = F('state__name')
 			).order_by('-date_created'))
 			incident.update(incident_updates = incident_updates)
@@ -209,7 +209,7 @@ class IncidentAdministrator(object):
 			).order_by('-date_created'))
 			for incident in incidents:
 				incident_updates = list(IncidentLogService().filter(incident__id = incident.get('incident_id')).values(
-					'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user'),
+					'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user__username'),
 					status = F('state__name')
 				).order_by('-date_created'))
 				incident.update(incident_updates = incident_updates)
@@ -242,4 +242,36 @@ class IncidentAdministrator(object):
 					return {'code': '800.200.001', 'Message': 'Incident deleted successfully'}
 		except Exception as ex:
 			lgr.exception("Incident Delete exception %s" % ex)
+		return {"code": "800.400.001"}
+
+	@staticmethod
+	def get_incident_events(incident_id, system_id, **kwargs):
+		"""
+		Retrieves the events that have caused the incident in a selected system.
+		@param incident_id: The id of the incident
+		@type incident_id: str
+		@param system_id: System where the incident is created in
+		@type system_id: str
+		@param kwargs: Extra key-value arguments to pass for incident_event retrieval
+		@return: Response code dictionary to indicate if the incident_events were retrieved or not
+		@rtype: dict
+		"""
+		from api.backend.interfaces.event_log import EventLog
+		try:
+			system = SystemService().filter(pk = system_id, state__name = 'Active').first()
+			incident = IncidentService().filter(pk = incident_id, system = system).first()
+
+			if system is None or incident is None:
+				return {"code": "800.400.002"}
+			incident_events = list(IncidentEventService().filter(incident = incident, state__name = 'Active').values(
+				incident_id = F('incident'), status = F('state__name'), event_id = F('event')
+			).order_by('-date_created'))
+			for incident_event in incident_events:
+				event = EventLog.get_event(incident_event.get('event_id'), system.id)
+				if event.get('code') != '800.200.001':
+					lgr.error('Event get Failed')
+				incident_event.update(incident_event = event.get('data'))
+			return {'code': '800.200.001', 'data': incident_events}
+		except Exception as ex:
+			lgr.exception("Get Incident Event exception %s" % ex)
 		return {"code": "800.400.001"}

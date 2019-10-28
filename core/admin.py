@@ -13,7 +13,7 @@ class SystemAdmin(admin.ModelAdmin):
     Admin for System model
     """
     list_filter = ('date_created', )
-    list_display = ('name', 'description', 'state', 'date_modified', 'date_created')
+    list_display = ('id','name', 'description', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('name',)
 
@@ -67,7 +67,8 @@ class RecipientAdmin(admin.ModelAdmin):
     Admin for Recipient Model
     """
     list_filter = ('date_created', )
-    list_display = ('first_name', 'last_name', 'email', 'notification_type', 'state', 'date_modified', 'date_created')
+    list_display = (
+        'user', 'state', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('first_name', 'last_name')
 
@@ -78,7 +79,7 @@ class SystemRecipient(admin.ModelAdmin):
     Admin for System recipient model
     """
     list_filter = ('date_created',)
-    list_display = ('recipient', 'system', 'state', 'date_modified', 'date_created')
+    list_display = ('recipient', 'system', 'state', 'escalation_level', 'date_modified', 'date_created')
     ordering = ('-date_created',)
     search_fields = ('system__name',)
 

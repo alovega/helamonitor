@@ -51,7 +51,7 @@ class EndpointAdministrator(object):
 			return {"code": "800.200.001", "message": "successfully created endpoint: %s" % endpoint.name}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {"code": "200.400.007", "message": "Error when creating an endpoint"}
+		return {"code": "800.400.001", "message": "Error when creating an endpoint"}
 
 	@staticmethod
 	def update_endpoint(endpoint_id, state_id, description, endpoint, response_time, name):
@@ -77,7 +77,11 @@ class EndpointAdministrator(object):
 			state = StateService().get(id = state_id)
 			if not (state and name and description and response_time and endpoint and update_endpoint):
 				return {
-					"code": "800.400.002"
+					"code": "800.400.002 %s, %s, %s, %s, %s, %s" %(state, name, description, response_time, endpoint,
+					update_endpoint),
+					"message": "Error "
+					                                                                                      "missing "
+					                                                                           "parameters"
 				}
 			endpoint = EndpointService().update(
 				pk = update_endpoint.id, description = description, state = state,
@@ -87,7 +91,7 @@ class EndpointAdministrator(object):
 
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {"code": "200.400.007"}
+		return {"code": "800.400.001", "message": "Error when updating an endpoint"}
 
 	@staticmethod
 	def get_system_endpoints(system_id):
@@ -100,7 +104,7 @@ class EndpointAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			endpoint = {}
+			data = {}
 			system = SystemService().get(id = system_id)
 			if not system:
 				return {"code": "800.400.002", "message": "It seems there is no existing system with such endpoints"}
@@ -108,8 +112,30 @@ class EndpointAdministrator(object):
 				'id', 'name', 'description', 'endpoint', 'optimal_response_time',
 				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
 			).order_by('-date_created'))
-			endpoint.update(endpoints = endpoints)
-			return {'code': '800.200.001', 'data': endpoint}
+			data.update(endpoints = endpoints)
+			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {'code': '200.400.007'}
+		return {'code': '800.400.001', "message": "Error when fetching system endpoints"}
+
+	@staticmethod
+	def get_endpoint(endpoint_id):
+		"""
+		@param endpoint_id: id of the endpoint that is being fetched
+		@type endpoint_id:str
+		@return: endpoints:a dictionary containing a success code and a list of dictionary containing endpoint data
+		@rtype: dict
+		"""
+		try:
+			data = {}
+			endpoint = list(EndpointService().filter(id = endpoint_id).values(
+				'id', 'name', 'description', 'endpoint', 'optimal_response_time',
+				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
+			))
+			if not endpoint:
+				return {'code': '800.400.001', 'message': 'The endpoint requested does not exist'}
+			data.update(endpoint = endpoint)
+			return {'code': '800.200.001', 'data': data}
+		except Exception as ex:
+			lgr.exception("Endpoint Administration exception: %s" % ex)
+		return {'code': '800.400.001', "message": "Error when fetching an endpoint"}
