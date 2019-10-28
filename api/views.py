@@ -559,6 +559,7 @@ def get_users(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def get_endpoints(request):
 	"""
 	Get a specific systems endpoints
