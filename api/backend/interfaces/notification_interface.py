@@ -4,6 +4,8 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
+from django.db.models import F
+
 from core.backend.services import NotificationService, SystemService
 from base.backend.services import StateService, NotificationTypeService
 
@@ -80,7 +82,8 @@ class NotificationLogger(object):
 			if not system_id:
 				return {"code": "800.400.002", "message":"Missing parameter system_id"}
 			notifications = list(NotificationService().filter(system__id= system_id).values(
-				'message', 'recipient', 'notification_type__name', 'date_created', 'state__name'))
+				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
+				status = F('state__name')))
 			data.update(notifications=notifications)
 			return {"code": "800.200.001", "data":data}
 

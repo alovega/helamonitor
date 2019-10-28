@@ -8,11 +8,13 @@ from api.views import report_event, get_error_rates, create_incident, update_inc
     get_access_token, get_incidents, delete_incident, get_system, create_rule, update_rule, get_rule, get_rules, \
     delete_rule, create_system, update_system, get_systems, delete_system, create_user, get_user, get_users, \
     get_endpoints, create_endpoints, update_endpoint, get_recipients, create_recipient, update_recipient, get_recipient, \
-    get_endpoint, delete_recipient, delete_endpoint, get_look_up_data, get_notifications
+    get_endpoint, delete_recipient, delete_endpoint, get_look_up_data, get_notifications, get_system_status, \
+    get_logged_in_user_details
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
     url(r'^get_error_rates/$', get_error_rates, name = 'get_error_rates'),
+    url(r'^get_system_status/$', get_system_status, name= 'get_system_status'),
     url(r'^create_incident/$', create_incident, name = 'create_incident'),
     url(r'^create_endpoints/$', create_endpoints, name = 'create_endpoints'),
     url(r'^create_recipients/$', create_recipient, name = 'create_recipient'),
@@ -49,4 +51,5 @@ urlpatterns = [
     url(r'^create_user/$', create_user, name = 'create_user'),
     url(r'^get_user/$', get_user, name = 'get_user'),
     url(r'^get_users/$', get_users, name = 'get_users'),
+    url(r'^get_logged_in_user_details', get_logged_in_user_details, name='get_users'),
 ]

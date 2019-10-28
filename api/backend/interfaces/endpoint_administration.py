@@ -1,6 +1,9 @@
 import datetime
 import logging
 
+from django.db.models import F
+from django.utils.duration import duration_string
+
 from core.backend.services import SystemService, EndpointService
 from core.models import Endpoint
 from base.backend.services import StateService, EndpointTypeService
@@ -106,14 +109,17 @@ class EndpointAdministrator(object):
 			if not system:
 				return {"code": "800.400.002", "message": "It seems there is no existing system with such endpoints"}
 			endpoints = list(EndpointService().filter(system = system).values(
-				'id', 'name', 'description', 'endpoint', 'optimal_response_time',
-				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
+				'id', 'name', 'description', 'date_modified', 'system__name', dateCreated=F(
+					'date_created'), responseTime=F('optimal_response_time'), url=F('endpoint'),
+				status= F(
+					'state__name'),
+				type=F('endpoint_type__name')
 			).order_by('-date_created'))
 			data.update(endpoints = endpoints)
 			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {'code': '800.400.001', "message": "Error when fetching system endpoints"}
+		return {'code': '800.400.001 %s' %ex, "message": "Error when fetching system endpoints"}
 
 	@staticmethod
 	def get_endpoint(endpoint_id):

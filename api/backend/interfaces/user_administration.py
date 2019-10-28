@@ -12,6 +12,7 @@ from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentLogService, IncidentEventService, SystemService, \
 	SystemRecipientService, RecipientService, EscalationRuleService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
+from api.backend.services import OauthService, AppUserService
 
 lgr = logging.getLogger(__name__)
 
@@ -142,3 +143,46 @@ class UserAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Escalation Rule Update exception %s" % ex)
 		return {"code": "800.400.001"}
+
+	@staticmethod
+	def get_logged_in_user_details(token, **kwargs):
+		"""
+
+		@param token: the generated token of the user
+		@type:char
+		@param kwargs: Extra key arguments passed to the method
+		@return: Response code dictionary
+		"""
+		try:
+			app_user = list(OauthService().filter(token = token).values('app_user'))
+			user = list(AppUserService().filter(id = app_user[0].get('app_user')).values(userName=F(
+				'user__username'), email=F('user__recipient__email'), superUser=F('user__is_superuser'), firstName= F(
+				'user__recipient__first_name'), lastName=F('user__recipient__last_name'), log=F('user__logentry'),
+				staff=F('user__is_staff'), phoneNumber=F('user__recipient__phone_number')))
+			if user[0].get('superUser'):
+				user.update(role='Admin')
+			elif user[0].get('staff'):
+				user[0].update(role='Staff')
+			else:
+				user[0].update(role='User')
+			return {'code': '800.200.001',   "data": user}
+		except Exception as ex:
+			lgr.exception("Logged in user exception %s" % ex)
+		return {"code": "800.400.001"}
+
+	@staticmethod
+	def edit_logged_in_user_details(token, username, first_name, last_name, phone_number, Email):
+		"""
+
+		@param Email:
+		@param phone_number:
+		@param last_name:
+		@param first_name:
+		@param username:
+		@param token: the token of a logged in user
+		@type:str
+		@param kwargs: Extra key arguments passed to the method
+		@return:Response code dictionary if the update was okay
+		"""
+
+

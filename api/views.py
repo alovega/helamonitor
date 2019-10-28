@@ -71,6 +71,25 @@ def get_error_rates(request):
 		lgr.exception("Event error rate get Exception: %s" % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+@csrf_exempt
+def get_system_status(request):
+	"""
+	Retrieves states  for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful error rate retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		event = MonitorInterface.get_status(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(event)
+	except Exception as ex:
+		lgr.exception("System status get Exception: %s" % ex)
+	return JsonResponse({'code': '800.500.001'})
+
 
 @csrf_exempt
 @ensure_authenticated
@@ -739,4 +758,20 @@ def get_notifications(request):
 
 	except Exception as ex:
 		lgr.exception('notifications get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+@csrf_exempt
+def get_logged_in_user_details(request):
+	"""
+	@param request:
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.get_logged_in_user_details(token = data.get('token'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('logged in user Details: %s' % ex)
 	return JsonResponse({'code': '800.500.001 %s' % ex})
+
+
