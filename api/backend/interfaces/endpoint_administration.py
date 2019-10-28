@@ -113,7 +113,7 @@ class EndpointAdministrator(object):
 			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {'code': '800.400.001', "message": str(ex)}
+		return {'code': '800.400.001', "message": "Error when fetching system endpoints"}
 
 	@staticmethod
 	def get_endpoint(endpoint_id):
