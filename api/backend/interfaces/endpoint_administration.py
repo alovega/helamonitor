@@ -84,14 +84,14 @@ class EndpointAdministrator(object):
 					"code": "800.400.002", "message": "Error missing parameters"
 				}
 			endpoint = EndpointService().update(
-				pk = update_endpoint.id, description = description, state = state,
+				pk = update_endpoint.id, description = description, state = state, name = name,
 				optimal_response_time = datetime.timedelta(seconds = int(response_time)), url = url
 			)
 			return {"code": "800.200.001", "message": "successfully updated endpoint: %s" % endpoint.name}
 
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Error when updating an endpoint"}
+		return {"code": "800.400.001 %s" %ex, "message": "Error when updating an endpoint"}
 
 	@staticmethod
 	def get_system_endpoints(system_id):

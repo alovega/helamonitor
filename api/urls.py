@@ -10,7 +10,7 @@ from api.views import report_event, get_events, get_error_rates, create_incident
     create_user, get_user, delete_user, get_users, get_endpoints, create_endpoints, update_endpoint, get_recipients, \
     create_recipient, update_recipient, get_systems, get_incidents, get_endpoint, get_recipient, get_look_up_data, \
     delete_recipient, delete_endpoint, get_notifications, get_logged_in_user_details, get_system_status, \
-    edit_logged_in_user_details
+    edit_logged_in_user_details, get_logged_in_user_recent_notifications, get_logged_in_user_notifications
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -51,7 +51,11 @@ urlpatterns = [
     url(r'^delete_system/$', delete_system, name = 'delete_system'),
     url(r'^create_user/$', create_user, name = 'create_user'),
     url(r'^get_logged_in_user_details', get_logged_in_user_details, name='get_users'),
-    url(r'edit_logged_in_user', edit_logged_in_user_details, name = 'edit_logged_in_user'),
+    url(r'^edit_logged_in_user', edit_logged_in_user_details, name = 'edit_logged_in_user'),
+    url(r'get_logged_in_user_recent_notifications', get_logged_in_user_recent_notifications,
+        name = 'get_logged_in_user_recent_notifications'),
+    url(r'get_logged_in_user_notifications', get_logged_in_user_notifications,
+        name = 'get_logged_in_user_notifications'),
     url(r'^delete_user/$', delete_user, name = 'delete_user'),
-    url(r'^get_users/$', get_users, name = 'get_users')
+    url(r'^get_users/$', get_users, name = 'get_users'),
 ]

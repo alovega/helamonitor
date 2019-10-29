@@ -821,6 +821,7 @@ def get_notifications(request):
 		lgr.exception('notifications get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+
 @csrf_exempt
 @ensure_authenticated
 def get_logged_in_user_details(request):
@@ -833,7 +834,7 @@ def get_logged_in_user_details(request):
 		user = UserAdministrator.get_logged_in_user_details(token = data.get('token'))
 		return JsonResponse(user)
 	except Exception as ex:
-		lgr.exception('logged in user Details: %s' % ex)
+		lgr.exception('logged in user Details Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -847,14 +848,44 @@ def edit_logged_in_user_details(request):
 	try:
 		data = get_request_data(request)
 		user = UserAdministrator.edit_logged_in_user_details(
-			token = data.get('token'), first_name = data.get('first_name'), last_name = data.get('last_name'),
-			email = data.get('email'), password = data.get('password'), phone_number = data.get('phone_number'),
-			username = data.get('username')
-		)
+			token = data.get('token'), first_name = data.get('firstName'), last_name = data.get('lastName'),
+			email = data.get('email'), password = data.get('password'), phone_number = data.get('phoneNumber'),
+			username = data.get('userName'))
 		return JsonResponse(user)
 	except Exception as ex:
-		lgr.exception('edit logged in user details: %s' %ex)
-	return JsonResponse({'code': '800.500.001 %s' %ex})
+		lgr.exception('edit logged in user Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_logged_in_user_recent_notifications(request):
+	"""
+	@param request:  The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		notifications = NotificationLogger.get_logged_in_user_recent_notifications(token = data.get('token'))
+		return JsonResponse(notifications)
+	except Exception as ex:
+		lgr.exception('get logged in user recent notification Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+@csrf_exempt
+@ensure_authenticated
+def get_logged_in_user_notifications(request):
+	"""
+	@param request:  The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		notifications = NotificationLogger.get_logged_in_user_notifications(token = data.get('token'))
+		return JsonResponse(notifications)
+	except Exception as ex:
+		lgr.exception('get logged in user recent notification Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
 
 
 
