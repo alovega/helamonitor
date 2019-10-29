@@ -771,7 +771,7 @@ def get_look_up_data(request):
 def delete_recipient(request):
 	"""
 	Delete a specific Recipient
-	@param request:
+	@param request:The Django WSGI Request to process
 	@return:dict
 	"""
 	try:
@@ -791,7 +791,7 @@ def delete_recipient(request):
 def delete_endpoint(request):
 	"""
 	Delete a specific Recipient
-	@param request:
+	@param request:The Django WSGI Request to process
 	@return:dict
 	"""
 	try:
@@ -809,7 +809,7 @@ def delete_endpoint(request):
 def get_notifications(request):
 	"""
 	Delete a specific Recipient
-	@param request:
+	@param request:The Django WSGI Request to process
 	@return:dict
 	"""
 	try:
@@ -822,9 +822,10 @@ def get_notifications(request):
 	return JsonResponse({'code': '800.500.001'})
 
 @csrf_exempt
+@ensure_authenticated
 def get_logged_in_user_details(request):
 	"""
-	@param request:
+	@param request:The Django WSGI Request to process
 	@return: dict
 	"""
 	try:
@@ -833,6 +834,27 @@ def get_logged_in_user_details(request):
 		return JsonResponse(user)
 	except Exception as ex:
 		lgr.exception('logged in user Details: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def edit_logged_in_user_details(request):
+	"""
+	@param request: The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.edit_logged_in_user_details(
+			token = data.get('token'), first_name = data.get('first_name'), last_name = data.get('last_name'),
+			email = data.get('email'), password = data.get('password'), phone_number = data.get('phone_number'),
+			username = data.get('username')
+		)
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('edit logged in user details: %s' %ex)
+	return JsonResponse({'code': '800.500.001 %s' %ex})
+
 
 
