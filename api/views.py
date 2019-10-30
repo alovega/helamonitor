@@ -664,6 +664,7 @@ def get_recipients(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def create_recipient(request):
 	"""
 	Creates endpoints from users

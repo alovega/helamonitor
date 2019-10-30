@@ -189,15 +189,12 @@ class RecipientAdministrator(object):
 		try:
 			data = {}
 			system = SystemService().get(id = system_id)
-			recipients = list(RecipientService().filter().values(
-				'email', 'user__id', firstName = F('first_name'), lastName = F('last_name'),
-				userName = F('user__username'), phoneNumber = F('phone_number'), type = F('notification_type__name'),
-				dateCreated = F('date_created'), status = F('state__name'), recipient_id = F('id')
-			))
 			if not system:
 				return {"code": "800.400.002", "message": "It seems there is no existing system"}
+			recipients = list(RecipientService().filter().values(
+				userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
+				dateCreated = F('date_created'), recipientId = F('id')))
 			for recipient in recipients:
-
 				system_recipients = list(SystemRecipientService().filter(
 					system = system, recipient__id = recipient.get('recipient_id')).values(
 					escalationLevels = F('escalation_level__name'), status = F('state__name')
