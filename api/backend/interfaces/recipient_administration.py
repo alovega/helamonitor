@@ -14,83 +14,6 @@ class RecipientAdministrator(object):
 	"""
 	class for recipient Administration
 	"""
-	@staticmethod
-	def create_system_recipient(recipient_id, state_id, system_id, escalation_level_id, notification_type_id):
-		"""
-		@param recipient_id: id of the recipient
-		@type: str
-		@param state_id: id of the initial state the recipient will have
-		@type state_id:str
-		@param system_id:id of the system the recipient will belong to
-		@type system_id:str
-		@param escalation_level_id:id of the escalation level the recipient will be tied to
-		@type escalation_level_id:str
-		@param notification_type_id:id of notification_type the recipient will be tied to
-		@type notification_type_id: str
-		@return:Response code dictionary to indicate if the recipient was created or not
-		@rtype: dict
-		"""
-		try:
-			system = SystemService().get(id = system_id)
-			state = StateService().get(id = state_id)
-			recipient = RecipientService().get(id = recipient_id)
-			escalation_level = EscalationLevelService().get(id = escalation_level_id)
-			notification_type = NotificationTypeService().get(id = notification_type_id)
-
-			if not (system and state and escalation_level and recipient and notification_type):
-				return {"code": "800.400.002", "message": "invalid required parameters"}
-			# check if a recipient with the details given exist
-			recipients = list(RecipientService().filter(user = user))
-			if recipients:
-				system_recipient = RecipientAdministrator.create_system_recipient(
-					recipient = recipients[0], system = system, state = state, escalation_level = escalation_level
-				)
-				if system_recipient.get("code") == "200.400.009":
-					return {"code": "200.400.008", "message": "Recipient already exist consider updating the recipient"}
-				return {"code": "800.200.001", "message": "system recipient successfully created"}
-			recipient = RecipientService().create(
-				first_name = first_name, last_name = last_name, email = email, user = user,
-				phone_number = phone_number,
-				notification_type = notification_type, state = state
-			)
-			if recipient:
-				system_recipient = RecipientAdministrator.create_system_recipient(
-					recipient = recipient, system = system, state = state, escalation_level = escalation_level
-				)
-				if system_recipient.get("code") != '800.200.001':
-					return {"code": "800.400.002", "message": "Error while creating system recipient"}
-				return {"code": "800.200.001", "message": "recipient successfully updated"}
-
-		except Exception as ex:
-			lgr.exception("Recipient Administration Exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Error while creating a recipient"}
-
-	@staticmethod
-	def create_system_recipient(escalation_level, system, recipient, state):
-		"""
-
-		@param escalation_level: an escalation level object
-		@type escalation_level:object
-		@param system: a system object
-		@type system:object
-		@param recipient: a recipient object
-		@type recipient:object
-		@param state: a state object
-		@type state:object
-		@return: Response code dictionary to indicate if the endpoint was created or not
-		@rtype:dict
-		"""
-		try:
-			system_recipient = SystemRecipientService().filter(system = system, escalation_level = escalation_level,
-			                                                   recipient = recipient)
-			if system_recipient:
-				return {"code": "200.400.009", "message": "System recipient already exist"}
-			else:
-				SystemRecipientService().create(system = system, recipient = recipient,
-				                                escalation_level = escalation_level, state = state)
-				return {"code": "800.200.001", "message": "successfully created system_recipient"}
-		except Exception as ex:
-			lgr.exception("Recipient Administration Exception %s" % ex)
 
 	@staticmethod
 	def get_recipients():
@@ -125,7 +48,57 @@ class RecipientAdministrator(object):
 		return {'code': '800.400.001 %s' %ex, 'message': 'Error while getting recipient'}
 
 	@staticmethod
-	def update_recipient(recipient_id, notification_type_id, state_id, first_name, last_name, email, phone_number):
+	def create_recipient(user_id, phone_number, state_id):
+		"""
+
+		@param user_id: the id of the user the recipient is tied to
+		@type: str
+		@param phone_number: phone number of the recipient
+		@type: str
+		@param state_id: the id of the state the recipient will have
+		@type: str
+		@return: a response code dictionary indicating success or failure and a dictionary of created  recipient
+		@rtype:dict
+		"""
+		try:
+			if not (user_id and phone_number and state_id):
+				return {"code": "800.400.002", "message": "invalid required "
+				                                                                            "parameters"}
+			if RecipientService().filter(user__id = user_id):
+				return {"code": "800.400.001", "message": "user already tied to a recipient"}
+			RecipientService().create(
+				user=User.objects.get(id=user_id), phone_number=phone_number, state=StateService().get(id=state_id))
+			return {"code": "800.200.001", "message": "successfully created a recipient"}
+		except Exception as ex:
+			lgr.exception('Recipient Administration Exception: %s' % ex)
+		return {"code": "800.400.001", "message": "Error while creating recipient"}
+
+	@staticmethod
+	def update_recipient(recipient_id, phone_number, state_id):
+		"""
+
+		@param recipient_id:Id of the recipient you want to update
+		@type:str
+		@param phone_number: phone number of the recipient
+		@type:str
+		@param state_id:id of the state
+		@type: str
+		@return:a response code dictionary indicating success or failure and a dictionary of created  recipient
+		@rtype:dict
+		"""
+		try:
+			if not (recipient_id and phone_number and state_id):
+				return {"code": "800.400.002", "message": "invalid required parameters"}
+			RecipientService().update(pk = recipient_id, phone_number=phone_number, state=StateService().get(
+										id=state_id))
+			return {"code": "800.200.001", "message": "successfully updated the recipient"}
+		except Exception as ex:
+			lgr.exception('Recipient Administration Exception: %s' % ex)
+		return {"code": "800.400.001", "message": "Error while updating recipient"}
+
+	@staticmethod
+	def update_system_recipient(recipient_id, notification_type_id, state_id, first_name, last_name, email,
+	                           phone_number):
 		"""
 		@param recipient_id:id of the recipient that is going to be edited
 		@type recipient_id: str
