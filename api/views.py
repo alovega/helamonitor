@@ -664,6 +664,7 @@ def get_recipients(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def create_recipient(request):
 	"""
 	Creates endpoints from users
@@ -675,10 +676,7 @@ def create_recipient(request):
 	try:
 		data = get_request_data(request)
 		recipient = RecipientAdministrator.create_recipient(
-			state_id = data.get('state'), notification_type_id = data.get('notification_type'),
-			system_id = data.get('system_id'), escalation_level_id = data.get('escalation_level'),
-			first_name = data.get('first_name'), last_name = data.get('last_name'),
-			email = data.get('email'), phone_number = data.get('phone_number'), user_id = data.get('user')
+			state_id = data.get('stateId'), phone_number = data.get('phoneNumber'), user_id = data.get('userId')
 		)
 		return JsonResponse(recipient)
 	except Exception as ex:
@@ -699,9 +697,8 @@ def update_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_recipient(
-			recipient_id = data.get('recipient_id'), state_id = data.get('state'),
-			notification_type_id = data.get('notification_type'),first_name = data.get('first_name'),
-			last_name = data.get('last_name'), email = data.get('email'),phone_number = data.get('phone_number')
+			recipient_id = data.get('recipientId'), state_id = data.get('stateId'),
+			phone_number = data.get('phoneNumber')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
@@ -775,7 +772,7 @@ def delete_recipient(request):
 	try:
 		data = get_request_data(request)
 		recipient = RecipientAdministrator.delete_recipient(
-			recipient_id = data.get('recipient_id')
+			recipient_id = data.get('recipientId')
 		)
 		return JsonResponse(recipient)
 
