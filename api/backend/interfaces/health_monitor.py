@@ -2,8 +2,9 @@ import datetime
 import logging
 
 import requests
-
-from core.backend.services import SystemMonitorService, EndpointService
+from django.utils import timezone
+from datetime import timedelta
+from core.backend.services import SystemMonitorService, EndpointService, SystemService
 from base.backend.services import StateService, EventTypeService
 
 from api.backend.interfaces.event_log import EventLog
@@ -80,3 +81,34 @@ class MonitorInterface(object):
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
 		return {"code": "800.400.001", "data": "Error while logging system status"}
+
+	@staticmethod
+	def get_status(system_id):
+		"""
+		Calculates and returns the error rate of a system based on logged events
+		@param: system_id: Id of the system
+		@type system_id: str
+		@return: Response code indicating status and error rate graph data
+		"""
+		try:
+			system = SystemService().get(pk = system_id, state__name = 'Active')
+			if not system:
+				return {'code': '800.400.200'}
+			now = timezone.now()
+			labels = []
+			dataset = []
+			for i in range(1, 25):
+				past_hour = now - timedelta(hours = i, minutes = 0)
+				# past_hour = past_hour.replace(minute = 0)
+				current_hour = past_hour + timedelta(hours = 1)
+				current_status = list(SystemMonitorService().filter(
+					system = system, date_created__lte = current_hour,
+					date_created__gte = past_hour).values('state__name'))
+				past_hour = past_hour.replace(minute = 0)
+				labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
+				for status in current_status:
+					dataset.append(status['state__name'])
+			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
+		except Exception as ex:
+			lgr.exception("Get Error rate Exception %s" % ex)
+		return {'code': '800.400.001 %s' %ex}

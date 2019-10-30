@@ -1,6 +1,9 @@
 import datetime
 import logging
 
+from django.db.models import F
+from django.utils.duration import duration_string
+
 from core.backend.services import SystemService, EndpointService
 from core.models import Endpoint
 from base.backend.services import StateService, EndpointTypeService
@@ -14,7 +17,7 @@ class EndpointAdministrator(object):
 	"""
 
 	@staticmethod
-	def create_endpoint(name, description, endpoint, system_id, response_time, endpoint_type_id, state_id):
+	def create_endpoint(name, description, url, system_id, response_time, endpoint_type_id, state_id):
 		"""
 		@param name: name of endpoint to be created
 		@type name:str
@@ -38,14 +41,14 @@ class EndpointAdministrator(object):
 			endpoint_type = EndpointTypeService().get(id = endpoint_type_id, state__name = "Active")
 			state = StateService().get(id = state_id)
 
-			if not (system and endpoint_type and state and name and description and response_time and endpoint):
+			if not (system and endpoint_type and state and name and description and response_time and url):
 				return {"code": "800.400.002", "message": "Missing parameters"}
-			exist = True if EndpointService().filter(system = system, endpoint = endpoint) \
+			exist = True if EndpointService().filter(system = system, url = url) \
 				else EndpointService().filter(system = system, name = name)
 			if exist:
 				return {"code": "200.400.007", "message": "An endpoint with this url or name exists"}
 			endpoint = EndpointService().create(
-				name = name, description = description, endpoint = endpoint, system = system,
+				name = name, description = description, url = url, system = system,
 				endpoint_type = endpoint_type,
 				optimal_response_time = datetime.timedelta(seconds = int(response_time)), state = state
 			)
@@ -55,7 +58,7 @@ class EndpointAdministrator(object):
 		return {"code": "800.400.001", "message": "Error when creating an endpoint"}
 
 	@staticmethod
-	def update_endpoint(endpoint_id, state_id, description, endpoint, response_time, name):
+	def update_endpoint(endpoint_id, state_id, description, url, response_time, name):
 		"""
 		@param endpoint_id: id of the endpoint to be edited
 		@type endpoint_id: int
@@ -63,8 +66,8 @@ class EndpointAdministrator(object):
 		@type name: str
 		@param description: description of endpoint to be created
 		@type description: str
-		@param endpoint:url of endpoint to be created
-		@type endpoint: str
+		@param url:url of endpoint to be created
+		@type url: str
 		@param response_time:average response time the endpoint should take
 		@type response_time: int
 		@param state_id:the id of  initial state of the created endpoint will have
@@ -76,19 +79,19 @@ class EndpointAdministrator(object):
 		try:
 			update_endpoint = EndpointService().get(pk = endpoint_id)
 			state = StateService().get(id = state_id)
-			if not (state and name and description and response_time and endpoint and update_endpoint):
+			if not (state and name and description and response_time and url and update_endpoint):
 				return {
 					"code": "800.400.002", "message": "Error missing parameters"
 				}
 			endpoint = EndpointService().update(
-				pk = update_endpoint.id, description = description, state = state,
-				optimal_response_time = datetime.timedelta(seconds = int(response_time)), endpoint = endpoint
+				pk = update_endpoint.id, description = description, state = state, name = name,
+				optimal_response_time = datetime.timedelta(seconds = int(response_time)), url = url
 			)
 			return {"code": "800.200.001", "message": "successfully updated endpoint: %s" % endpoint.name}
 
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Error when updating an endpoint"}
+		return {"code": "800.400.001 %s" %ex, "message": "Error when updating an endpoint"}
 
 	@staticmethod
 	def get_system_endpoints(system_id):
@@ -106,14 +109,17 @@ class EndpointAdministrator(object):
 			if not system:
 				return {"code": "800.400.002", "message": "It seems there is no existing system with such endpoints"}
 			endpoints = list(EndpointService().filter(system = system).values(
-				'id', 'name', 'description', 'endpoint', 'optimal_response_time',
-				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
+				'id', 'name', 'description', 'date_modified', 'system__name', dateCreated=F(
+					'date_created'), responseTime=F('optimal_response_time'), endpointUrl=F('url'),
+				status= F(
+					'state__name'),
+				type=F('endpoint_type__name')
 			).order_by('-date_created'))
 			data.update(endpoints = endpoints)
 			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {'code': '800.400.001', "message": "Error when fetching system endpoints"}
+		return {'code': '800.400.001 ', "message": "Error when fetching system endpoints"}
 
 	@staticmethod
 	def get_endpoint(endpoint_id):
@@ -126,7 +132,7 @@ class EndpointAdministrator(object):
 		try:
 			data = {}
 			endpoint = list(EndpointService().filter(id = endpoint_id).values(
-				'id', 'name', 'description', 'endpoint', 'optimal_response_time',
+				'id', 'name', 'description', 'url', 'optimal_response_time',
 				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
 			))
 			if not endpoint:
@@ -154,4 +160,4 @@ class EndpointAdministrator(object):
 			return {'code': '800.200.001', 'message': 'successfully deleted the endpoint'}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration Exception: %s" % ex)
-		return {"code": "800.400.001 %s" %ex, "message": "Error while deleting endpoint"}
+		return {"code": "800.400.001 ", "message": "Error while deleting endpoint"}

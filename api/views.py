@@ -92,6 +92,25 @@ def get_error_rates(request):
 		lgr.exception("Event error rate get Exception: %s" % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+@csrf_exempt
+def get_system_status(request):
+	"""
+	Retrieves states  for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful error rate retrieval or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		event = MonitorInterface.get_status(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(event)
+	except Exception as ex:
+		lgr.exception("System status get Exception: %s" % ex)
+	return JsonResponse({'code': '800.500.001'})
+
 
 @csrf_exempt
 @ensure_authenticated
@@ -596,12 +615,12 @@ def create_endpoints(request):
 		endpoint = EndpointAdministrator.create_endpoint(
 			state_id = data.get('state'), endpoint_type_id = data.get('endpoint_type'),
 			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
-			endpoint = data.get('endpoint'), response_time = data.get('optimal_response_time')
+			url = data.get('url'), response_time = data.get('optimal_response_time')
 		)
 		return JsonResponse(endpoint)
 	except Exception as ex:
 		lgr.exception('Endpoint creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 '})
 
 
 @csrf_exempt
@@ -619,7 +638,7 @@ def update_endpoint(request):
 		updated_endpoint = EndpointAdministrator.update_endpoint(
 			endpoint_id = data.get('endpoint_id'), state_id = data.get('state'),
 			response_time = data.get('optimal_response_time'), description = data.get('description'),
-			endpoint = data.get('endpoint'), name = data.get('name')
+			url = data.get('url'), name = data.get('name')
 		)
 		return JsonResponse(updated_endpoint)
 	except Exception as ex:
@@ -639,9 +658,7 @@ def get_recipients(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipients = RecipientAdministrator.get_system_recipients(
-			system_id = data.get('system_id')
-		)
+		recipients = RecipientAdministrator.get_recipients()
 		return JsonResponse(recipients)
 	except Exception as ex:
 		lgr.exception('Recipient get Exception: %s' % ex)
@@ -649,6 +666,7 @@ def get_recipients(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def create_recipient(request):
 	"""
 	Creates endpoints from users
@@ -660,10 +678,7 @@ def create_recipient(request):
 	try:
 		data = get_request_data(request)
 		recipient = RecipientAdministrator.create_recipient(
-			state_id = data.get('state'), notification_type_id = data.get('notification_type'),
-			system_id = data.get('system_id'), escalation_level_id = data.get('escalation_level'),
-			first_name = data.get('first_name'), last_name = data.get('last_name'),
-			email = data.get('email'), phone_number = data.get('phone_number'), user_id = data.get('user')
+			state_id = data.get('stateId'), phone_number = data.get('phoneNumber'), user_id = data.get('userId')
 		)
 		return JsonResponse(recipient)
 	except Exception as ex:
@@ -684,9 +699,8 @@ def update_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_recipient(
-			recipient_id = data.get('recipient_id'), state_id = data.get('state'),
-			notification_type_id = data.get('notification_type'),first_name = data.get('first_name'),
-			last_name = data.get('last_name'), email = data.get('email'),phone_number = data.get('phone_number')
+			recipient_id = data.get('recipientId'), state_id = data.get('stateId'),
+			phone_number = data.get('phoneNumber')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
@@ -726,15 +740,15 @@ def get_recipient(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipient = RecipientAdministrator.get_system_recipient(
-			recipient_id = data.get('recipient_id')
+		recipient = RecipientAdministrator.get_recipient(
+			recipient_id = data.get('recipientId')
 		)
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 %s' %ex})
 
-
+@csrf_exempt
 def get_look_up_data(request):
 	"""
 	Get a specific endpoint
@@ -754,13 +768,13 @@ def get_look_up_data(request):
 def delete_recipient(request):
 	"""
 	Delete a specific Recipient
-	@param request:
+	@param request:The Django WSGI Request to process
 	@return:dict
 	"""
 	try:
 		data = get_request_data(request)
 		recipient = RecipientAdministrator.delete_recipient(
-			recipient_id = data.get('recipient_id')
+			recipient_id = data.get('recipientId')
 		)
 		return JsonResponse(recipient)
 
@@ -774,7 +788,7 @@ def delete_recipient(request):
 def delete_endpoint(request):
 	"""
 	Delete a specific Recipient
-	@param request:
+	@param request:The Django WSGI Request to process
 	@return:dict
 	"""
 	try:
@@ -792,7 +806,7 @@ def delete_endpoint(request):
 def get_notifications(request):
 	"""
 	Delete a specific Recipient
-	@param request:
+	@param request:The Django WSGI Request to process
 	@return:dict
 	"""
 	try:
@@ -802,4 +816,73 @@ def get_notifications(request):
 
 	except Exception as ex:
 		lgr.exception('notifications get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_logged_in_user_details(request):
+	"""
+	@param request:The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.get_logged_in_user_details(token = data.get('token'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('logged in user Details Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def edit_logged_in_user_details(request):
+	"""
+	@param request: The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.edit_logged_in_user_details(
+			token = data.get('token'), first_name = data.get('firstName'), last_name = data.get('lastName'),
+			email = data.get('email'), password = data.get('password'), phone_number = data.get('phoneNumber'),
+			username = data.get('userName'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('edit logged in user Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_logged_in_user_recent_notifications(request):
+	"""
+	@param request:  The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		notifications = NotificationLogger.get_logged_in_user_recent_notifications(token = data.get('token'))
+		return JsonResponse(notifications)
+	except Exception as ex:
+		lgr.exception('get logged in user recent notification Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+@csrf_exempt
+@ensure_authenticated
+def get_logged_in_user_notifications(request):
+	"""
+	@param request:  The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		notifications = NotificationLogger.get_logged_in_user_notifications(token = data.get('token'))
+		return JsonResponse(notifications)
+	except Exception as ex:
+		lgr.exception('get logged in user recent notification Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+

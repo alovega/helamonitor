@@ -42,6 +42,19 @@ INSTALLED_APPS = [
     'api',
     'corsheaders',
 ]
+REST_FRAMEWORK = {
+	'DEFAULT_RENDERER_CLASSES': (
+		'rest_framework.renderers.JSONRenderer',
+		'rest_framework.renderers.BrowsableAPIRenderer',
+		'rest_framework_datatables.renderers.DatatablesRenderer',
+	),
+	'DEFAULT_FILTER_BACKENDS': (
+		'rest_framework_datatables.filters.DatatablesFilterBackend',
+	),
+	'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
+	'PAGE_SIZE': 50,
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -126,3 +139,47 @@ STATIC_URL = '/static/'
 
 EXPIRY_SETTINGS = 30
 CORS_ORIGIN_ALLOW_ALL = True
+VENV_ROOT = '/opt/logs/helamonitor/'
+
+LOGGING = {
+	'version': 1,
+	'disable_existing_loggers': False,
+	'formatters': {
+		'verbose': {
+			'format': '%(asctime)s-%(name)s %(module)s %(process)d %(thread)d-(%(threadName)-2s) %(levelname)s-%(message)s'
+		},
+		'simple': {
+			'format': '%(levelname)s %(message)s'
+		},
+	},
+	'filters': {
+		'special': {
+			'()': 'django.utils.log.RequireDebugFalse',
+		}
+	},
+	'handlers': {
+		'rotating_file': {
+			'level': 'INFO',
+			'formatter': 'verbose',
+			'class': 'logging.handlers.TimedRotatingFileHandler',
+			'filename': os.path.join(VENV_ROOT, '', 'helaplan_reference_manager.log'),
+			'when': 'midnight',
+			'interval': 1,
+			'backupCount': 7,
+		},
+	},
+	'loggers': {
+		'core': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
+		'api': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
+		'base': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
+	},
+}

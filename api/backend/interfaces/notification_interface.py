@@ -4,10 +4,14 @@ Class for creating new incidents and logging incident updates
 """
 import logging
 
-from core.backend.services import NotificationService, SystemService
+from django.db.models import F
+from datetime import timedelta, datetime
+from django.utils import timezone
+
+from api.backend.services import OauthService
+from core.backend.services import NotificationService, SystemService, RecipientService
 from base.backend.services import StateService, NotificationTypeService
 
-import datetime
 
 lgr = logging.getLogger(__name__)
 
@@ -80,10 +84,75 @@ class NotificationLogger(object):
 			if not system_id:
 				return {"code": "800.400.002", "message":"Missing parameter system_id"}
 			notifications = list(NotificationService().filter(system__id= system_id).values(
-				'message', 'recipient', 'notification_type__name', 'date_created', 'state__name'))
+				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
+				status = F('state__name')))
 			data.update(notifications=notifications)
-			return {"code": "800.200.001", "data":data}
+			return {"code": "800.200.001", "data": data}
 
 		except Exception as ex:
 			lgr.exception("Notification logger exception %s" % ex)
 		return {"code": "800.400.001", "message": "error in fetching systems notifications"}
+
+	@staticmethod
+	def get_logged_in_user_recent_notifications(token):
+		"""
+
+		@param token: the given token of a logged in user
+		@type: str
+		@return: a dictionary containing response code and data
+		@rtype:dict
+		"""
+
+		try:
+			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
+			user__id = user_id[0].get('app_user__user__id')
+			recipient = list(RecipientService().filter(user__id = user__id).values('phone_number',
+			                                                                     email=F('user__email')))
+			now = timezone.now()
+			recently = now - timedelta(hours = 6, minutes = 0)
+			current_hour = timezone.now()
+			notifications = list(NotificationService().filter(
+				recipient = recipient[0]['email'], date_created__lte=current_hour,date_created__gte=recently
+			).values())
+			sms_notification=list(NotificationService().filter(
+				recipient = recipient[0]['phone_number'], date_created__lte = current_hour,
+				date_created__gte = recently).values()
+			     )
+			for sms in sms_notification:
+				notifications.append(sms)
+			return {"code": "800.200.001", "data": notifications}
+		except Exception as ex:
+			lgr.exception("Notification Logger exception: %s" % ex)
+		return{"code": "800.400.001 %s" % ex, "message": "error in fetching recent user notifications"}
+
+	@staticmethod
+	def get_logged_in_user_notifications(token):
+		"""
+
+		@param token: the given token of a logged in user
+		@type: str
+		@return: a dictionary containing response code and data
+		@rtype:dict
+		"""
+
+		try:
+			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
+			user__id = user_id[0].get('app_user__user__id')
+			recipient = list(RecipientService().filter(user__id = user__id).values('phone_number',
+			                                                                       email = F('user__email')))
+			notifications = list(NotificationService().filter(
+				recipient = recipient[0]['email']
+			).values(
+				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
+				status = F('state__name')))
+			sms_notification = list(NotificationService().filter(
+				recipient = recipient[0]['phone_number']).values(
+				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
+				status = F('state__name'))
+			                        )
+			for sms in sms_notification:
+				notifications.append(sms)
+			return {"code": "800.200.001", "data": notifications}
+		except Exception as ex:
+			lgr.exception("Notification Logger exception: %s" % ex)
+		return {"code": "800.400.001 %s" % ex, "message": "error in fetching recent user notifications"}
