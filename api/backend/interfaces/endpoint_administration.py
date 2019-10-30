@@ -110,7 +110,7 @@ class EndpointAdministrator(object):
 				return {"code": "800.400.002", "message": "It seems there is no existing system with such endpoints"}
 			endpoints = list(EndpointService().filter(system = system).values(
 				'id', 'name', 'description', 'date_modified', 'system__name', dateCreated=F(
-					'date_created'), responseTime=F('optimal_response_time'), endpointUrl=F('url'),
+					'date_created'), responseTime=F('optimal_response_time'), Url=F('url'),
 				status= F(
 					'state__name'),
 				type=F('endpoint_type__name')
