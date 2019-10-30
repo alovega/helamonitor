@@ -656,9 +656,7 @@ def get_recipients(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipients = RecipientAdministrator.get_system_recipients(
-			system_id = data.get('system_id')
-		)
+		recipients = RecipientAdministrator.get_recipients()
 		return JsonResponse(recipients)
 	except Exception as ex:
 		lgr.exception('Recipient get Exception: %s' % ex)
@@ -743,15 +741,15 @@ def get_recipient(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipient = RecipientAdministrator.get_system_recipient(
-			recipient_id = data.get('recipient_id')
+		recipient = RecipientAdministrator.get_recipient(
+			recipient_id = data.get('recipientId')
 		)
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 %s' %ex})
 
-
+@csrf_exempt
 def get_look_up_data(request):
 	"""
 	Get a specific endpoint
