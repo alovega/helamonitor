@@ -397,7 +397,7 @@ def create_system(request):
 	try:
 		data = get_request_data(request)
 		rules = SystemAdministrator.create_system(
-			name = data.get('name'), description = data.get('description'))
+			name = data.get('name'), description = data.get('description'), admin_id = data.get('admin_id'))
 		return JsonResponse(rules)
 	except Exception as ex:
 		lgr.exception('System creation Exception: %s' % ex)
@@ -417,7 +417,9 @@ def update_system(request):
 	try:
 		data = get_request_data(request)
 		rules = SystemAdministrator.update_system(
-			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'))
+			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
+			admin_id = data.get('admin_id'), version = data.get('version')
+		)
 		return JsonResponse(rules)
 	except Exception as ex:
 		lgr.exception('System creation Exception: %s' % ex)
