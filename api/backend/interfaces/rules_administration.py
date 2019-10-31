@@ -2,15 +2,10 @@
 """
 Class for Escalation Rules Administration
 """
-from datetime import timedelta
 import logging
-import dateutil.parser
-from django.contrib.auth.models import User
 from django.db.models import F, Q
 
-from api.backend.interfaces.notification_interface import NotificationLogger
-from core.backend.services import IncidentLogService, IncidentEventService, SystemService, \
-	SystemRecipientService, RecipientService, EscalationRuleService
+from core.backend.services import SystemService, EscalationRuleService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
 lgr = logging.getLogger(__name__)
@@ -132,7 +127,7 @@ class EscalationRuleAdministrator(object):
 				return {'code': '800.200.001', 'data': rule}
 		except Exception as ex:
 			lgr.exception("Escalation Rule Update exception %s" % ex)
-		return {"code": "800.400.001", "err": str(ex)}
+		return {"code": "800.400.001"}
 
 	@staticmethod
 	def get_rule(rule_id, system_id, **kwargs):
@@ -165,7 +160,7 @@ class EscalationRuleAdministrator(object):
 				rule.update(duration = duration)
 				return {'code': '800.200.001', 'data': rule}
 		except Exception as ex:
-			lgr.exception("Escalation Rule Update exception %s" % ex)
+			lgr.exception("Get Escalation rule exception %s" % ex)
 		return {"code": "800.400.001"}
 
 	@staticmethod
@@ -196,7 +191,7 @@ class EscalationRuleAdministrator(object):
 				rule.update(duration = duration)
 			return {'code': '800.200.001', 'data': escalation_rules}
 		except Exception as ex:
-			lgr.exception("Escalation Rule Update exception %s" % ex)
+			lgr.exception("Get Escalation Rules exception %s" % ex)
 		return {"code": "800.400.001"}
 
 	@staticmethod
@@ -220,5 +215,5 @@ class EscalationRuleAdministrator(object):
 				if escalation_rule.delete():
 					return {'code': '800.200.001', 'Message': 'Rule deleted successfully'}
 		except Exception as ex:
-			lgr.exception("Escalation Rule Update exception %s" % ex)
+			lgr.exception("Delete Escalation Rule exception %s" % ex)
 		return {"code": "800.400.001"}

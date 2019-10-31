@@ -89,11 +89,15 @@ class IncidentAdministrator(object):
 				system_recipients = SystemRecipientService().filter(
 					escalation_level = escalation_level, system = incident.system, state__name = 'Active')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
-				notification = NotificationLogger().send_notification(
-					message = incident.description, message_type = "Email",
-					recipients = [recipient["email"] for recipient in recipients.values("email")]
+				sms_notification = NotificationLogger().send_notification(
+					message = incident.description, message_type = "SMS", system_id = incident.system,
+					recipients = [recipient["phone_number"] for recipient in recipients.values("phone_number")]
 				)
-				if notification.get('code') != '800.200.001':
+				email_notification = NotificationLogger().send_notification(
+					message = incident.description, message_type = "Email", system_id = incident.system,
+					recipients = [recipient['email'] for recipient in recipients.values('user__email')]
+				)
+				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
 				return {'code': '800.200.001'}
 		except Exception as ex:
@@ -126,25 +130,28 @@ class IncidentAdministrator(object):
 			incident = IncidentService().get(pk = incident_id)
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
 			if incident is None or escalation_level is None or state is None:
-				return {'code': '800.400.002 %s %s %s' % (incident, escalation_level, state)}
+				return {'code': '800.400.002 %s %s %s' % (state, incident, escalation_level)}
 			priority_level = int(priority_level) if priority_level is not None else incident.priority_level
 			incident_log = IncidentLogService().create(
 				description = description, incident = incident, user = User.objects.filter(id = user).first(),
-				priority_level = priority_level, state = StateService().get(name = state)
+				priority_level = priority_level, state = state
 			)
 			updated_incident = IncidentService().update(
-				pk = incident.id, priority_level = priority_level, state = StateService().get(name = state),
-				name = name
+				pk = incident.id, priority_level = priority_level, state = state, name = name
 			)
 			if incident_log and updated_incident:
 				system_recipients = SystemRecipientService().filter(
 					escalation_level = escalation_level, system = incident.system).values('recipient')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
-				notification = NotificationLogger().send_notification(
-					message = incident_log.description, message_type = "Email",
-					recipients = [recipient["email"] for recipient in recipients.values("email")]
+				sms_notification = NotificationLogger().send_notification(
+					message = incident_log.description, message_type = "SMS", system_id = incident.system,
+					recipients = [recipient["phone_number"] for recipient in recipients.values("phone_number")]
 				)
-				if notification.get('code') != '800.200.001':
+				email_notification = NotificationLogger().send_notification(
+					message = incident_log.description, message_type = "Email", system_id = incident.system,
+					recipients = [recipient['email'] for recipient in recipients.values('user__email')]
+				)
+				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
 				return {'code': '800.200.001'}
 		except Exception as ex:
