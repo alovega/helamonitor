@@ -171,11 +171,8 @@ class UserAdministrator(object):
 	@staticmethod
 	def edit_logged_in_user_details(
 			token, username = None, first_name = None, last_name = None, phone_number = None, email = None,
-			password = None,
 			**kwargs):
 		"""
-		@param password: password for user
-		@type:str
 		@param email: Email of the user
 		@type:str
 		@param phone_number: phone_number of the user
@@ -187,7 +184,7 @@ class UserAdministrator(object):
 		@param token: the token of a logged in user
 		@type:str
 		@param kwargs: Extra key arguments passed to the method
-		@return:Response code dictionary if the update was okay
+		@return:Response code dictionary indicating if the update was okay
 		"""
 		try:
 			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
@@ -199,13 +196,37 @@ class UserAdministrator(object):
 				user.email = email if email else user.email
 				user.first_name = first_name if first_name else user.first_name
 				user.last_name = last_name if last_name else user.last_name
-				if password is not None:
-					user.set_password(password)
 				user.save()
 				if recipient:
 					recipient[0]['phone_number'] = phone_number if phone_number else recipient[0]['phone_number']
 				updated_user = User.objects.filter(id = user__id).values()[0]
 				return {'code': '800.200.001', "data": updated_user}
 		except Exception as ex:
-			lgr.exception("Logged in user exception %s" % ex)
-		return {"code": "800.400.001 %s" % ex}
+			lgr.exception("Logged in user exception: %s" % ex)
+		return {"code": "800.400.001", "message": "Logged in user update fail"}
+
+	@staticmethod
+	def edit_logged_in_user_password(token, current_password=None, new_password=None, **kwargs):
+		"""
+
+		@param token: the token of the logged in user
+		@type: str
+		@param current_password: password of the logged in user
+		@type:str
+		@param new_password:new password of the logged in user
+		@type:str
+		@return:Response code dictionary indicating if the password update was okay
+		"""
+		try:
+			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
+			user__id = user_id[0].get('app_user__user__id')
+			user = User.objects.get(id = user__id)
+			if user:
+				if not user.check_password(current_password):
+					return{"code": "800.400.001", "message": "Current password given is invalid"}
+				user.set_password(new_password)
+				user.save()
+				return {"code": "800.200.001", "message": "Password successfully updated"}
+		except Exception as ex:
+			lgr.exception("Logged in user exception: %s" %ex)
+		return {"code": "800.400.001 %s" %ex, "message": "logged in user password update fail"}

@@ -667,6 +667,27 @@ def get_recipients(request):
 
 @csrf_exempt
 @ensure_authenticated
+def get_system_recipients(request):
+	"""
+	Get a specific systems endpoints
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested recipients or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		system_recipients = RecipientAdministrator.get_system_recipients(
+			system_id = data.get('system_id')
+		)
+		return JsonResponse(system_recipients)
+	except Exception as ex:
+		lgr.exception('Recipient get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001 %s' %ex})
+
+
+@csrf_exempt
+@ensure_authenticated
 def create_recipient(request):
 	"""
 	Creates endpoints from users
@@ -882,6 +903,23 @@ def get_logged_in_user_notifications(request):
 		return JsonResponse(notifications)
 	except Exception as ex:
 		lgr.exception('get logged in user recent notification Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+def edit_logged_in_user_password(request):
+	"""
+	@param request: The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		password = UserAdministrator.edit_logged_in_user_password(
+			token = data.get('token'), current_password = data.get('currentPassword'), new_password = data.get(
+				'password'))
+		return JsonResponse(password)
+	except Exception as ex:
+		lgr.exception('edit logged in user password update Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
