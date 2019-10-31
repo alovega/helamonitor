@@ -904,4 +904,21 @@ def get_logged_in_user_notifications(request):
 	return JsonResponse({'code': '800.500.001'})
 
 
+@csrf_exempt
+def edit_logged_in_user_password(request):
+	"""
+	@param request: The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		password = UserAdministrator.edit_logged_in_user_password(
+			token = data.get('token'), current_password = data.get('currentPassword'), new_password = data.get(
+				'password'))
+		return JsonResponse(password)
+	except Exception as ex:
+		lgr.exception('edit logged in user password update Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
 
