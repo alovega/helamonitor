@@ -42,7 +42,7 @@ class NotificationLogger(object):
 					message = message,
 					notification_type = NotificationTypeService().get(name = message_type),
 					recipient = recipient,
-					system_id = SystemService().get(pk=system_id),
+					system = SystemService().get(pk=system_id),
 					state = StateService().get(name = 'Active')
 				)
 
