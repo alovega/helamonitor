@@ -190,7 +190,7 @@ class UserAdministrator(object):
 			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
 			user__id = user_id[0].get('app_user__user__id')
 			user = User.objects.get(id = user__id)
-			recipient = list(RecipientService().filter(user__id = user__id).values())
+			recipient = RecipientService().get(user__id = user__id)
 			if user:
 				user.username = username if username else user.username
 				user.email = email if email else user.email
@@ -198,12 +198,13 @@ class UserAdministrator(object):
 				user.last_name = last_name if last_name else user.last_name
 				user.save()
 				if recipient:
-					recipient[0]['phone_number'] = phone_number if phone_number else recipient[0]['phone_number']
+					if phone_number:
+						RecipientService().update(pk=recipient.id, phone_number=phone_number)
 				updated_user = User.objects.filter(id = user__id).values()[0]
 				return {'code': '800.200.001', "data": updated_user}
 		except Exception as ex:
 			lgr.exception("Logged in user exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Logged in user update fail"}
+		return {"code": "800.400.001 %s" % ex, "message": "Logged in user update fail"}
 
 	@staticmethod
 	def edit_logged_in_user_password(token, current_password=None, new_password=None, **kwargs):

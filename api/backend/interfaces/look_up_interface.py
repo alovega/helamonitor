@@ -5,7 +5,7 @@ from django.db.models import F
 
 from base.backend.services import StateService, EscalationLevelService, NotificationTypeService, EventTypeService, \
 	EndpointTypeService, IncidentTypeService
-from core.backend.services import SystemService
+from core.backend.services import SystemService, RecipientService
 
 lgr = logging.getLogger(__name__)
 
@@ -32,10 +32,11 @@ class LookUpInterface(object):
 			incident_type = list(IncidentTypeService().filter().values('id', 'name'))
 			user = list(User.objects.all().values('id', 'username'))
 			system = list(SystemService().filter().values('id', 'name'))
+			recipient = list(RecipientService().filter().values('id', userName=F('user__username')))
 
 			data.update(states = state, incident_types = incident_type, escalation_levels = escalation_level,
 			            notification_types = notification_type, endpoint_types = endpoint_type,
-			            event_types = event_type, users = user, systems = system)
+			            event_types = event_type, users = user, systems = system, recipients=recipient)
 
 			return {"code": "800.200.001", "data": data}
 

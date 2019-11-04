@@ -162,7 +162,7 @@ LOGGING = {
 			'level': 'INFO',
 			'formatter': 'verbose',
 			'class': 'logging.handlers.TimedRotatingFileHandler',
-			'filename': os.path.join(VENV_ROOT, '', 'helaplan_reference_manager.log'),
+			'filename': os.path.join(VENV_ROOT, '', 'helamonitor.log'),
 			'when': 'midnight',
 			'interval': 1,
 			'backupCount': 7,
