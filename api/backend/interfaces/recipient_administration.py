@@ -1,11 +1,11 @@
-import logging
 
+import logging
 from django.contrib.auth.models import User
 from django.db.models import F
 
 from core.backend.services import SystemService, RecipientService, SystemRecipientService
-from core.models import Recipient
-from base.backend.services import StateService, NotificationTypeService
+from core.models import Recipient, SystemRecipient
+from base.backend.services import StateService, NotificationTypeService, EscalationLevelService
 
 lgr = logging.getLogger(__name__)
 
@@ -92,9 +92,11 @@ class RecipientAdministrator(object):
 		try:
 			if not (recipient_id and phone_number and state_id):
 				return {"code": "800.400.002", "message": "invalid required parameters"}
-			RecipientService().update(pk = recipient_id, phone_number = phone_number, state = StateService().get(
+			recipient = RecipientService().update(pk = recipient_id, phone_number = phone_number, state = StateService(
+
+			).get(
 				id = state_id))
-			return {"code": "800.200.001", "message": "successfully updated the recipient"}
+			return {"code": "800.200.001", "data": recipient, "message": "successfully updated the recipient"}
 		except Exception as ex:
 			lgr.exception('Recipient Administration Exception: %s' % ex)
 		return {"code": "800.400.001", "message": "Error while updating recipient"}
@@ -185,3 +187,63 @@ class RecipientAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception: %s" % ex)
 		return {"code": "800.400.001", "message": "Error while deleting recipient"}
+
+	@staticmethod
+	def create_system_recipient(system_id, recipient_id, escalations):
+		"""
+		@param system_id: The id of the system the recipient will belong to
+		@type:str
+		@param recipient_id: The id of the recipient
+		@type:str
+		@param escalations:A list of dictionaries containing notification type id and escalation level_id
+		@type:list
+		@return:a dictionary containing response code  and data indicating a success or failure in creation
+		@rtype: dict
+		"""
+
+		try:
+			system = SystemService().get(id=system_id)
+			recipient = RecipientService().get(id=recipient_id)
+			if not(system, recipient, escalations):
+				return{"code": "800.400.002", "message": "Invalid parameters given"}
+
+			for escalation in escalations:
+				if SystemRecipientService().filter(
+						system = system, recipient=recipient,
+						escalation_level=EscalationLevelService().get(id=escalation.get('EscalationLevel')),
+				):
+					return {
+						"code": "800.400.001",
+						"message": "system recipient already exist consider updating the recipient"
+					}
+				SystemRecipientService().create(
+					system= system, recipient = recipient,
+					escalation_level=EscalationLevelService().get(id=escalation.get('EscalationLevel')),
+					notification_type= NotificationTypeService().get(id=escalation.get('NotificationType')),
+					state = StateService().get(name = 'Active')
+				)
+			return {"code": "800.200.001", "message": " successfully created a system recipient"}
+
+		except Exception as ex:
+			lgr.exception("Recipient Administration Exception: %s" % ex)
+		return {"code": "800.400.001", "message": "Error while creating a system recipient"}
+
+	@staticmethod
+	def delete_system_recipient(system_recipient_id):
+		"""
+		@param system_recipient_id:id of the recipient belong you are fetching
+		@type system_recipient_id: str
+		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
+							recipient data
+		@rtype:dict
+		"""
+		try:
+			system_recipient = SystemRecipientService().get(id = system_recipient_id)
+			if not system_recipient:
+				return {"code": "800.400.002", "message": "invalid parameter"}
+			system_recipient = SystemRecipient.objects.get(id = system_recipient_id)
+			system_recipient.delete()
+			return {'code': '800.200.001', 'message': 'successfully deleted the system recipient'}
+		except Exception as ex:
+			lgr.exception("Recipient Administration Exception: %s" % ex)
+		return {"code": "800.400.001", "message": "Error while deleting system recipient"}

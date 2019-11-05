@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import json
 import logging
 import calendar
+
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -620,7 +622,7 @@ def create_endpoints(request):
 		return JsonResponse(endpoint)
 	except Exception as ex:
 		lgr.exception('Endpoint creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 '})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -662,7 +664,7 @@ def get_recipients(request):
 		return JsonResponse(recipients)
 	except Exception as ex:
 		lgr.exception('Recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' %ex})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -683,7 +685,7 @@ def get_system_recipients(request):
 		return JsonResponse(system_recipients)
 	except Exception as ex:
 		lgr.exception('Recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' %ex})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -702,6 +704,28 @@ def create_recipient(request):
 			state_id = data.get('stateId'), phone_number = data.get('phoneNumber'), user_id = data.get('userId')
 		)
 		return JsonResponse(recipient)
+	except Exception as ex:
+		lgr.exception('Recipient creation Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def create_system_recipient(request):
+	"""
+	Creates endpoints from users
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful recipient creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		system_recipient = RecipientAdministrator.create_system_recipient(
+			system_id = data.get('systemId'), recipient_id = data.get('Recipient'),
+			escalations =data.get('escalations')
+		)
+		return JsonResponse(system_recipient)
 	except Exception as ex:
 		lgr.exception('Recipient creation Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
@@ -808,7 +832,7 @@ def get_system_recipient(request):
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('Look up data get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001'})
 
 @csrf_exempt
 def get_look_up_data(request):
@@ -822,7 +846,7 @@ def get_look_up_data(request):
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('Look up data get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %'})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -842,7 +866,27 @@ def delete_recipient(request):
 
 	except Exception as ex:
 		lgr.exception('recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def delete_system_recipient(request):
+	"""
+	Delete a specific Recipient
+	@param request:The Django WSGI Request to process
+	@return:dict
+	"""
+	try:
+		data = get_request_data(request)
+		recipient = RecipientAdministrator.delete_system_recipient(
+			system_recipient_id = data.get('systemRecipientId')
+		)
+		return JsonResponse(recipient)
+
+	except Exception as ex:
+		lgr.exception('recipient get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -860,7 +904,7 @@ def delete_endpoint(request):
 
 	except Exception as ex:
 		lgr.exception('recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt

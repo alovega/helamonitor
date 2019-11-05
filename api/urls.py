@@ -11,7 +11,8 @@ from api.views import report_event, get_events, get_error_rates, create_incident
     create_recipient, update_recipient, get_systems, get_incidents, get_endpoint, get_recipient, get_look_up_data, \
     delete_recipient, delete_endpoint, get_notifications, get_logged_in_user_details, get_system_status, \
     edit_logged_in_user_details, get_logged_in_user_recent_notifications, get_logged_in_user_notifications, \
-    get_system_recipients, edit_logged_in_user_password, get_system_recipient, update_system_recipient
+    get_system_recipients, edit_logged_in_user_password, get_system_recipient, update_system_recipient, \
+    create_system_recipient, delete_system_recipient
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -21,6 +22,7 @@ urlpatterns = [
     url(r'^create_incident/$', create_incident, name = 'create_incident'),
     url(r'^create_endpoints/$', create_endpoints, name = 'create_endpoints'),
     url(r'^create_recipient/$', create_recipient, name = 'create_recipient'),
+    url(r'^create_system_recipient/$', create_system_recipient, name = 'create_system_recipient'),
     url(r'^update_incident/$', update_incident, name = 'update_incident'),
     url(r'^update_endpoints/$', update_endpoint, name = 'update_endpoint'),
     url(r'^update_recipient/$', update_recipient, name = 'update_recipient'),
@@ -39,6 +41,7 @@ urlpatterns = [
     url(r'^get_endpoint/$', get_endpoint, name = 'get_endpoint'),
     url(r'^get_recipient', get_recipient, name = 'get_recipient'),
     url(r'^delete_recipient', delete_recipient, name = 'delete_recipient'),
+    url(r'^delete_system_recipient', delete_system_recipient, name = 'delete_system_recipient'),
     url(r'^delete_endpoint', delete_endpoint, name = 'delete_endpoint'),
     url(r'^get_lookup', get_look_up_data, name = 'get_look_up_data'),
     url(r'^get_notifications', get_notifications, name = 'get_notifications'),
