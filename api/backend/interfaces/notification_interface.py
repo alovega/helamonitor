@@ -42,7 +42,7 @@ class NotificationLogger(object):
 					message = message,
 					notification_type = NotificationTypeService().get(name = message_type),
 					recipient = recipient,
-					system_id = SystemService().get(pk=system_id),
+					system = SystemService().get(pk=system_id),
 					state = StateService().get(name = 'Active')
 				)
 
@@ -82,7 +82,7 @@ class NotificationLogger(object):
 		try:
 			data = {}
 			if not system_id:
-				return {"code": "800.400.002", "message":"Missing parameter system_id"}
+				return {"code": "800.400.002", "message": "Missing parameter system_id"}
 			notifications = list(NotificationService().filter(system__id= system_id).values(
 				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
 				status = F('state__name')))
@@ -104,18 +104,18 @@ class NotificationLogger(object):
 		"""
 
 		try:
-			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
-			user__id = user_id[0].get('app_user__user__id')
-			recipient = list(RecipientService().filter(user__id = user__id).values('phone_number',
-			                                                                     email=F('user__email')))
+			user = OauthService().filter(token = token).values(user=F('app_user__user')).first()
+			user_id = user.get('user')
+			recipient = RecipientService().filter(user__id = user_id).values(
+				'phone_number', email=F('user__email')).first()
 			now = timezone.now()
 			recently = now - timedelta(hours = 6, minutes = 0)
 			current_hour = timezone.now()
 			notifications = list(NotificationService().filter(
-				recipient = recipient[0]['email'], date_created__lte=current_hour,date_created__gte=recently
+				recipient = recipient['email'], date_created__lte=current_hour, date_created__gte=recently
 			).values())
-			sms_notification=list(NotificationService().filter(
-				recipient = recipient[0]['phone_number'], date_created__lte = current_hour,
+			sms_notification = list(NotificationService().filter(
+				recipient = recipient['phone_number'], date_created__lte = current_hour,
 				date_created__gte = recently).values()
 			     )
 			for sms in sms_notification:
@@ -123,7 +123,7 @@ class NotificationLogger(object):
 			return {"code": "800.200.001", "data": notifications}
 		except Exception as ex:
 			lgr.exception("Notification Logger exception: %s" % ex)
-		return{"code": "800.400.001 %s" % ex, "message": "error in fetching recent user notifications"}
+		return{"code": "800.400.001", "message": "error in fetching recent user notifications"}
 
 	@staticmethod
 	def get_logged_in_user_notifications(token):
@@ -136,17 +136,17 @@ class NotificationLogger(object):
 		"""
 
 		try:
-			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
-			user__id = user_id[0].get('app_user__user__id')
-			recipient = list(RecipientService().filter(user__id = user__id).values('phone_number',
-			                                                                       email = F('user__email')))
+			user = OauthService().filter(token = token).values(user=F('app_user__user')).first()
+			user_id = user.get('user')
+			recipient = RecipientService().filter(user__id = user_id).values(
+				'phone_number', email = F('user__email')).first()
 			notifications = list(NotificationService().filter(
-				recipient = recipient[0]['email']
+				recipient = recipient['email']
 			).values(
 				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
 				status = F('state__name')))
 			sms_notification = list(NotificationService().filter(
-				recipient = recipient[0]['phone_number']).values(
+				recipient = recipient['phone_number']).values(
 				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
 				status = F('state__name'))
 			                        )
@@ -155,4 +155,4 @@ class NotificationLogger(object):
 			return {"code": "800.200.001", "data": notifications}
 		except Exception as ex:
 			lgr.exception("Notification Logger exception: %s" % ex)
-		return {"code": "800.400.001 %s" % ex, "message": "error in fetching recent user notifications"}
+		return {"code": "800.400.001", "message": "error in fetching recent user notifications"}

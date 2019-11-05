@@ -678,7 +678,7 @@ def get_system_recipients(request):
 	try:
 		data = get_request_data(request)
 		system_recipients = RecipientAdministrator.get_system_recipients(
-			system_id = data.get('system_id')
+			system_id = data.get('systemId')
 		)
 		return JsonResponse(system_recipients)
 	except Exception as ex:
@@ -731,6 +731,28 @@ def update_recipient(request):
 
 @csrf_exempt
 @ensure_authenticated
+def update_system_recipient(request):
+	"""
+	Updates an existing incident's priority, resolution status or user assignment
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful recipient update or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		updated_recipient = RecipientAdministrator.update_system_recipient(
+			system_recipient_id = data.get('systemRecipientId'), state_id = data.get('stateId'),
+			notification_type_id = data.get('notificationTypeId')
+		)
+		return JsonResponse(updated_recipient)
+	except Exception as ex:
+		lgr.exception('Recipient update Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
 def get_endpoint(request):
 	"""
 	Get a specific endpoint
@@ -767,7 +789,26 @@ def get_recipient(request):
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' %ex})
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_system_recipient(request):
+	"""
+	Get a specific system recipient
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested recipient or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		recipient = RecipientAdministrator.get_system_recipient(system_recipient_id = data.get('systemRecipientId'))
+		return JsonResponse(recipient)
+	except Exception as ex:
+		lgr.exception('Look up data get Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001 %s' % ex})
 
 @csrf_exempt
 def get_look_up_data(request):
@@ -781,7 +822,7 @@ def get_look_up_data(request):
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('Look up data get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001 %'})
 
 
 @csrf_exempt

@@ -47,6 +47,7 @@ class Endpoint(GenericBaseModel):
     """
     Model for managing endpoint of a system
     """
+    objects = None
     system = models.ForeignKey(System)
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
     url = models.CharField(max_length=250)
@@ -94,6 +95,7 @@ class Recipient(BaseModel):
     """
     Model for managing the recipient of a system
     """
+    objects = None
     user = models.ForeignKey(User)
     phone_number = models.CharField(max_length=100)
     state = models.ForeignKey(State)

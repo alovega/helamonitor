@@ -2,7 +2,6 @@ import datetime
 import logging
 
 from django.db.models import F
-from django.utils.duration import duration_string
 
 from core.backend.services import SystemService, EndpointService
 from core.models import Endpoint
@@ -23,7 +22,7 @@ class EndpointAdministrator(object):
 		@type name:str
 		@param description: description of endpoint to be created
 		@type description: str
-		@param endpoint: url of endpoint to be created
+		@param url: url of endpoint to be created
 		@type: str
 		@param system_id: id of system the endpoint will belong to
 		@type : int
@@ -46,7 +45,7 @@ class EndpointAdministrator(object):
 			exist = True if EndpointService().filter(system = system, url = url) \
 				else EndpointService().filter(system = system, name = name)
 			if exist:
-				return {"code": "200.400.007", "message": "An endpoint with this url or name exists"}
+				return {"code": "800.400.001", "message": "An endpoint with this url or name exists"}
 			endpoint = EndpointService().create(
 				name = name, description = description, url = url, system = system,
 				endpoint_type = endpoint_type,
@@ -91,7 +90,7 @@ class EndpointAdministrator(object):
 
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {"code": "800.400.001 %s" %ex, "message": "Error when updating an endpoint"}
+		return {"code": "800.400.001", "message": "Error when updating an endpoint"}
 
 	@staticmethod
 	def get_system_endpoints(system_id):
@@ -119,7 +118,7 @@ class EndpointAdministrator(object):
 			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {'code': '800.400.001 ', "message": "Error when fetching system endpoints"}
+		return {'code': '800.400.001', "message": "Error when fetching system endpoints"}
 
 	@staticmethod
 	def get_endpoint(endpoint_id):
@@ -131,10 +130,10 @@ class EndpointAdministrator(object):
 		"""
 		try:
 			data = {}
-			endpoint = list(EndpointService().filter(id = endpoint_id).values(
+			endpoint = EndpointService().filter(id = endpoint_id).values(
 				'id', 'name', 'description', 'url', 'optimal_response_time',
 				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
-			))
+			).first()
 			if not endpoint:
 				return {'code': '800.400.001', 'message': 'The endpoint requested does not exist'}
 			data.update(endpoint = endpoint)
@@ -154,7 +153,7 @@ class EndpointAdministrator(object):
 		"""
 		try:
 			if not endpoint_id:
-				return {"code": '800.400.002 %s' %endpoint_id}
+				return {"code": '800.400.002'}
 			endpoint = Endpoint.objects.get(id = endpoint_id)
 			endpoint.delete()
 			return {'code': '800.200.001', 'message': 'successfully deleted the endpoint'}
