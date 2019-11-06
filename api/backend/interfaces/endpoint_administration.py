@@ -103,7 +103,6 @@ class EndpointAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			data = {}
 			system = SystemService().get(id = system_id)
 			if not system:
 				return {"code": "800.400.002", "message": "It seems there is no existing system with such endpoints"}
@@ -114,8 +113,7 @@ class EndpointAdministrator(object):
 					'state__name'),
 				type=F('endpoint_type__name')
 			).order_by('-date_created'))
-			data.update(endpoints = endpoints)
-			return {'code': '800.200.001', 'data': data}
+			return {'code': '800.200.001', 'data': endpoints}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
 		return {'code': '800.400.001', "message": "Error when fetching system endpoints"}
@@ -129,15 +127,13 @@ class EndpointAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			data = {}
 			endpoint = EndpointService().filter(id = endpoint_id).values(
 				'id', 'name', 'description', 'url', 'optimal_response_time',
 				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state__name'
 			).first()
 			if not endpoint:
 				return {'code': '800.400.001', 'message': 'The endpoint requested does not exist'}
-			data.update(endpoint = endpoint)
-			return {'code': '800.200.001', 'data': data}
+			return {'code': '800.200.001', 'data': endpoint}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
 		return {'code': '800.400.001', "message": "Error when fetching an endpoint"}
