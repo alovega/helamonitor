@@ -80,14 +80,12 @@ class NotificationLogger(object):
 		@rtype:dict
 		"""
 		try:
-			data = {}
 			if not system_id:
 				return {"code": "800.400.002", "message": "Missing parameter system_id"}
 			notifications = list(NotificationService().filter(system__id= system_id).values(
 				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
 				status = F('state__name')))
-			data.update(notifications=notifications)
-			return {"code": "800.200.001", "data": data}
+			return {"code": "800.200.001", "data": notifications}
 
 		except Exception as ex:
 			lgr.exception("Notification logger exception %s" % ex)
