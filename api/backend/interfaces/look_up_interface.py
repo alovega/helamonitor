@@ -8,7 +8,7 @@ from base.backend.services import StateService, EscalationLevelService, Notifica
 from core.backend.services import SystemService, RecipientService
 
 lgr = logging.getLogger(__name__)
-
+from django.db.models import Q
 
 class LookUpInterface(object):
 	"""
@@ -23,7 +23,6 @@ class LookUpInterface(object):
 		@rtype:dict
 		"""
 		try:
-			data = {}
 			state = list(StateService().filter().values('id', 'name'))
 			notification_type = list(NotificationTypeService().filter().values('id', 'name'))
 			escalation_level = list(EscalationLevelService().filter().values('id', 'name'))
@@ -33,12 +32,15 @@ class LookUpInterface(object):
 			user = list(User.objects.all().values('id', 'username'))
 			system = list(SystemService().filter().values('id', 'name'))
 			recipient = list(RecipientService().filter().values('id', userName=F('user__username')))
+			endpoint_states = list(StateService().filter(
+				Q(name = 'Operational') | Q(name = 'Minor Outage') | Q(name = 'Major Outage') |
+				Q(name = 'Under Maintenance') | Q(name = 'Degraded Performance')).values('id', 'name'))
+			lookups = {
+				'states': state, 'incident_types': incident_type, 'escalation_levels': escalation_level,
+				'notification_types': notification_type, 'endpoint_types': endpoint_type, 'event_types': event_type,
+				'users': user, 'systems': system, 'recipients': recipient, 'endpoint_states': endpoint_states}
 
-			data.update(states = state, incident_types = incident_type, escalation_levels = escalation_level,
-			            notification_types = notification_type, endpoint_types = endpoint_type,
-			            event_types = event_type, users = user, systems = system, recipients=recipient)
-
-			return {"code": "800.200.001", "data": data}
+			return {"code": "800.200.001", "data": lookups}
 
 		except Exception as ex:
 			lgr.exception("Look up interface Exception:  %s" % ex)
