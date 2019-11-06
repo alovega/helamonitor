@@ -33,7 +33,7 @@ class App(GenericBaseModel):
 
 class AppUser(BaseModel):
     user = models.ForeignKey(User)
-    app = models.OneToOneField(App)
+    app = models.ForeignKey(App)
     state = models.ForeignKey(State)
 
     def __str__(self):
