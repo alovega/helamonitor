@@ -314,7 +314,7 @@ def create_rule(request):
 		rule = EscalationRuleAdministrator.create_rule(
 			name = data.get('name'), description = data.get('description'), system = data.get('system'),
 			nth_event = data.get('nth_event'), state = data.get('state'), duration = data.get('duration'),
-			escalation_level = data.get('escalation_level')
+			escalation_level = data.get('escalation_level'), event_type = data.get('event_type')
 		)
 		return JsonResponse(rule)
 	except Exception as ex:

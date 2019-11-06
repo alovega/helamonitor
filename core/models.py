@@ -144,14 +144,14 @@ class EscalationRule(GenericBaseModel):
     """
     Manages Escalation rules to be applied on events to determine whether they should be escalated or not
     """
+    system = models.ForeignKey(System)
+    escalation_level = models.ForeignKey(EscalationLevel)
+    event_type = models.ForeignKey(EventType)
     nth_event = models.IntegerField(default=1, help_text="Limit of n events to satisfy this rule")
     duration = models.PositiveIntegerField(
         help_text="Time period within which the nth occurrence of an event type will be escalated", null=True,
         blank = True
     )
-    event_type = models.ForeignKey(EventType)
-    escalation_level = models.ForeignKey(EscalationLevel)
-    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):

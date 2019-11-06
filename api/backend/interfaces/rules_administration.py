@@ -17,7 +17,7 @@ class EscalationRuleAdministrator(object):
 	"""
 
 	@staticmethod
-	def create_rule(name, description, system, nth_event, state, escalation_level, duration, **kwargs):
+	def create_rule(name, description, system, event_type, nth_event, state, escalation_level, duration, **kwargs):
 		"""
 		Creates an escalation rule for a selected system.
 		@param name: Name of the escalation rule to be created
@@ -26,6 +26,8 @@ class EscalationRuleAdministrator(object):
 		@type system: str
 		@param description: Details on the Escalation Rule
 		@type description: str
+		@param event_type: Type of the event(s) to be affected by the rule
+		@type event_type: str
 		@param nth_event: Number of event of a certain type that need to be logged to raise an escalation
 		@type nth_event: str
 		@param duration:Time period within which certain events muct occur to trigger an escalation.
@@ -39,23 +41,28 @@ class EscalationRuleAdministrator(object):
 		@rtype: dict
 		"""
 		try:
+			# return {'code': '800.200.001', 'data': {
+			# 	'name': name, 'description': description, 'system': system, 'nth_event': nth_event, 'duration': duration,
+			# 	'escalation_level': escalation_level, 'state': state
+			# }}
 			system = SystemService().get(name = system, state__name = "Active")
 			state = StateService().get(name = state)
 			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
-
-			if system is None or state is None or escalation_level is None:
+			event_type = EventTypeService().get(name = event_type, state__name = 'Active')
+			if system is None or state is None or escalation_level is None or event_type is None:
 				return {"code": "800.400.002"}
+
 			escalation_rule = EscalationRuleService().create(
 				name = name, description = description, system = system, nth_event = int(nth_event),
-				duration = int(duration), state = state, escalation_level = escalation_level
+				duration = int(duration), state = state, escalation_level = escalation_level, event_type = event_type
 			)
-
 			if escalation_rule is not None:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id, system = system).values(
 					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
 					'nth_event', rule_id = F('id'), escalation = F('escalation_level__name'),
 					eventtype = F('event_type__name'), status = F('state__name'), system_name = F('system__name')
 				).first()
+
 				duration = int(rule.get('duration'))
 				hours, remainder = divmod(duration, 60 * 60)
 				minutes, seconds = divmod(remainder, 60)
@@ -143,10 +150,9 @@ class EscalationRuleAdministrator(object):
 		"""
 		try:
 			system = SystemService().filter(pk = system_id, state__name = 'Active').first()
-
-			if system is None:
-				return {"code": "800.400.002"}
 			escalation_rule = EscalationRuleService().filter(pk = rule_id, system = system).first()
+			if system is None or escalation_rule is None:
+				return {"code": "800.400.002"}
 			if escalation_rule:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id).values(
 					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
@@ -208,12 +214,11 @@ class EscalationRuleAdministrator(object):
 		"""
 		try:
 			system = SystemService().filter(pk = system_id, state__name = 'Active').first()
-			if system is None:
-				return {"code": "800.400.002"}
 			escalation_rule = EscalationRuleService().filter(pk = rule_id, system = system).first()
-			if escalation_rule:
-				if escalation_rule.delete():
-					return {'code': '800.200.001', 'Message': 'Rule deleted successfully'}
+			if system is None or escalation_rule is None:
+				return {"code": "800.400.002"}
+			if escalation_rule.delete():
+				return {'code': '800.200.001', 'Message': 'Rule deleted successfully'}
 		except Exception as ex:
 			lgr.exception("Delete Escalation Rule exception %s" % ex)
 		return {"code": "800.400.001"}
