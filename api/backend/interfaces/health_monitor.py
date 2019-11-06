@@ -3,7 +3,8 @@ import logging
 
 import requests
 from django.db.models import F
-from django.utils import timezone
+from django.utils.duration import duration_string
+from django.utils import timezone, duration
 from datetime import timedelta
 from core.backend.services import SystemMonitorService, EndpointService, SystemService
 from base.backend.services import StateService, EventTypeService
@@ -62,13 +63,13 @@ class MonitorInterface(object):
 				)
 				if system_status is not None:
 					systems.append({
-							"system": system_status.system.name, "status": system_status.state.name,
-							"endpoint": endpoint.url
-						})
+						"system": system_status.system.name, "status": system_status.state.name,
+						"endpoint": endpoint.url
+					})
 				else:
 					systems.append({
-							"system": system_status.system.name, "status": "failed", "endpoint": endpoint.endpoint
-						})
+						"system": system_status.system.name, "status": "failed", "endpoint": endpoint.endpoint
+					})
 
 				if status_data.get("event_type") is not None:
 					event = EventLog.log_event(
@@ -99,15 +100,22 @@ class MonitorInterface(object):
 			labels = []
 			dataset = []
 			for i in range(1, 25):
+				# # seconds = timedelta.total_seconds()
+				# hours = seconds // 3600
+				# minutes = (seconds % 3600) // 60
+				# seconds = seconds % 60
 				past_hour = now - timedelta(hours = i, minutes = 0)
 				# past_hour = past_hour.replace(minute = 0)
 				current_hour = past_hour + timedelta(hours = 1)
 				response_time = list(SystemMonitorService().filter(
 					system = system, date_created__lte = current_hour,
-					date_created__gte = past_hour).values('endpoint', responseTime=F('response_time'),))
+					date_created__gte = past_hour).values('endpoint', responseTime = F('response_time')))
 				past_hour = past_hour.replace(minute = 0)
 				labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
 				for status in response_time:
+					time = timedelta.total_seconds(status.get('responseTime'))
+					del status["responseTime"]
+					status.update(responseTime=time)
 					dataset.append(status)
 			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
 		except Exception as ex:
