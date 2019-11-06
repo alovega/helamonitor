@@ -151,18 +151,18 @@ class UserAdministrator(object):
 		@return: Response code dictionary
 		"""
 		try:
-			app_user = list(OauthService().filter(token = token).values('app_user'))
-			user = list(AppUserService().filter(id = app_user[0].get('app_user')).values(userName = F(
+			app_user = OauthService().filter(token = token).values('app_user').first()
+			user = AppUserService().filter(id = app_user.get('app_user')).values(userName = F(
 				'user__username'), email = F('user__email'), superUser = F('user__is_superuser'), firstName = F(
 				'user__first_name'), lastName = F('user__last_name'), log = F('user__logentry'),
 				staff = F('user__is_staff'), phoneNumber = F('user__recipient__phone_number'), password = F(
-					'user__password')))
-			if user[0].get('superUser'):
+					'user__password')).first()
+			if user.get('superUser'):
 				user.update(role = 'Admin')
-			elif user[0].get('staff'):
-				user[0].update(role = 'Staff')
+			elif user.get('staff'):
+				user.update(role = 'Staff')
 			else:
-				user[0].update(role = 'User')
+				user.update(role = 'User')
 			return {'code': '800.200.001', "data": user}
 		except Exception as ex:
 			lgr.exception("Logged in user exception %s" % ex)
@@ -187,10 +187,9 @@ class UserAdministrator(object):
 		@return:Response code dictionary indicating if the update was okay
 		"""
 		try:
-			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
-			user__id = user_id[0].get('app_user__user__id')
-			user = User.objects.get(id = user__id)
-			recipient = RecipientService().get(user__id = user__id)
+			user_id = OauthService().filter(token = token).values(userId=F('app_user__user__id')).first()
+			user = User.objects.get(id = user_id.get('userId'))
+			recipient = RecipientService().get(user__id = user_id.get('userId'))
 			if user:
 				user.username = username if username else user.username
 				user.email = email if email else user.email
@@ -200,11 +199,11 @@ class UserAdministrator(object):
 				if recipient:
 					if phone_number:
 						RecipientService().update(pk=recipient.id, phone_number=phone_number)
-				updated_user = User.objects.filter(id = user__id).values()[0]
+				updated_user = User.objects.filter(id = user_id.get('userId')).values().first()
 				return {'code': '800.200.001', "data": updated_user}
 		except Exception as ex:
 			lgr.exception("Logged in user exception: %s" % ex)
-		return {"code": "800.400.001 %s" % ex, "message": "Logged in user update fail"}
+		return {"code": "800.400.001", "message": "Logged in user update fail"}
 
 	@staticmethod
 	def edit_logged_in_user_password(token, current_password=None, new_password=None, **kwargs):
@@ -219,9 +218,8 @@ class UserAdministrator(object):
 		@return:Response code dictionary indicating if the password update was okay
 		"""
 		try:
-			user_id = list(OauthService().filter(token = token).values('app_user__user__id'))
-			user__id = user_id[0].get('app_user__user__id')
-			user = User.objects.get(id = user__id)
+			user_id = OauthService().filter(token = token).values('app_user__user__id').first()
+			user = User.objects.get(id = user_id)
 			if user:
 				if not user.check_password(current_password):
 					return{"code": "800.400.001", "message": "Current password given is invalid"}
@@ -229,5 +227,5 @@ class UserAdministrator(object):
 				user.save()
 				return {"code": "800.200.001", "message": "Password successfully updated"}
 		except Exception as ex:
-			lgr.exception("Logged in user exception: %s" %ex)
+			lgr.exception("Logged in user exception: %s" % ex)
 		return {"code": "800.400.001 %s" %ex, "message": "logged in user password update fail"}
