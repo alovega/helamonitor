@@ -2,6 +2,7 @@ import datetime
 import logging
 
 import requests
+from django.db.models import F
 from django.utils import timezone
 from datetime import timedelta
 from core.backend.services import SystemMonitorService, EndpointService, SystemService
@@ -30,7 +31,7 @@ class MonitorInterface(object):
 			for endpoint in EndpointService().filter(
 					system__state__name = "Active", endpoint_type__is_queried = True, state__name = 'Active'
 			):
-				health_state = requests.get(endpoint.endpoint)  # this stores the response of the  http request on url
+				health_state = requests.get(endpoint.url)  # this stores the response of the  http request on url
 				status_data = {
 					"system": endpoint.system,
 					"response_time": datetime.timedelta(seconds = health_state.elapsed.total_seconds()),
@@ -40,7 +41,7 @@ class MonitorInterface(object):
 				if health_state.status_code == 200:
 					if health_state.elapsed > endpoint.optimal_response_time:
 						status_data.update({
-							"response_time_speed": 'Slow', "event_type": EventTypeService().get(name = 'Debug'),
+							"response_time_speed": 'Slow', "event_type": EventTypeService().get(name = 'Warning'),
 							"description": 'Response time is not within the expected time'
 						})
 					else:
@@ -62,7 +63,7 @@ class MonitorInterface(object):
 				if system_status is not None:
 					systems.append({
 							"system": system_status.system.name, "status": system_status.state.name,
-							"endpoint": endpoint.endpoint
+							"endpoint": endpoint.url
 						})
 				else:
 					systems.append({
@@ -80,15 +81,15 @@ class MonitorInterface(object):
 			return {"code": "800.200.001", "data": {"systems": systems}}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
-		return {"code": "800.400.001", "data": "Error while logging system status"}
+		return {"code": "800.400.001 %s" % e, "data": "Error while logging system status"}
 
 	@staticmethod
-	def get_status(system_id):
+	def get_system_endpoint_response_time(system_id):
 		"""
-		Calculates and returns the error rate of a system based on logged events
+		Returns the response time of every endpoint for a specific system
 		@param: system_id: Id of the system
 		@type system_id: str
-		@return: Response code indicating status and error rate graph data
+		@return: Response code indicating status and response time graph data
 		"""
 		try:
 			system = SystemService().get(pk = system_id, state__name = 'Active')
@@ -101,14 +102,14 @@ class MonitorInterface(object):
 				past_hour = now - timedelta(hours = i, minutes = 0)
 				# past_hour = past_hour.replace(minute = 0)
 				current_hour = past_hour + timedelta(hours = 1)
-				current_status = list(SystemMonitorService().filter(
+				response_time = list(SystemMonitorService().filter(
 					system = system, date_created__lte = current_hour,
-					date_created__gte = past_hour).values('state__name'))
+					date_created__gte = past_hour).values('endpoint', responseTime=F('response_time'),))
 				past_hour = past_hour.replace(minute = 0)
 				labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
-				for status in current_status:
-					dataset.append(status['state__name'])
+				for status in response_time:
+					dataset.append(status)
 			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
-		return {'code': '800.400.001 %s' %ex}
+		return {'code': '800.400.001 %s' % ex}
