@@ -84,7 +84,7 @@ class EndpointAdministrator(object):
 				}
 			endpoint = EndpointService().update(
 				pk = update_endpoint.id, description = description, state = state, name = name,
-				optimal_response_time = datetime.timedelta(seconds = int(response_time)), url = url
+				optimal_response_time = datetime.timedelta(seconds = float(response_time)), url = url
 			)
 			return {"code": "800.200.001", "message": "successfully updated endpoint: %s" % endpoint.name}
 
