@@ -975,6 +975,7 @@ def get_logged_in_user_recent_notifications(request):
 		lgr.exception('get logged in user recent notification Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+
 @csrf_exempt
 @ensure_authenticated
 def get_logged_in_user_notifications(request):
@@ -992,6 +993,7 @@ def get_logged_in_user_notifications(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def edit_logged_in_user_password(request):
 	"""
 	@param request: The Django WSGI Request to process
@@ -1008,4 +1010,16 @@ def edit_logged_in_user_password(request):
 	return JsonResponse({'code': '800.500.001'})
 
 
-
+@csrf_exempt
+def get_system_response_time_data(request):
+	"""
+	@param request: The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('systemId'))
+		return JsonResponse(data)
+	except Exception as ex:
+		lgr.exception('edit logged in user password update Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})

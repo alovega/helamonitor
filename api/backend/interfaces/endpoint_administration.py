@@ -84,7 +84,7 @@ class EndpointAdministrator(object):
 				}
 			endpoint = EndpointService().update(
 				pk = update_endpoint.id, description = description, state = state, name = name,
-				optimal_response_time = datetime.timedelta(seconds = int(response_time)), url = url
+				optimal_response_time = datetime.timedelta(seconds = float(response_time)), url = url
 			)
 			return {"code": "800.200.001", "message": "successfully updated endpoint: %s" % endpoint.name}
 
@@ -113,6 +113,10 @@ class EndpointAdministrator(object):
 					'state__name'),
 				type=F('endpoint_type__name')
 			).order_by('-date_created'))
+			for endpoint in endpoints:
+				time = datetime.timedelta.total_seconds(endpoint.get('responseTime'))
+				del endpoint["responseTime"]
+				endpoint.update(responseTime = time)
 			return {'code': '800.200.001', 'data': endpoints}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
@@ -133,6 +137,9 @@ class EndpointAdministrator(object):
 			).first()
 			if not endpoint:
 				return {'code': '800.400.001', 'message': 'The endpoint requested does not exist'}
+			time = datetime.timedelta.total_seconds(endpoint.get('optimal_response_time'))
+			del endpoint["optimal_response_time"]
+			endpoint.update(optimal_response_time = time)
 			return {'code': '800.200.001', 'data': endpoint}
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)

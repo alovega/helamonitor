@@ -12,7 +12,7 @@ from api.views import report_event, get_events, get_error_rates, create_incident
     delete_recipient, delete_endpoint, get_notifications, get_logged_in_user_details, get_system_status, \
     edit_logged_in_user_details, get_logged_in_user_recent_notifications, get_logged_in_user_notifications, \
     get_system_recipients, edit_logged_in_user_password, get_system_recipient, update_system_recipient, \
-    create_system_recipient, delete_system_recipient
+    create_system_recipient, delete_system_recipient, get_system_response_time_data
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -66,4 +66,5 @@ urlpatterns = [
         name = '^get_logged_in_user_notifications'),
     url(r'^delete_user/$', delete_user, name = 'delete_user'),
     url(r'^get_users/$', get_users, name = 'get_users'),
+    url(r'^get_response_time_data/$', get_system_response_time_data, name = 'get_response_time_data'),
 ]
