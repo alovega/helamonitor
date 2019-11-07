@@ -3,7 +3,7 @@ import logging
 
 import requests
 from django.db.models import F
-from django.utils.duration import duration_string
+from collections import defaultdict
 from django.utils import timezone, duration
 from datetime import timedelta
 from core.backend.services import SystemMonitorService, EndpointService, SystemService
@@ -100,24 +100,36 @@ class MonitorInterface(object):
 			labels = []
 			dataset = []
 			for i in range(1, 25):
-				# # seconds = timedelta.total_seconds()
-				# hours = seconds // 3600
-				# minutes = (seconds % 3600) // 60
-				# seconds = seconds % 60
 				past_hour = now - timedelta(hours = i, minutes = 0)
-				# past_hour = past_hour.replace(minute = 0)
 				current_hour = past_hour + timedelta(hours = 1)
 				response_time = list(SystemMonitorService().filter(
 					system = system, date_created__lte = current_hour,
-					date_created__gte = past_hour).values('endpoint', responseTime = F('response_time')))
+					date_created__gte = past_hour).values(
+					name= F('endpoint__name'), responseTime = F('response_time'),
+					dateCreated=F('date_created')))
 				past_hour = past_hour.replace(minute = 0)
-				labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
+				# labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
 				for status in response_time:
 					time = timedelta.total_seconds(status.get('responseTime'))
+					date = status["dateCreated"].strftime("%m/%d/%y  %H:%M")
 					del status["responseTime"]
-					status.update(responseTime=time)
+					del status["dateCreated"]
+					status.update(responseTime=time, dateCreated=date)
 					dataset.append(status)
-			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
+					labels.append(status['dateCreated'])
+					label = []
+					[label.append(item) for item in labels if item not in label]
+				result = {}
+				for row in dataset:
+					if row["name"] in result:
+						result[row["name"]]["data"].append(row["responseTime"])
+					else:
+						result[row["name"]] = {
+							"label": row["name"],
+							"data": [row["responseTime"]]
+						}
+
+			return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
 		return {'code': '800.400.001 %s' % ex}
