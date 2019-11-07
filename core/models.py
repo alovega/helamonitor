@@ -162,14 +162,14 @@ class Incident(GenericBaseModel):
     """
     Manages Incidents created from escalation points
     """
+    system = models.ForeignKey(System)
     incident_type = models.ForeignKey(IncidentType)
+    event_type = models.ForeignKey(EventType, null=True, blank=True)
     priority_level = models.IntegerField(default = 1)
     scheduled_for = models.DateTimeField(
         null = True, blank = True, help_text = "Time the scheduled maintenance should begin")
     scheduled_until = models.DateTimeField(
         null = True, blank = True, help_text = "Time the scheduled maintenance should end")
-    event_type = models.ForeignKey(EventType, null=True, blank=True)
-    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):

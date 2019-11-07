@@ -79,16 +79,15 @@ class EventLog(object):
 			now = timezone.now()
 			for matched_rule in matched_rules:
 				escalated_events = EventService().filter(
-					event_type = event.event_type, date_created__range = (now - matched_rule.duration, now)
-				)
+					event_type = event.event_type, date_created__range = (
+						now - timedelta(seconds = matched_rule.duration), now))
 				if escalated_events.count() >= matched_rule.nth_event > 0:
 					return IncidentAdministrator.log_incident(
 						name = "%s event" % event.event_type.name, incident_type = "Realtime",
 						system = event.system.name, state = "Investigating", escalated_events = escalated_events,
 						escalation_level = matched_rule.escalation_level, event_type = event.event_type.name,
-						description = "%s %s events occurred in %s between %s and %s" % (
-							matched_rule.nth_event, event.event_type, matched_rule.system,
-							now - matched_rule.duration, now), priority_level = event.event_type.priority_level()
+						description = matched_rule.description, priority_level =
+						event.event_type.priority_level()
 					)
 			return {"code": "800.200.001"}
 		except Exception as ex:
