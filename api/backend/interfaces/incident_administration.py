@@ -4,7 +4,7 @@ Class for incident Administration
 """
 import logging
 import dateutil.parser
-from django.contrib.auth.models import User
+from core.models import User
 from django.db.models import F, Q
 
 from api.backend.interfaces.notification_interface import NotificationLogger
@@ -53,17 +53,17 @@ class IncidentAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			system = SystemService().get(name = system, state__name = "Active")
+			system = SystemService().get(pk = system, state__name = "Active")
 			incident_type = IncidentTypeService().get(name = incident_type, state__name = "Active")
 			state = state if incident_type.name == 'Realtime' else "Scheduled"
 			escalation_level = EscalationLevelService().get(
-				name = escalation_level, state__name = "Active")
+				pk = escalation_level, state__name = "Active")
 			if system is None or incident_type is None or escalation_level is None:
 				return {"code": "800.400.002"}
 			if incident_type.name == "Realtime" and event_type is not None:
 				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
 					Q(state__name = 'Resolved'), Q(state__name = 'Completed')).order_by('-date_created').first()
-				if incident:
+				if incident and priority_level < 5:
 					priority_level = incident.priority_level + 1
 					return IncidentAdministrator().update_incident(
 						incident_id = incident.id, escalation_level = escalation_level.name, name = incident.name,
@@ -90,12 +90,12 @@ class IncidentAdministrator(object):
 					escalation_level = escalation_level, system = incident.system, state__name = 'Active')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
 				sms_notification = NotificationLogger().send_notification(
-					message = incident.description, message_type = "SMS", system_id = incident.system,
-					recipients = [recipient["phone_number"] for recipient in recipients.values("phone_number")]
+					message = incident.description, message_type = "Sms", system_id = incident.system,
+					recipients = [str(recipient["phone_number"]) for recipient in recipients.values("phone_number")]
 				)
 				email_notification = NotificationLogger().send_notification(
 					message = incident.description, message_type = "Email", system_id = incident.system,
-					recipients = [recipient['email'] for recipient in recipients.values('user__email')]
+					recipients = [str(recipient['user__email']) for recipient in recipients.values('user__email')]
 				)
 				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
@@ -128,9 +128,9 @@ class IncidentAdministrator(object):
 		try:
 			state = StateService().get(name = state)
 			incident = IncidentService().get(pk = incident_id)
-			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
+			escalation_level = EscalationLevelService().get(pk = escalation_level, state__name = "Active")
 			if incident is None or escalation_level is None or state is None:
-				return {'code': '800.400.002 %s %s %s' % (state, incident, escalation_level)}
+				return {'code': '800.400.002'}
 			priority_level = int(priority_level) if priority_level is not None else incident.priority_level
 			incident_log = IncidentLogService().create(
 				description = description, incident = incident, user = User.objects.filter(id = user).first(),
@@ -144,12 +144,12 @@ class IncidentAdministrator(object):
 					escalation_level = escalation_level, system = incident.system).values('recipient')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
 				sms_notification = NotificationLogger().send_notification(
-					message = incident_log.description, message_type = "SMS", system_id = incident.system,
-					recipients = [recipient["phone_number"] for recipient in recipients.values("phone_number")]
+					message = incident_log.description, message_type = "Sms", system_id = incident.system,
+					recipients = [str(recipient["phone_number"]) for recipient in recipients.values("phone_number")]
 				)
 				email_notification = NotificationLogger().send_notification(
 					message = incident_log.description, message_type = "Email", system_id = incident.system,
-					recipients = [recipient['email'] for recipient in recipients.values('user__email')]
+					recipients = [str(recipient['user__email']) for recipient in recipients.values('user__email')]
 				)
 				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
@@ -203,13 +203,11 @@ class IncidentAdministrator(object):
 		"""
 		try:
 			system = SystemService().get(name = system, state__name = 'Active')
-			start_date = dateutil.parser.parse(start_date)
-			end_date = dateutil.parser.parse(end_date)
+			# start_date = dateutil.parser.parse(start_date)
+			# end_date = dateutil.parser.parse(end_date)
 			if not system:
 				return {'code': '800.400.002'}
-			incidents = list(IncidentService().filter(
-				system = system, date_created__gte = start_date, date_created__lte = end_date
-			).values(
+			incidents = list(IncidentService().filter(system = system).values(
 				'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
 				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
 				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name')
@@ -225,7 +223,7 @@ class IncidentAdministrator(object):
 
 		except Exception as ex:
 			lgr.exception("Get incidents exception %s" % ex)
-		return {'code': '800.400.001', 'error': ex}
+		return {'code': '800.400.001', 'error': str(ex)}
 
 	@staticmethod
 	def delete_incident(incident_id, system_id, **kwargs):

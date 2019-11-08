@@ -5,10 +5,20 @@ core Models
 from __future__ import unicode_literals
 
 from datetime import timedelta
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, \
     IncidentType, EndpointType, EscalationLevel
+
+
+class User(AbstractUser, BaseModel):
+    """
+    Model for managing system users
+    """
+    phone_number = models.CharField(max_length = 15, null = True, blank = True)
+
+    class Meta:
+        db_table = 'auth_user'
 
 
 def response_time_speed():
@@ -29,7 +39,7 @@ class System(GenericBaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s" % self.name
+        return "%s %s" % (self.name, self.state)
 
 
 class Interface(GenericBaseModel):
@@ -162,14 +172,14 @@ class Incident(GenericBaseModel):
     """
     Manages Incidents created from escalation points
     """
+    system = models.ForeignKey(System)
     incident_type = models.ForeignKey(IncidentType)
+    event_type = models.ForeignKey(EventType, null=True, blank=True)
     priority_level = models.IntegerField(default = 1)
     scheduled_for = models.DateTimeField(
         null = True, blank = True, help_text = "Time the scheduled maintenance should begin")
     scheduled_until = models.DateTimeField(
         null = True, blank = True, help_text = "Time the scheduled maintenance should end")
-    event_type = models.ForeignKey(EventType, null=True, blank=True)
-    system = models.ForeignKey(System)
     state = models.ForeignKey(State)
 
     def __str__(self):

@@ -1,14 +1,14 @@
 import logging
 
-from django.contrib.auth.models import User
-from django.db.models import F
+from django.db.models import F, Q
+from core.models import User
 
 from base.backend.services import StateService, EscalationLevelService, NotificationTypeService, EventTypeService, \
 	EndpointTypeService, IncidentTypeService
 from core.backend.services import SystemService, RecipientService
 
 lgr = logging.getLogger(__name__)
-from django.db.models import Q
+
 
 class LookUpInterface(object):
 	"""
@@ -44,4 +44,4 @@ class LookUpInterface(object):
 
 		except Exception as ex:
 			lgr.exception("Look up interface Exception:  %s" % ex)
-		return {"code": "800.400.001", "message": "Error while fetching data"}
+		return {"code": "800.400.001", "message": "Error while fetching data %s" % str(ex)}

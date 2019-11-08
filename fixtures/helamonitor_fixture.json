@@ -707,14 +707,16 @@
       }
    },
    {
-      "model":"auth.user",
-      "pk":3,
+      "model":"core.user",
+      "pk":"38a20eb3-324c-4256-bb57-849eaac565d4",
       "fields":{
          "password":"pbkdf2_sha256$36000$jIRnLyq7M1Mp$9+tGunrfMMyNSHL4jCS1kVyfyK4cPUP5UCUI14u3+G0=",
          "last_login":null,
          "is_superuser":false,
          "username":"public_api_user",
          "first_name":"",
+         "date_modified": "2019-09-30T07:10:29.445Z",
+         "date_created": "2019-09-30T07:10:29.445Z",
          "last_name":"",
          "email":"",
          "is_staff":false,
@@ -737,7 +739,7 @@
          "name":"Helaplan",
          "description":"Hela Plan System",
          "version":"1",
-         "admin":3,
+         "admin":,
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
    },
@@ -750,7 +752,7 @@
          "name":"HelaMonitor",
          "description":"Hela monitor System",
          "version":"1",
-         "admin":3,
+         "admin":"38a20eb3-324c-4256-bb57-849eaac565d",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
    },

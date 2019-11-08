@@ -21,6 +21,7 @@ from api.backend.interfaces.system_administration import SystemAdministrator
 from api.backend.interfaces.user_administration import UserAdministrator
 from api.backend.interfaces.notification_interface import NotificationLogger
 from api.backend.interfaces.look_up_interface import LookUpInterface
+from api.backend.interfaces.dashboard_administration import DashboardAdministration
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
@@ -94,25 +95,6 @@ def get_error_rates(request):
 		lgr.exception("Event error rate get Exception: %s" % ex)
 	return JsonResponse({'code': '800.500.001'})
 
-@csrf_exempt
-def get_system_status(request):
-	"""
-	Retrieves states  for a system
-	@param request: The Django WSGI Request to process
-	@type request: WSGIRequest
-	@return: A response code to indicate successful error rate retrieval or otherwise
-	@rtype: dict
-	"""
-	try:
-		data = get_request_data(request)
-		event = MonitorInterface.get_status(
-			system_id = data.get('system_id')
-		)
-		return JsonResponse(event)
-	except Exception as ex:
-		lgr.exception("System status get Exception: %s" % ex)
-	return JsonResponse({'code': '800.500.001'})
-
 
 @csrf_exempt
 @ensure_authenticated
@@ -126,8 +108,9 @@ def create_incident(request):
 	"""
 	try:
 		data = get_request_data(request)
+		print(data)
 		incident = IncidentAdministrator.log_incident(
-			incident_type = data.get('incident_type'), system = data.get('system'), name = data.get('name'),
+			incident_type = data.get('incident_type'), system = data.get('system_id'), name = data.get('name'),
 			escalation_level = data.get('escalation_level'), description = data.get('description'),
 			priority_level = data.get('priority_level'), event_type = data.get('event_type', None),
 			state = data.get('state', 'Investigating'), escalated_events = data.get('escalated_events', None),
@@ -834,6 +817,7 @@ def get_system_recipient(request):
 		lgr.exception('Look up data get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+
 @csrf_exempt
 def get_look_up_data(request):
 	"""
@@ -1011,6 +995,26 @@ def edit_logged_in_user_password(request):
 
 
 @csrf_exempt
+@ensure_authenticated
+def get_system_status(request):
+	"""
+	Retrieves current status of registered endpoints and any current incidents, if any
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code and a dictionary with the current status of a system and any current incidents
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		system_status = DashboardAdministration.get_current_status(system = data.get('system_id'))
+		return JsonResponse(system_status)
+	except Exception as ex:
+		lgr.exception('Get System status exception %s' % ex)
+	return {'code': '800.500.001'}
+
+
+@csrf_exempt
+@ensure_authenticated
 def get_system_response_time_data(request):
 	"""
 	@param request: The Django WSGI Request to process

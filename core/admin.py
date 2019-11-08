@@ -2,9 +2,12 @@
 from __future__ import unicode_literals
 
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 
-from core.models import System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
+from core.models import User, System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
     Event, EscalationRule, Incident, IncidentEvent, IncidentLog, Notification, Endpoint
+
+admin.site.register(User, UserAdmin)
 
 
 @admin.register(System)

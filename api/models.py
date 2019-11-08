@@ -8,9 +8,8 @@ from datetime import timedelta
 
 from django.utils import timezone
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.db import models
-from core.models import System
+from core.models import System, User
 from base.models import BaseModel, GenericBaseModel, State
 
 
@@ -33,7 +32,7 @@ class App(GenericBaseModel):
 
 class AppUser(BaseModel):
     user = models.ForeignKey(User)
-    app = models.OneToOneField(App)
+    app = models.ForeignKey(App)
     state = models.ForeignKey(State)
 
     def __str__(self):
