@@ -36,7 +36,7 @@ class SystemAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			admin = User.objects.get(id = int(admin_id))
+			admin = User.objects.get(pk = admin_id)
 			system = SystemService().create(
 				name = name, description = description, state = StateService().get(name = 'Active'), admin = admin)
 
@@ -75,7 +75,7 @@ class SystemAdministrator(object):
 			description = description if description is not None else system.description
 			admin_id = admin_id if admin_id is not None else system.admin_id
 			version = version if version is not None else system.version
-			admin = User.objects.get(id = int(admin_id))
+			admin = User.objects.get(id = admin_id)
 			updated_system = SystemService().update(
 				pk = system.id, name = name, description = description, admin = admin, version = version)
 			if updated_system:
