@@ -1,10 +1,9 @@
 
 import logging
-from django.contrib.auth.models import User
 from django.db.models import F
 
 from core.backend.services import SystemService, RecipientService, SystemRecipientService
-from core.models import Recipient, SystemRecipient
+from core.models import Recipient, SystemRecipient, User
 from base.backend.services import StateService, NotificationTypeService, EscalationLevelService
 
 lgr = logging.getLogger(__name__)

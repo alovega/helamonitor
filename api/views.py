@@ -817,6 +817,7 @@ def get_system_recipient(request):
 		lgr.exception('Look up data get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+
 @csrf_exempt
 def get_look_up_data(request):
 	"""

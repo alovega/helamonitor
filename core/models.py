@@ -5,10 +5,20 @@ core Models
 from __future__ import unicode_literals
 
 from datetime import timedelta
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from base.models import BaseModel, GenericBaseModel, State, NotificationType, EventType, \
     IncidentType, EndpointType, EscalationLevel
+
+
+class User(AbstractUser, BaseModel):
+    """
+    Model for managing system users
+    """
+    phone_number = models.CharField(max_length = 15, null = True, blank = True)
+
+    class Meta:
+        db_table = 'auth_user'
 
 
 def response_time_speed():
@@ -29,7 +39,7 @@ class System(GenericBaseModel):
     state = models.ForeignKey(State)
 
     def __str__(self):
-        return "%s" % self.name
+        return "%s %s" % (self.name, self.state)
 
 
 class Interface(GenericBaseModel):

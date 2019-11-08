@@ -4,7 +4,7 @@ Class for dashboard data
 """
 import logging
 import dateutil.parser
-from django.contrib.auth.models import User
+from core.models import User
 from django.db.models import F, Q
 
 from api.backend.interfaces.notification_interface import NotificationLogger

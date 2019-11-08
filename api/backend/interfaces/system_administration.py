@@ -5,7 +5,7 @@ Class for Systems Administration
 from datetime import timedelta
 import logging
 import dateutil.parser
-from django.contrib.auth.models import User
+from core.models import User
 from django.db.models import F, Q
 
 from api.backend.interfaces.notification_interface import NotificationLogger
