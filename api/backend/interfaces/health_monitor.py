@@ -17,7 +17,6 @@ class MonitorInterface(object):
 	"""
 	class for logging status  of  system micro-services
 	"""
-
 	@staticmethod
 	def perform_health_check():
 		"""
@@ -81,7 +80,7 @@ class MonitorInterface(object):
 			return {"code": "800.200.001", "data": {"systems": systems}}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
-		return {"code": "800.400.001", "data": "Error while logging system status"}
+		return {"code": "800.400.001 %s" %e, "data": "Error while logging system status"}
 
 	@staticmethod
 	def get_system_endpoint_response_time(system_id):
@@ -107,28 +106,28 @@ class MonitorInterface(object):
 					name= F('endpoint__name'), responseTime = F('response_time'),
 					dateCreated=F('date_created')))
 				past_hour = past_hour.replace(minute = 0)
-				# labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
-				for status in response_time:
-					time = timedelta.total_seconds(status.get('responseTime'))
-					date = status["dateCreated"].strftime("%m/%d/%y  %H:%M")
-					del status["responseTime"]
-					del status["dateCreated"]
-					status.update(responseTime=time, dateCreated=date)
-					dataset.append(status)
-					labels.append(status['dateCreated'])
-					label = []
-					[label.append(item) for item in labels if item not in label]
-				result = {}
-				for row in dataset:
-					if row["name"] in result:
-						result[row["name"]]["data"].append(row["responseTime"])
-					else:
-						result[row["name"]] = {
-							"label": row["name"],
-							"data": [row["responseTime"]]
-						}
-
-			return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
+				result = {"Initial": {"data": [0]}}
+				label = []
+				if response_time:
+					for status in response_time:
+						status.update(
+							responseTime=timedelta.total_seconds(status.get('responseTime')),
+							dateCreated= status["dateCreated"].strftime("%m/%d/%y  %H:%M")
+						)
+						dataset.append(status)
+						labels.append(status['dateCreated'])
+						label = []
+						[label.append(item) for item in labels if item not in label]
+					result = {}
+					for row in dataset:
+						if row["name"] in result:
+							result[row["name"]]["data"].append(row["responseTime"])
+						else:
+							result[row["name"]] = {
+								"label": row["name"],
+								"data": [row["responseTime"]]
+							}
+				return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
 		return {'code': '800.400.001 %s' % ex}
