@@ -94,38 +94,41 @@ class MonitorInterface(object):
 				return {'code': '800.400.200'}
 			now = timezone.now()
 			labels = []
+			label = []
 			dataset = []
 			for i in range(1, 25):
 				past_hour = now - timedelta(hours = i, minutes = 0)
 				current_hour = past_hour + timedelta(hours = 1)
-				response_time = list(SystemMonitorService().filter(
+				response_times = list(SystemMonitorService().filter(
 					system = system, date_created__lte = current_hour,
 					date_created__gte = past_hour).values(
 					name= F('endpoint__name'), responseTime = F('response_time'),
 					dateCreated=F('date_created')))
 				past_hour = past_hour.replace(minute = 0)
+				label.append(past_hour.strftime("%m/%d/%y  %H:%M"))
 				result = {"Initial": {"data": [0]}}
-				label = []
-				if response_time:
-					for status in response_time:
-						status.update(
-							responseTime=timedelta.total_seconds(status.get('responseTime')),
-							dateCreated= status["dateCreated"].strftime("%m/%d/%y  %H:%M")
-						)
-						dataset.append(status)
-						labels.append(status['dateCreated'])
-						label = []
-						[label.append(item) for item in labels if item not in label]
+				for response_time in response_times:
+					response_time.update(
+						responseTime=timedelta.total_seconds(response_time.get('responseTime')),
+						dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+					)
+					dataset.append(response_time)
+					# labels.append(status['dateCreated'])
+					# label = []
+					# [label.append(item) for item in labels if item not in label]
 					result = {}
+				if dataset:
 					for row in dataset:
 						if row["name"] in result:
 							result[row["name"]]["data"].append(row["responseTime"])
+							result[row["name"]]["dateCreated"].append(row["dateCreated"])
 						else:
 							result[row["name"]] = {
 								"label": row["name"],
-								"data": [row["responseTime"]]
+								"data": [row["responseTime"]],
+								"dateCreated": [row["dateCreated"]],
 							}
-				return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
+			return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
 		return {'code': '800.400.001'}
