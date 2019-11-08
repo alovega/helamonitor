@@ -83,9 +83,9 @@ class EventLog(object):
 						now - timedelta(seconds = matched_rule.duration), now))
 				if escalated_events.count() >= matched_rule.nth_event > 0:
 					return IncidentAdministrator.log_incident(
-						name = "%s event" % event.event_type.name, incident_type = "Realtime",
-						system = event.system.name, state = "Investigating", escalated_events = escalated_events,
-						escalation_level = matched_rule.escalation_level, event_type = event.event_type.name,
+						name = matched_rule.name, incident_type = "Realtime",
+						system = event.system.id, state = "Investigating", escalated_events = escalated_events,
+						escalation_level = matched_rule.escalation_level.id, event_type = event.event_type.name,
 						description = matched_rule.description, priority_level =
 						event.event_type.priority_level()
 					)

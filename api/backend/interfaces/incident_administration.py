@@ -53,11 +53,11 @@ class IncidentAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			system = SystemService().get(name = system, state__name = "Active")
+			system = SystemService().get(pk = system, state__name = "Active")
 			incident_type = IncidentTypeService().get(name = incident_type, state__name = "Active")
 			state = state if incident_type.name == 'Realtime' else "Scheduled"
 			escalation_level = EscalationLevelService().get(
-				name = escalation_level, state__name = "Active")
+				pk = escalation_level, state__name = "Active")
 			if system is None or incident_type is None or escalation_level is None:
 				return {"code": "800.400.002"}
 			if incident_type.name == "Realtime" and event_type is not None:
@@ -128,7 +128,7 @@ class IncidentAdministrator(object):
 		try:
 			state = StateService().get(name = state)
 			incident = IncidentService().get(pk = incident_id)
-			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
+			escalation_level = EscalationLevelService().get(pk = escalation_level, state__name = "Active")
 			if incident is None or escalation_level is None or state is None:
 				return {'code': '800.400.002'}
 			priority_level = int(priority_level) if priority_level is not None else incident.priority_level

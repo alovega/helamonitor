@@ -95,6 +95,7 @@ def get_error_rates(request):
 		lgr.exception("Event error rate get Exception: %s" % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+
 @csrf_exempt
 @ensure_authenticated
 def create_incident(request):
@@ -107,8 +108,9 @@ def create_incident(request):
 	"""
 	try:
 		data = get_request_data(request)
+		print(data)
 		incident = IncidentAdministrator.log_incident(
-			incident_type = data.get('incident_type'), system = data.get('system'), name = data.get('name'),
+			incident_type = data.get('incident_type'), system = data.get('system_id'), name = data.get('name'),
 			escalation_level = data.get('escalation_level'), description = data.get('description'),
 			priority_level = data.get('priority_level'), event_type = data.get('event_type', None),
 			state = data.get('state', 'Investigating'), escalated_events = data.get('escalated_events', None),
@@ -956,6 +958,7 @@ def get_logged_in_user_recent_notifications(request):
 		lgr.exception('get logged in user recent notification Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
+
 @csrf_exempt
 @ensure_authenticated
 def get_logged_in_user_notifications(request):
@@ -973,6 +976,7 @@ def get_logged_in_user_notifications(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def edit_logged_in_user_password(request):
 	"""
 	@param request: The Django WSGI Request to process
@@ -1006,3 +1010,19 @@ def get_system_status(request):
 	except Exception as ex:
 		lgr.exception('Get System status exception %s' % ex)
 	return {'code': '800.500.001'}
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_system_response_time_data(request):
+	"""
+	@param request: The Django WSGI Request to process
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('systemId'))
+		return JsonResponse(data)
+	except Exception as ex:
+		lgr.exception('edit logged in user password update Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
