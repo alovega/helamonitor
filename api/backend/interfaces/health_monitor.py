@@ -80,7 +80,7 @@ class MonitorInterface(object):
 			return {"code": "800.200.001", "data": {"systems": systems}}
 		except Exception as e:
 			lgr.exception("Health Status exception:  %s" % e)
-		return {"code": "800.400.001 %s" %e, "data": "Error while logging system status"}
+		return {"code": "800.400.001", "data": "Error while logging system status"}
 
 	@staticmethod
 	def get_system_endpoint_response_time(system_id):
@@ -130,4 +130,4 @@ class MonitorInterface(object):
 				return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
-		return {'code': '800.400.001 %s' % ex}
+		return {'code': '800.400.001'}
