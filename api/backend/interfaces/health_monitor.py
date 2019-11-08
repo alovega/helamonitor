@@ -27,9 +27,7 @@ class MonitorInterface(object):
 		"""
 		systems = []
 		try:
-			for endpoint in EndpointService().filter(
-					system__state__name = "Active", endpoint_type__is_queried = True, state__name = 'Active'
-			):
+			for endpoint in EndpointService().filter(system__state__name = "Active", endpoint_type__is_queried = True):
 				health_state = requests.get(endpoint.url)  # this stores the response of the  http request on url
 				status_data = {
 					"system": endpoint.system,
