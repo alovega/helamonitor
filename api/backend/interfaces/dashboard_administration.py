@@ -35,7 +35,7 @@ class DashboardAdministration(object):
 			current_incidents = list(IncidentService().filter(
 				system = system).exclude(Q(state__name = 'Resolved') | Q(state__name = 'Completed')).values(
 				'id', 'name', 'description', 'scheduled_for', 'scheduled_until', 'priority_level', 'event_type__name',
-				'system__name', 'state__name').order_by('-date_created'))
+				'system__name', 'state__name', 'date_created').order_by('-date_created'))
 			status_data = {'incidents': current_incidents, 'current_state': {}}
 			endpoints = [str(endpoint) for endpoint in list(
 				EndpointService().filter(system = system).values_list('state__name', flat = True))]

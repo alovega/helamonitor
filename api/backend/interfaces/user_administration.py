@@ -219,7 +219,7 @@ class UserAdministrator(object):
 		"""
 		try:
 			user_id = OauthService().filter(token = token).values('app_user__user__id').first()
-			user = User.objects.get(id = user_id)
+			user = User.objects.get(id = user_id.get("app_user__user__id"))
 			if user:
 				if not user.check_password(current_password):
 					return{"code": "800.400.001", "message": "Current password given is invalid"}

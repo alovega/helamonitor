@@ -113,11 +113,11 @@ class MonitorInterface(object):
 						dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
 					)
 					dataset.append(response_time)
-					# labels.append(status['dateCreated'])
-					# label = []
-					# [label.append(item) for item in labels if item not in label]
-					result = {}
+					labels.append(response_time['dateCreated'])
 				if dataset:
+					label = []
+					[label.append(item) for item in labels if item not in label]
+					result = {}
 					for row in dataset:
 						if row["name"] in result:
 							result[row["name"]]["data"].append(row["responseTime"])

@@ -991,7 +991,7 @@ def edit_logged_in_user_password(request):
 		return JsonResponse(password)
 	except Exception as ex:
 		lgr.exception('edit logged in user password update Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 %s' %ex})
 
 
 @csrf_exempt
