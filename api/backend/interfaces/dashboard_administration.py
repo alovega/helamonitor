@@ -36,6 +36,12 @@ class DashboardAdministration(object):
 				system = system).exclude(Q(state__name = 'Resolved') | Q(state__name = 'Completed')).values(
 				'id', 'name', 'description', 'scheduled_for', 'scheduled_until', 'priority_level', 'event_type__name',
 				'system__name', 'state__name', 'date_created').order_by('-date_created'))
+			for incident in current_incidents:
+				incident_updates = list(IncidentLogService().filter(incident__id = incident.get('id')).values(
+					'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user__username'),
+					status = F('state__name')
+				).order_by('-date_created'))
+				incident.update(incident_updates = incident_updates)
 			status_data = {'incidents': current_incidents, 'current_state': {}}
 			endpoints = [str(endpoint) for endpoint in list(
 				EndpointService().filter(system = system).values_list('state__name', flat = True))]

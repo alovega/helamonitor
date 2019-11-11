@@ -161,7 +161,7 @@ def health_check(request):
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('Health check interface  Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001 %s' % ex})
 
 
 @csrf_exempt
