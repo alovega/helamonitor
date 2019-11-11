@@ -91,7 +91,7 @@ class RecipientAdministrator(object):
 		try:
 			if not (recipient_id and phone_number and state_id):
 				return {"code": "800.400.002", "message": "invalid required parameters"}
-			recipient = RecipientService().update(pk = recipient_id, phone_number = phone_number, state = StateService(
+			RecipientService().update(pk = recipient_id, phone_number = phone_number, state = StateService(
 
 			).get(id = state_id))
 			return {"code": "800.200.001", "message": "successfully updated the recipient"}
