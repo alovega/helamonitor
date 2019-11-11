@@ -22,7 +22,7 @@ class EventLog(object):
 	@staticmethod
 	def log_event(
 			event_type, system, interface = None, method = None, response = None, request = None, code = None,
-			description = None, **kwargs):
+			description = None, stack_trace = None, **kwargs):
 		"""
 		Logs an event that being reported from an external system or an health check
 		@param event_type: Type of the event to be logged
@@ -41,6 +41,8 @@ class EventLog(object):
 		@type code: str | None
 		@param description: Detailed information on the event occurrence
 		@type description: str | None
+		@param stack_trace: Stack trace from the on the event occurrence
+		@type stack_trace: str | None
 		@param kwargs: Extra key=>value arguments to be passed for the event logging
 		@return: Response code in a dictionary indicating if the event is created successfully or not
 		@rtype: dict
@@ -54,6 +56,7 @@ class EventLog(object):
 				event_type = event_type, system = system, method = method, response = response, request = request,
 				code = code, description = description, state = StateService().get(name = "Active"),
 				interface = InterfaceService().get(name = interface, state__name = "Active", system = system),
+				stack_trace = stack_trace
 			)
 			if event is not None:
 				escalation = EventLog.escalate_event(event)

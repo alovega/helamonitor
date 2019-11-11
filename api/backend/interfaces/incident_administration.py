@@ -4,6 +4,8 @@ Class for incident Administration
 """
 import logging
 import dateutil.parser
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from core.models import User
 from django.db.models import F, Q
 
@@ -63,11 +65,11 @@ class IncidentAdministrator(object):
 			if incident_type.name == "Realtime" and event_type is not None:
 				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
 					Q(state__name = 'Resolved'), Q(state__name = 'Completed')).order_by('-date_created').first()
-				if incident and priority_level < 5:
+				if incident and int(priority_level) < 5:
 					priority_level = incident.priority_level + 1
 					return IncidentAdministrator().update_incident(
 						incident_id = incident.id, escalation_level = escalation_level.name, name = incident.name,
-						state = incident.state.name, priority_level = str(priority_level),
+						state = incident.state.id, priority_level = str(priority_level),
 						description = "Priority level of %s incident changed to %s" % (incident.name, priority_level)
 					)
 			if incident_type.name == 'Scheduled':
@@ -78,7 +80,11 @@ class IncidentAdministrator(object):
 				incident_type = incident_type, scheduled_for = scheduled_for, scheduled_until = scheduled_until,
 				event_type = EventTypeService().get(name = event_type), priority_level = int(priority_level)
 			)
-			if incident is not None:
+			incident_log = IncidentLogService().create(
+				description = description, incident = incident, priority_level = priority_level,
+				state = StateService().get(name = state), escalation_level = escalation_level
+			)
+			if incident is not None and incident_log is not None:
 				if escalated_events:
 					for event in escalated_events:
 						incident_event = IncidentEventService().create(
@@ -126,20 +132,24 @@ class IncidentAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			state = StateService().get(name = state)
+			state = StateService().get(pk = state)
 			incident = IncidentService().get(pk = incident_id)
 			escalation_level = EscalationLevelService().get(pk = escalation_level, state__name = "Active")
+			user = User.objects.filter(id = user).first() if user else None
 			if incident is None or escalation_level is None or state is None:
 				return {'code': '800.400.002'}
 			priority_level = int(priority_level) if priority_level is not None else incident.priority_level
 			incident_log = IncidentLogService().create(
-				description = description, incident = incident, user = User.objects.filter(id = user).first(),
-				priority_level = priority_level, state = state
+				description = description, incident = incident, user = user,
+				priority_level = priority_level, state = state, escalation_level = escalation_level
 			)
-			updated_incident = IncidentService().update(
-				pk = incident.id, priority_level = priority_level, state = state, name = name
-			)
-			if incident_log and updated_incident:
+			if state.name == 'Completed' or state.name == 'Resolved':
+				IncidentService().update(
+					pk = incident.id, priority_level = priority_level, state = state, name = name
+				)
+			else:
+				IncidentService().update(pk = incident.id, priority_level = priority_level)
+			if incident_log:
 				system_recipients = SystemRecipientService().filter(
 					escalation_level = escalation_level, system = incident.system).values('recipient')
 				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
@@ -172,15 +182,15 @@ class IncidentAdministrator(object):
 		try:
 			system = SystemService().get(name = system, state__name = 'Active')
 			incident = IncidentService().filter(pk = incident_id, system = system).values(
-				'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
+				'name', 'state', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
 				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
 				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name'),
 			).first()
 			if system is None or incident is None:
 				return {'code': '800.400.002'}
 			incident_updates = list(IncidentLogService().filter(incident__id = incident_id).values(
-				'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user__username'),
-				status = F('state__name')
+				'description', 'priority_level', 'date_created', 'escalation_level',
+				'date_modified', user_name = F('user__username'), status = F('state__name')
 			).order_by('-date_created'))
 			incident.update(incident_updates = incident_updates)
 			return {'code': '800.200.001', 'data': incident}
@@ -189,41 +199,36 @@ class IncidentAdministrator(object):
 		return {'code': '800.400.001'}
 
 	@staticmethod
-	def get_incidents(system, start_date, end_date):
+	def get_incidents(system, **kwargs):
 		"""
 		Retrieves a incidents within the specified start and end date range within a system
 		@param system: System where the incident is created in
 		@type system: str
-		@param start_date: Start date limit applied
-		@type start_date: str
-		@param end_date: End date limit to be applied
-		@type end_date: str
+		@param kwargs: Extra key, value arguments to be passed
 		@return: incidents | response code to indicate errors retrieving the incident
 		@rtype: dict
 		"""
 		try:
 			system = SystemService().get(name = system, state__name = 'Active')
-			# start_date = dateutil.parser.parse(start_date)
-			# end_date = dateutil.parser.parse(end_date)
 			if not system:
 				return {'code': '800.400.002'}
+
 			incidents = list(IncidentService().filter(system = system).values(
-				'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
+				'name', 'state', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
 				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
 				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name')
 			).order_by('-date_created'))
 			for incident in incidents:
 				incident_updates = list(IncidentLogService().filter(incident__id = incident.get('incident_id')).values(
-					'description', 'priority_level', 'date_created', 'date_modified', user_name = F('user__username'),
-					status = F('state__name')
-				).order_by('-date_created'))
+					'description', 'priority_level', 'date_created', 'escalation_level', 'date_modified',
+					status = F('state__name'), user_name = F('user__username')).order_by('-date_created'))
 				incident.update(incident_updates = incident_updates)
 
 			return {'code': '800.200.001', 'data': incidents}
 
 		except Exception as ex:
 			lgr.exception("Get incidents exception %s" % ex)
-		return {'code': '800.400.001', 'error': str(ex)}
+		return {'code': '800.400.001'}
 
 	@staticmethod
 	def delete_incident(incident_id, system_id, **kwargs):

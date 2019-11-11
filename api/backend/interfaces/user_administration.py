@@ -2,15 +2,17 @@
 """
 Class for User Administration
 """
+import calendar
 from datetime import timedelta
+from django.utils import timezone
+
 import logging
 import dateutil.parser
 from core.models import User
 from django.db.models import F, Q
-
+from api.models import token_expiry
 from api.backend.interfaces.notification_interface import NotificationLogger
-from core.backend.services import IncidentLogService, IncidentEventService, SystemService, \
-	SystemRecipientService, RecipientService, EscalationRuleService
+from core.backend.services import RecipientService, EscalationRuleService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 from api.backend.services import OauthService, AppUserService
 
@@ -43,7 +45,7 @@ class UserAdministrator(object):
 		try:
 			user = User.objects.create_user(username, email, password, first_name = first_name, last_name = last_name)
 			if user:
-				user = User.objects.filter(id = user.id).values()[0]
+				user = User.objects.filter(id = user.id).values().first()
 				return {'code': '800.200.001', 'data': user}
 		except Exception as ex:
 			lgr.exception("Escalation Rule Creation exception %s" % ex)
@@ -51,7 +53,7 @@ class UserAdministrator(object):
 
 	@staticmethod
 	def update_user(
-			user_id, username = None, password = None, email = None, first_name = None, last_name = None, **kwargs):
+			user_id, username = None, email = None, first_name = None, last_name = None, **kwargs):
 		"""
 		Updates a user.
 		@param user_id: Id of the user to be updated
@@ -60,8 +62,6 @@ class UserAdministrator(object):
 		@type username: str | None
 		@param email: Email of the user to be created
 		@type email: str | None
-		@param password: Password of the user to be created
-		@type password: str | None
 		@param first_name: First name of the user
 		@type first_name: str | None
 		@param last_name: Last name of the user
@@ -77,10 +77,10 @@ class UserAdministrator(object):
 				user.email = email if email else user.email
 				user.first_name = first_name if first_name else user.first_name
 				user.last_name = last_name if last_name else user.last_name
-				if password is not None:
-					user.set_password(password)
-				user = User.objects.filter(id = user.id).values()[0]
-				return {'code': '800.200.001', 'data': user}
+				user.save()
+				user = User.objects.filter(id = user.id).values().first()
+				if user:
+					return {'code': '800.200.001', 'data': user}
 		except Exception as ex:
 			lgr.exception("User Update exception %s" % ex)
 		return {"code": "800.400.001"}
@@ -96,7 +96,7 @@ class UserAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			user = User.objects.filter(id = user_id).values()[0]
+			user = User.objects.filter(id = user_id).values().first()
 			if not user:
 				return {"code": "800.400.002"}
 			return {'code': '800.200.001', 'data': user}
@@ -144,9 +144,8 @@ class UserAdministrator(object):
 	@staticmethod
 	def get_logged_in_user_details(token, **kwargs):
 		"""
-
 		@param token: the generated token of the user
-		@type:char
+		@type token:char
 		@param kwargs: Extra key arguments passed to the method
 		@return: Response code dictionary
 		"""
@@ -174,11 +173,11 @@ class UserAdministrator(object):
 			**kwargs):
 		"""
 		@param email: Email of the user
-		@type:str
+		@type token: str
 		@param phone_number: phone_number of the user
-		@type:str
+		@type phone_number: str
 		@param last_name: Users last name
-		@type: str
+		@type last_name: str
 		@param first_name:
 		@param username:
 		@param token: the token of a logged in user
@@ -208,7 +207,6 @@ class UserAdministrator(object):
 	@staticmethod
 	def edit_logged_in_user_password(token, current_password=None, new_password=None, **kwargs):
 		"""
-
 		@param token: the token of the logged in user
 		@type: str
 		@param current_password: password of the logged in user
@@ -229,3 +227,25 @@ class UserAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Logged in user exception: %s" % ex)
 		return {"code": "800.400.001 %s" %ex, "message": "logged in user password update fail"}
+
+	@staticmethod
+	def verify_token(token, **kwargs):
+		"""
+		Verifies the access token granted to a user
+		@param token: The authorization token
+		@type token: str
+		@param kwargs: Extra key-value arguments that can be passed into the method
+		@return: A response code indicating status and the access token
+		"""
+		try:
+			oauth = OauthService().filter(
+				token = token, expires_at__gte = timezone.now(), state__name = 'Active').first()
+			if oauth is None:
+				return {'code': '800.400.002'}
+			updated_oauth = OauthService().update(pk = oauth.id, token = token_expiry())
+			if updated_oauth is not None:
+				return {'code': '800.200.001', 'data': {'token': str(updated_oauth.token),
+												'expires_at': calendar.timegm(updated_oauth.expires_at.timetuple())}}
+		except Exception as ex:
+			lgr.exception('Verify Token Exception %s' % ex)
+		return {'code': '800.400.001'}

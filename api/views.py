@@ -46,7 +46,7 @@ def report_event(request):
 		event = EventLog.log_event(
 			event_type = data.get('event_type'), system = data.get('system'), interface = data.get('interface'),
 			response = data.get('response'), request = data.get('request'), code = data.get('code'),
-			description = data.get('description')
+			description = data.get('description'), stack_trace = data.get('stack_trace'), method = data.get('method')
 		)
 		return JsonResponse(event)
 	except Exception as ex:
@@ -146,6 +146,24 @@ def update_incident(request):
 
 
 @csrf_exempt
+def past_incidents(request):
+	"""
+	Retrieves past incidents within a system grouped by into dates
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		incidents = DashboardAdministration.past_incidents(
+			system = data.get('system_id'), date_from = data.get('date_from'), date_to = data.get('date_to'))
+		return JsonResponse(incidents)
+	except Exception as ex:
+		lgr.exception('Retrieve past incidents exception %s ' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
 @ensure_authenticated
 def health_check(request):
 	"""
@@ -198,7 +216,7 @@ def get_incidents(request):
 	try:
 		data = get_request_data(request)
 		incident = IncidentAdministrator.get_incidents(
-			system = data.get('system'), start_date = data.get('start_date'), end_date = data.get('end_date')
+			system = data.get('system'), date_from = data.get('date_from'), date_to = data.get('date_to')
 		)
 		return JsonResponse(incident)
 	except Exception as ex:
@@ -431,7 +449,6 @@ def update_system(request):
 
 
 @csrf_exempt
-@ensure_authenticated
 def get_system(request):
 	"""
 	Retrieve a system
@@ -995,7 +1012,6 @@ def edit_logged_in_user_password(request):
 
 
 @csrf_exempt
-@ensure_authenticated
 def get_system_status(request):
 	"""
 	Retrieves current status of registered endpoints and any current incidents, if any
@@ -1026,4 +1042,23 @@ def get_system_response_time_data(request):
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('edit logged in user password update Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def edit_user(request):
+	"""
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: dict
+	"""
+	try:
+		data = get_request_data(request)
+		user = UserAdministrator.update_user(
+			user_id = data.get('user_id'), username = data.get('username'), password = data.get('password'),
+			email = data.get('email'), first_name = data.get('first_name'), last_name = data.get('last_name'))
+		return JsonResponse(user)
+	except Exception as ex:
+		lgr.exception('Edit User Exception %s ' % ex)
 	return JsonResponse({'code': '800.500.001'})

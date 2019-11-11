@@ -35,10 +35,17 @@ class LookUpInterface(object):
 			endpoint_states = list(StateService().filter(
 				Q(name = 'Operational') | Q(name = 'Minor Outage') | Q(name = 'Major Outage') |
 				Q(name = 'Under Maintenance') | Q(name = 'Degraded Performance')).values('id', 'name'))
+			realtime_incident_states = list(StateService().filter(
+				Q(name = 'Investigating') | Q(name = 'Identified') | Q(name = 'Monitoring') |
+				Q(name = 'Resolved')).values('id', 'name'))
+			scheduled_incident_states = list(StateService().filter(
+				Q(name = 'Scheduled') | Q(name = 'InProgress') | Q(name = 'Completed')).values('id', 'name'))
 			lookups = {
 				'states': state, 'incident_types': incident_type, 'escalation_levels': escalation_level,
 				'notification_types': notification_type, 'endpoint_types': endpoint_type, 'event_types': event_type,
-				'users': user, 'systems': system, 'recipients': recipient, 'endpoint_states': endpoint_states}
+				'users': user, 'systems': system, 'recipients': recipient,
+				'realtime_incident_states': realtime_incident_states, 'endpoint_states': endpoint_states,
+				'scheduled_incident_states': scheduled_incident_states}
 
 			return {"code": "800.200.001", "data": lookups}
 
