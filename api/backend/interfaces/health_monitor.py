@@ -58,7 +58,6 @@ class MonitorInterface(object):
 					response_time_speed = status_data.get("response_time_speed"), response = status_data.get(
 						"response"), endpoint = status_data.get("endpoint"), state = status_data.get('state')
 				)
-				EndpointService().update(pk = endpoint.id, state = status_data.get('state'))
 				if system_status is not None:
 					systems.append({
 						"system": system_status.system.name, "status": system_status.state.name,
