@@ -5,6 +5,7 @@ Class for User Administration
 import calendar
 from datetime import timedelta
 from django.utils import timezone
+from django.db import IntegrityError
 
 import logging
 import dateutil.parser
@@ -43,13 +44,17 @@ class UserAdministrator(object):
 		@rtype: dict
 		"""
 		try:
+			if User.objects.filter(username = username).exists():
+				return {"code": "800.400.001", 'message': 'Username already in use'}
+			if User.objects.filter(email = email).exists():
+				return {"code": "800.400.001", 'message': 'Email already in use'}
 			user = User.objects.create_user(username, email, password, first_name = first_name, last_name = last_name)
+			user = User.objects.filter(id = user.id).values().first()
 			if user:
-				user = User.objects.filter(id = user.id).values().first()
 				return {'code': '800.200.001', 'data': user}
 		except Exception as ex:
-			lgr.exception("Escalation Rule Creation exception %s" % ex)
-		return {"code": "800.400.001"}
+			lgr.exception("UserCreation exception %s" % ex)
+		return {"code": "800.400.001", 'message': 'User could not be created'}
 
 	@staticmethod
 	def update_user(
@@ -226,7 +231,7 @@ class UserAdministrator(object):
 				return {"code": "800.200.001", "message": "Password successfully updated"}
 		except Exception as ex:
 			lgr.exception("Logged in user exception: %s" % ex)
-		return {"code": "800.400.001 %s" %ex, "message": "logged in user password update fail"}
+		return {"code": "800.400.001", "message": "logged in user password update fail"}
 
 	@staticmethod
 	def verify_token(token, **kwargs):
@@ -242,10 +247,11 @@ class UserAdministrator(object):
 				token = token, expires_at__gte = timezone.now(), state__name = 'Active').first()
 			if oauth is None:
 				return {'code': '800.400.002'}
-			updated_oauth = OauthService().update(pk = oauth.id, token = token_expiry())
-			if updated_oauth is not None:
-				return {'code': '800.200.001', 'data': {'token': str(updated_oauth.token),
-												'expires_at': calendar.timegm(updated_oauth.expires_at.timetuple())}}
+			if OauthService().update(pk = oauth.id, expires_at = token_expiry()) is not None:
+				updated_oauth = OauthService().filter(pk = oauth.id).first()
+				return {'code': '800.200.001', 'data': {
+					'token': str(updated_oauth.token), 'expires_at': calendar.timegm(
+						updated_oauth.expires_at.timetuple())}}
 		except Exception as ex:
 			lgr.exception('Verify Token Exception %s' % ex)
 		return {'code': '800.400.001'}

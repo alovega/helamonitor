@@ -61,7 +61,7 @@ class IncidentAdministrator(object):
 			escalation_level = EscalationLevelService().get(
 				pk = escalation_level, state__name = "Active")
 			if system is None or incident_type is None or escalation_level is None:
-				return {"code": "800.400.002"}
+				return {"code": "800.400.002 %s" % system}
 			if incident_type.name == "Realtime" and event_type is not None:
 				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
 					Q(state__name = 'Resolved'), Q(state__name = 'Completed')).order_by('-date_created').first()
@@ -276,12 +276,17 @@ class IncidentAdministrator(object):
 			incident_events = list(IncidentEventService().filter(incident = incident, state__name = 'Active').values(
 				incident_id = F('incident'), status = F('state__name'), event_id = F('event')
 			).order_by('-date_created'))
+			# return {'code': '800.200.001', 'data': incident_events}
+			events = []
 			for incident_event in incident_events:
 				event = EventLog.get_event(incident_event.get('event_id'), system.id)
 				if event.get('code') != '800.200.001':
 					lgr.error('Event get Failed')
-				incident_event.update(incident_event = event.get('data'))
-			return {'code': '800.200.001', 'data': incident_events}
+				else:
+					incident_event.update(incident_event = event.get('data'))
+					# incident_event.update(code = event.get('code'))
+					events.append(incident_event)
+			return {'code': '800.200.001', 'data': events}
 		except Exception as ex:
 			lgr.exception("Get Incident Event exception %s" % ex)
 		return {"code": "800.400.001"}

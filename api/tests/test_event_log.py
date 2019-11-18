@@ -23,7 +23,7 @@ class TestEventLog(object):
         interface = mixer.blend('core.Interface', system=system, state=state)
         event_type = mixer.blend('base.EventType', state=state)
         event = EventLog.log_event(
-            system=system.name, event_type=event_type.name, description = "Test Event description",
+            system=system.id, event_type=event_type.name, description = "Test Event description",
             interface = interface.name, state = state.name, code = "12345"
         )
         failing_event = EventLog.log_event(
@@ -46,7 +46,7 @@ class TestEventLog(object):
         mixer.blend('base.IncidentType', state=state, name="Realtime")
         mixer.blend(
             "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
-            duration = timedelta(seconds=5), escalation_level=escalation_level
+            duration = 3600, escalation_level=escalation_level
         )
         event = mixer.blend(
             'core.Event', event_type=event_type, system=system, interface=interface, state=state,

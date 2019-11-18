@@ -4,9 +4,9 @@ Class for logging and escalating reported events
 """
 import logging
 from datetime import timedelta, datetime
-
-from django.utils import timezone
 from django.db.models import F
+from django.utils import timezone
+
 from core.backend.services import EventService, EscalationRuleService, SystemService, InterfaceService
 from base.backend.services import EventTypeService, StateService
 from api.backend.interfaces.incident_administration import IncidentAdministrator
@@ -48,7 +48,7 @@ class EventLog(object):
 		@rtype: dict
 		"""
 		try:
-			system = SystemService().get(name = system, state__name = "Active")
+			system = SystemService().get(pk = system, state__name = "Active")
 			event_type = EventTypeService().get(name = event_type, state__name = "Active")
 			if system is None or event_type is None:
 				return {"code": "800.400.002"}
@@ -62,7 +62,11 @@ class EventLog(object):
 				escalation = EventLog.escalate_event(event)
 				if escalation.get('code') != '800.200.001':
 					lgr.error('%s event escalation Failed' % event_type)
-				return {'code': '800.200.001'}
+				created_event = EventService().filter(id = event.id).values(
+					'id', 'event_type', 'state__id', 'system__id', 'method', 'response', 'request', 'code',
+					'description', 'interface__id', 'stack_trace'
+				).first()
+				return {'code': '800.200.001', 'data': created_event}
 		except Exception as ex:
 			lgr.exception('Event processor exception %s' % ex)
 		return {"code": "800.400.001"}
@@ -139,12 +143,12 @@ class EventLog(object):
 		"""
 		try:
 			system = SystemService().get(pk = system_id, state__name = 'Active')
-			if not system:
-				return {'code': '800.400.200'}
 			event = EventService().filter(pk = event_id, system = system, state__name = 'Active').values(
-				'date_created', 'interface', 'method', 'request', 'response', 'stack_trace', 'description', 'code',
-				status = F('state__name'), system_name = F('system__name'), eventtype = F('event_type__name')
+				'id', 'date_created', 'interface', 'method', 'request', 'response', 'stack_trace', 'description',
+				'code', status = F('state__name'), system_name = F('system__name'), eventtype = F('event_type__name')
 			).first()
+			if system is None or event is None:
+				return {'code': '800.400.200', 'event': str(event_id)}
 			return {'code': '800.200.001', 'data': event}
 		except Exception as ex:
 			lgr.exception("Get event Exception %s" % ex)
@@ -163,7 +167,8 @@ class EventLog(object):
 			if not system:
 				return {'code': '800.400.200'}
 			events = list(EventService().filter(system = system, state__name = 'Active').values(
-				'date_created', 'interface', 'method', 'request', 'response', 'stack_trace', 'description', 'code',
+				'id', 'date_created', 'interface', 'method', 'request', 'response', 'stack_trace', 'description',
+				'code',
 				status = F('state__name'), system_name = F('system__name'), eventtype = F('event_type__name')
 			).order_by('-date_created'))
 			return {'code': '800.200.001', 'data': events}

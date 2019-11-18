@@ -4,11 +4,13 @@ The URLs for API endpoints
 """
 from django.conf.urls import url
 
-from api.views import report_event, get_events, get_error_rates, create_incident, update_incident, health_check, \
-    get_incident, get_access_token, get_incidents, get_incident_events, delete_incident, get_system, create_rule, \
+from api.views import report_event, get_events, get_event, get_error_rates, create_incident, update_incident, \
+    health_check, \
+    get_incident, get_access_token, verify_token, get_incidents, get_incident_events, delete_incident, get_system, \
+    create_rule, \
     update_rule, get_rule, get_rules, delete_rule, create_system, update_system, get_systems, delete_system, \
     create_user, get_user, delete_user, get_users, get_endpoints, create_endpoints, update_endpoint, edit_user, \
-    get_recipients, create_recipient, update_recipient, get_systems, get_incidents, get_endpoint, get_recipient, \
+    get_recipients, create_recipient, update_recipient, get_endpoint, get_recipient, \
     get_look_up_data, delete_recipient, delete_endpoint, get_notifications, get_logged_in_user_details,  \
     get_system_status, edit_logged_in_user_details, get_logged_in_user_recent_notifications,  past_incidents, \
     get_logged_in_user_notifications, get_system_recipients, edit_logged_in_user_password, get_system_recipient, \
@@ -17,6 +19,7 @@ from api.views import report_event, get_events, get_error_rates, create_incident
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
     url(r'^get_events/$', get_events, name = 'get_events'),
+    url(r'^get_event/$', get_event, name = 'get_event'),
     url(r'^get_error_rates/$', get_error_rates, name = 'get_error_rates'),
     url(r'^get_system_status/$', get_system_status, name= 'get_system_status'),
     url(r'^create_incident/$', create_incident, name = 'create_incident'),
@@ -47,6 +50,7 @@ urlpatterns = [
     url(r'^get_lookup', get_look_up_data, name = 'get_look_up_data'),
     url(r'^get_notifications', get_notifications, name = 'get_notifications'),
     url(r'^get_access_token/$', get_access_token, name = 'get_access_token'),
+    url(r'^verify_token/$', verify_token, name = 'verify_token'),
     url(r'^create_rule/$', create_rule, name = 'create_rule'),
     url(r'^update_rule/$', update_rule, name = 'update_rule'),
     url(r'^get_rule/$', get_rule, name = 'get_rule'),
