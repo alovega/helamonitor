@@ -33,7 +33,7 @@ class NotificationLogger(object):
 		@return: returns a dict of a code for success or failure
 		@rtype: dict
 		"""
-		if not (recipients and message and message_type):
+		if not (recipients or message or message_type):
 			return {"code": "800.400.002"}
 
 		try:
@@ -65,7 +65,7 @@ class NotificationLogger(object):
 						lgr.warn("Message sending failed: %s" % data)
 				else:
 					return {"code": "200.400.005"}
-			return {"code": "800.200.001"}
+			return {"code": "800.200.001 %s" % message}
 		except Exception as e:
 			lgr.exception("Notification logger exception %s" % e)
 		return {"code": "800.400.001", "message": "error in sending notification interface"}

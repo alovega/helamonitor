@@ -140,7 +140,7 @@ def create_incident(request):
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
 
 
 @csrf_exempt

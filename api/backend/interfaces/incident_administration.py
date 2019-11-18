@@ -92,19 +92,24 @@ class IncidentAdministrator(object):
 						)
 						if not incident_event:
 							lgr.error("Error creating incident-events")
-				system_recipients = SystemRecipientService().filter(
-					escalation_level = escalation_level, system = incident.system, state__name = 'Active')
-				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
+				email_system_recipients = SystemRecipientService().filter(
+					escalation_level = escalation_level, system = incident.system, state__name = 'Active',
+					notification_type__name = 'Email').values('recipient__id')
+				sms_system_recipients = SystemRecipientService().filter(
+					escalation_level = escalation_level, system = incident.system, state__name = 'Active',
+					notification_type__name = 'Sms').values('recipient__id')
 				sms_notification = NotificationLogger().send_notification(
-					message = incident.description, message_type = "Sms", system_id = incident.system,
-					recipients = [str(recipient["phone_number"]) for recipient in recipients.values("phone_number")]
+					message = incident.description, message_type = "Sms", system_id = incident.system.id,
+					recipients = [str(recipient["phone_number"]) for recipient in RecipientService().filter(
+						id__in = sms_system_recipients, state__name = 'Active').values("phone_number")]
 				)
 				email_notification = NotificationLogger().send_notification(
-					message = incident.description, message_type = "Email", system_id = incident.system,
-					recipients = [str(recipient['user__email']) for recipient in recipients.values('user__email')]
+					message = incident.description, message_type = "Email", system_id = incident.system.id,
+					recipients = [str(recipient['user__email']) for recipient in RecipientService().filter(
+						id__in = email_system_recipients, state__name = 'Active').values('user__email')]
 				)
 				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
-					lgr.warning("Notification sending failed")
+					lgr.exception("Notification sending failed")
 				return {'code': '800.200.001'}
 		except Exception as ex:
 			lgr.exception("Incident Logger exception %s" % ex)
@@ -150,16 +155,21 @@ class IncidentAdministrator(object):
 			else:
 				IncidentService().update(pk = incident.id, priority_level = priority_level)
 			if incident_log:
-				system_recipients = SystemRecipientService().filter(
-					escalation_level = escalation_level, system = incident.system).values('recipient')
-				recipients = RecipientService().filter(id__in = system_recipients, state__name = 'Active')
+				email_system_recipients = SystemRecipientService().filter(
+					escalation_level = escalation_level, system = incident.system, state__name = 'Active',
+					notification_type__name = 'Email').values('recipient__id')
+				sms_system_recipients = SystemRecipientService().filter(
+					escalation_level = escalation_level, system = incident.system, state__name = 'Active',
+					notification_type__name = 'Sms').values('recipient__id')
 				sms_notification = NotificationLogger().send_notification(
-					message = incident_log.description, message_type = "Sms", system_id = incident.system,
-					recipients = [str(recipient["phone_number"]) for recipient in recipients.values("phone_number")]
+					message = incident_log.description, message_type = "Sms", system_id = incident.system.id,
+					recipients = [str(recipient["phone_number"]) for recipient in RecipientService().filter(
+						id__in = sms_system_recipients, state__name = 'Active').values("phone_number")]
 				)
 				email_notification = NotificationLogger().send_notification(
-					message = incident_log.description, message_type = "Email", system_id = incident.system,
-					recipients = [str(recipient['user__email']) for recipient in recipients.values('user__email')]
+					message = incident_log.description, message_type = "Email", system_id = incident.system.id,
+					recipients = [str(recipient['user__email']) for recipient in RecipientService().filter(
+						id__in = email_system_recipients, state__name = 'Active').values('user__email')]
 				)
 				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")
