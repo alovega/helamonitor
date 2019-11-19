@@ -5,7 +5,7 @@ This is the Core services tests module.
 import datetime
 import pytest
 from mixer.backend.django import mixer
-from django.contrib.auth.models import User
+from core.models import User
 
 # noinspection SpellCheckingInspection
 from core.backend.services import SystemService, InterfaceService, SystemCredentialService, \
@@ -25,8 +25,8 @@ class TestSystemService(object):
         """
         Test System get service
         """
-        mixer.blend('core.System', name="Helaplan")
-        system = SystemService().get(name="Helaplan")
+        mixer.blend('core.System', name = 'Helaplan')
+        system = SystemService().get(name = 'Helaplan')
         assert system is not None, 'Should have a System object'
 
     def test_filter(self):
@@ -43,9 +43,9 @@ class TestSystemService(object):
         """
         state = mixer.blend('base.State')
         admin = mixer.blend(User)
-        system = SystemService().create(name="Helaplan", state=state, admin=admin)
+        system = SystemService().create(name = 'Helaplan', state = state, admin = admin)
         assert system is not None, 'Should have a System object'
-        assert system.name == "Helaplan", "Created System name is equals to Helaplan"
+        assert system.name == 'Helaplan', 'Created System name is equals to Helaplan'
 
     def test_update(self):
         """
@@ -65,8 +65,8 @@ class TestInterfaceService(object):
         """
         Test Interface get service
         """
-        mixer.blend('core.Interface', name="take_loan")
-        interface = InterfaceService().get(name="take_loan")
+        mixer.blend('core.Interface', name = "take_loan")
+        interface = InterfaceService().get(name = "take_loan")
         assert interface is not None, 'Should have an Interface object'
 
     def test_filter(self):
@@ -147,8 +147,8 @@ class TestSystemMonitorService(object):
         Test SystemMonitor get service
         """
         system = mixer.blend('core.System')
-        mixer.blend('core.SystemMonitor', system=system)
-        system_monitor = SystemMonitorService().get(system=system.id)
+        mixer.blend('core.SystemMonitor', system = system)
+        system_monitor = SystemMonitorService().get(system = system.id)
         assert system_monitor is not None, 'Should create a SystemMonitor object'
 
     def test_filter(self):
@@ -167,8 +167,7 @@ class TestSystemMonitorService(object):
         endpoint = mixer.blend('core.Endpoint')
         state = mixer.blend('base.State')
         system_monitor = SystemMonitorService().create(
-            system=system, state=state, endpoint=endpoint, response_time=datetime.timedelta(milliseconds=300)
-        )
+            system = system, state = state, endpoint = endpoint, response_time = datetime.timedelta(milliseconds = 300))
         assert system_monitor is not None, 'Should create a SystemMonitor Object'
         assert system_monitor.response_time == datetime.timedelta(milliseconds = 300), 'Response time is equals to 300'
 
@@ -192,10 +191,10 @@ class TestRecipientService(object):
         """
         Test Recipient get service
         """
-        mixer.blend('core.Recipient', first_name='Victor')
-        recipient = RecipientService().get(first_name='Victor')
+        mixer.blend('core.Recipient', phone_number='0712345678')
+        recipient = RecipientService().get(phone_number='0712345678')
         assert recipient is not None, 'Should return a recipient object'
-        assert recipient.first_name == 'Victor', 'First name is equals to Victor'
+        assert recipient.phone_number == '0712345678', 'Phone number is equals to Victor'
 
     def test_filter(self):
         """
@@ -210,18 +209,19 @@ class TestRecipientService(object):
         Test Recipient Create Service
         """
         state = mixer.blend('base.State')
-        recipient = RecipientService().create(first_name='Victor', last_name='Joseph', state=state)
+        user = mixer.blend('core.User')
+        recipient = RecipientService().create(phone_number = '0712345678', state = state, user = user)
         assert recipient is not None, 'Should create a recipient object'
-        assert recipient.last_name == 'Joseph', 'Last name is equals to Joseph'
+        assert recipient.phone_number == '0712345678', 'Phone number is equals to 0712345678'
 
     def test_update(self):
         """
         Test Recipient update Service
         """
         recipient = mixer.blend('core.Recipient')
-        recipient = RecipientService().update(recipient.id, first_name='Victor')
+        recipient = RecipientService().update(recipient.id, phone_number='0712345678')
         assert recipient is not None, 'Should create a recipient object'
-        assert recipient.first_name == 'Victor', 'First name is equals to Victor'
+        assert recipient.phone_number == '0712345678', 'Phone number is equals to 0712345678'
 
 
 class TestSystemRecipientService(object):
@@ -233,8 +233,8 @@ class TestSystemRecipientService(object):
         Test SystemRecipient get service
         """
         system = mixer.blend('core.System')
-        mixer.blend('core.SystemRecipient', system=system)
-        system_recipient = SystemRecipientService().get(system=system.id)
+        mixer.blend('core.SystemRecipient', system = system)
+        system_recipient = SystemRecipientService().get(system = system.id)
         assert system_recipient is not None, 'Should get a created  SystemRecipient object'
 
     def test_filter(self):
@@ -253,8 +253,10 @@ class TestSystemRecipientService(object):
         state = mixer.blend('base.State')
         recipient = mixer.blend('core.Recipient')
         escalation_level = mixer.blend('base.EscalationLevel')
-        system_recipient = SystemRecipientService().create(system=system, state=state, recipient=recipient,
-                                                           escalation_level=escalation_level)
+        notification_type = mixer.blend('base.NotificationType')
+        system_recipient = SystemRecipientService().create(
+            system = system, state = state, recipient = recipient, escalation_level = escalation_level,
+            notification_type = notification_type)
         assert system_recipient is not None, 'Should create a SystemMonitor Object'
         assert system_recipient.recipient == recipient, 'System Recipient is equals to the recipient created'
 
@@ -264,7 +266,7 @@ class TestSystemRecipientService(object):
         """
         system_recipient = mixer.blend('core.SystemRecipient')
         new_recipient = mixer.blend('core.Recipient')
-        system_recipient = SystemRecipientService().update(system_recipient.id, recipient= new_recipient)
+        system_recipient = SystemRecipientService().update(system_recipient.id, recipient = new_recipient)
         assert system_recipient is not None, 'Should create a System Recipient object'
         assert system_recipient.recipient == new_recipient, 'System Recipient is changed to new_recipient'
 
@@ -422,12 +424,12 @@ class TestIncidentLogService(object):
         incident = mixer.blend('core.Incident')
         user = mixer.blend(User)
         state = mixer.blend('base.State')
+        escalation_level = mixer.blend('base.EscalationLevel')
         mixer.blend(
-            'core.IncidentLog', incident=incident, user=user, state=state, priority_level =
-            incident.priority_level)
-        incident_log = IncidentLogService().get(incident=incident.id)
+            'core.IncidentLog', incident = incident, user = user, state = state, priority_level =
+            incident.priority_level, escalation_level = escalation_level)
+        incident_log = IncidentLogService().get(incident = incident.id)
         assert incident_log is not None, 'Should get a created IncidentLog object'
-        return user
 
     def test_filter(self):
         """
@@ -444,9 +446,10 @@ class TestIncidentLogService(object):
         incident = mixer.blend('core.Incident')
         user = mixer.blend(User)
         state = mixer.blend('base.State')
+        escalation_level = mixer.blend('base.EscalationLevel')
         incident_log = IncidentLogService().create(
-            incident=incident, user=user, state=state, description='Incident1', priority_level =
-            incident.priority_level)
+            incident = incident, user = user, state = state, description = 'Incident1', priority_level =
+            incident.priority_level, escalation_level = escalation_level)
         assert incident_log is not None, 'Should create an IncidentLog Object'
         assert incident_log.description == 'Incident1', ' IncidentLog description is equals to Incident1'
 
@@ -514,15 +517,15 @@ class TestEscalationRuleService(object):
         Test EscalationRule get service
         """
         system = mixer.blend('core.System')
-        mixer.blend('core.EscalationRule', system=system, duration=datetime.timedelta(minutes=60))
-        escalation_rule = EscalationRuleService().get(system=system.id)
+        mixer.blend('core.EscalationRule', system = system, duration = datetime.timedelta(minutes = 60).total_seconds())
+        escalation_rule = EscalationRuleService().get(system = system.id)
         assert escalation_rule is not None, 'Should get a created  EscalationRule object'
 
     def test_filter(self):
         """
         Test SystemRecipient filter service
         """
-        mixer.cycle(3).blend('core.EscalationRule', duration=datetime.timedelta(minutes=60))
+        mixer.cycle(3).blend('core.EscalationRule', duration=datetime.timedelta(minutes=60).total_seconds())
         system_recipient = EscalationRuleService().filter()
         assert len(system_recipient) == 3, 'Should return 3 EscalationRule objects'
 
@@ -531,8 +534,9 @@ class TestEscalationRuleService(object):
         Test EscalationRule create service
         """
         system = mixer.blend('core.System')
-        escalation_rule = mixer.blend('core.EscalationRule', duration=datetime.timedelta(minutes=60))
-        escalation_rule = EscalationRuleService().update(escalation_rule.id, system=system)
+        escalation_rule = mixer.blend(
+            'core.EscalationRule', duration = datetime.timedelta(minutes = 60).total_seconds())
+        escalation_rule = EscalationRuleService().update(escalation_rule.id, system = system)
         assert escalation_rule is not None, 'Should create an EscalationRule Object'
         assert escalation_rule.system == system, 'Escalation Rule system is equals to system created'
 
@@ -545,9 +549,9 @@ class TestEscalationRuleService(object):
         event_type = mixer.blend('base.EventType')
         escalation_level = mixer.blend('base.EscalationLevel')
         escalation_rule = EscalationRuleService().create(
-            system=system, state=state, event_type=event_type, escalation_level=escalation_level,
-            duration=datetime.timedelta(minutes=60), name='10th event', nth_event = 10,
-            description='Escalates to level High for every 10 events of type error recorded within 60 minutes'
+            system = system, state = state, event_type = event_type, escalation_level = escalation_level,
+            duration = datetime.timedelta(minutes = 60).total_seconds(), name = '10th event', nth_event = 10,
+            description = 'Escalates to level High for every 10 events of type error recorded within 60 minutes'
         )
         assert escalation_rule is not None, 'Should create an Escalation Rule object'
         assert escalation_rule.system == system, ' Recipient is changed to new_recipient'

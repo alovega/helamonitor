@@ -204,8 +204,8 @@ class IncidentLog(BaseModel):
     incident = models.ForeignKey(Incident)
     escalation_level = models.ForeignKey(EscalationLevel)
     priority_level = models.IntegerField()
-    description = models.TextField(max_length=255, blank=True, null=True)
-    user = models.ForeignKey(User, null=True, blank=True)
+    description = models.TextField(max_length = 255, blank = True, null = True)
+    user = models.ForeignKey(User, null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):

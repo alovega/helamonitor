@@ -80,9 +80,8 @@ class SystemAdministrator(object):
 				pk = system.id, name = name, description = description, admin = admin, version = version)
 			if updated_system:
 				updated_system = SystemService().filter(pk = system.id).values(
-					'name', 'id', 'description', 'date_created', 'date_modified', 'version', status = F(
-						'state__name'),
-					admin_id = F('admin')).first()
+					'name', 'id', 'description', 'date_created', 'date_modified', 'version', 'admin__id', 'state__name',
+					status = F('state__name'), admin_id = F('admin')).first()
 				return {'code': '800.200.001', 'data': updated_system, 'name': name}
 		except Exception as ex:
 			lgr.exception("System Update exception %s" % ex)
@@ -100,8 +99,8 @@ class SystemAdministrator(object):
 		"""
 		try:
 			system = SystemService().filter(pk = system_id, state__name = 'Active').values(
-					'name', 'id', 'description', 'date_created', 'date_modified', 'version', status = F('state__name'),
-					admin_id = F('admin')).first()
+					'name', 'id', 'description', 'date_created', 'date_modified', 'version', 'state__name', 'admin__id',
+					status = F('state__name'), admin_id = F('admin')).first()
 			if system is None:
 				return {"code": "800.400.002"}
 			return {'code': '800.200.001', 'data': system}
@@ -110,16 +109,17 @@ class SystemAdministrator(object):
 		return {"code": "800.400.001"}
 
 	@staticmethod
-	def get_systems():
+	def get_systems(**kwargs):
 		"""
 		Retrieves all active Systems.
+		@param kwargs: Extra key-value arguments to pass for incident logging
 		@return: Response code dictionary to indicate if the systems were retrieved or not
 		@rtype: dict
 		"""
 		try:
 			systems = list(SystemService().filter(state__name = 'Active').values(
-					'name', 'id', 'description', 'date_created', 'date_modified', 'version', status = F('state__name'),
-					admin_id = F('admin')))
+					'name', 'id', 'description', 'date_created', 'date_modified', 'version', 'state__name', 'admin__id',
+					status = F('state__name'), admin_id = F('admin')))
 			if systems is None:
 				return {"code": "800.400.002"}
 			return {'code': '800.200.001', 'data': systems}

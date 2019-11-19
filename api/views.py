@@ -216,7 +216,7 @@ def get_incident(request):
 	try:
 		data = get_request_data(request)
 		incident = IncidentAdministrator.get_incident(
-			system = data.get('system'), incident_id = data.get('incident_id')
+			system = data.get('system_id'), incident_id = data.get('incident_id')
 		)
 		return JsonResponse(incident)
 	except Exception as ex:
@@ -460,7 +460,7 @@ def create_system(request):
 	try:
 		data = get_request_data(request)
 		rules = SystemAdministrator.create_system(
-			name = data.get('name'), description = data.get('description'), admin_id = data.get('admin_id'))
+			name = data.get('name'), description = data.get('description'), admin_id = data.get('admin'))
 		return JsonResponse(rules)
 	except Exception as ex:
 		lgr.exception('System creation Exception: %s' % ex)
@@ -480,8 +480,8 @@ def update_system(request):
 	try:
 		data = get_request_data(request)
 		rules = SystemAdministrator.update_system(
-			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
-			admin_id = data.get('admin_id'), version = data.get('version')
+			system_id = data.get('id'), name = data.get('name'), description = data.get('description'),
+			admin_id = data.get('admin'), version = data.get('version')
 		)
 		return JsonResponse(rules)
 	except Exception as ex:
@@ -500,7 +500,7 @@ def get_system(request):
 	"""
 	try:
 		data = get_request_data(request)
-		system = SystemAdministrator.get_system(system_id = data.get('system_id'))
+		system = SystemAdministrator.get_system(system_id = data.get('id'))
 		return JsonResponse(system)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
@@ -537,7 +537,7 @@ def delete_system(request):
 	"""
 	try:
 		data = get_request_data(request)
-		deleted_system = SystemAdministrator.delete_system(system_id = data.get('system_id'))
+		deleted_system = SystemAdministrator.delete_system(system_id = data.get('id'))
 		return JsonResponse(deleted_system)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)

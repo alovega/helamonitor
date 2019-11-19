@@ -150,7 +150,8 @@ class IncidentAdministrator(object):
 			)
 			if state.name == 'Completed' or state.name == 'Resolved':
 				IncidentService().update(
-					pk = incident.id, priority_level = priority_level, state = state, name = name
+					pk = incident.id, priority_level = priority_level, state = state, name = name, description =
+					description
 				)
 			else:
 				IncidentService().update(pk = incident.id, priority_level = priority_level)
@@ -190,7 +191,7 @@ class IncidentAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			system = SystemService().get(name = system, state__name = 'Active')
+			system = SystemService().get(pk = system, state__name = 'Active')
 			incident = IncidentService().filter(pk = incident_id, system = system).values(
 				'name', 'state', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
 				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
