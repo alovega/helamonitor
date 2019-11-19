@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from django.db.models import F, Q
 
 from api.backend.interfaces.notification_interface import NotificationLogger
-from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
+from core.backend.services import IncidentService, IncidentLogService, EventService, SystemService, \
 	SystemRecipientService, RecipientService, EndpointService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
@@ -128,6 +128,49 @@ class DashboardAdministration(object):
 
 				data.append({'date': date, 'incidents': incidents})
 
+			return {'code': '800.200.001', 'data': data}
+		except Exception as ex:
+			lgr.exception("Get incidents exception %s" % ex)
+		return {'code': '800.400.001'}
+
+	@staticmethod
+	def dashboard_widgets_data(system, date_from = None, date_to = None):
+		"""
+		Retrieves historical data within a specified start and end date range within a system
+		@param system: System where the incident is created in
+		@type system: str
+		@param date_from: Start date limit applied
+		@type date_from: str | None
+		@param date_to: End date limit to be applied
+		@type date_to: str | None
+		@return: incidents | response code to indicate errors retrieving the data
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().get(pk = system, state__name = 'Active')
+			if not system:
+				return {'code': '800.400.002'}
+			if date_from and date_to:
+				date_from = dateutil.parser.parse(date_from)
+				date_to = dateutil.parser.parse(date_to)
+			else:
+				date_from = datetime.combine(datetime.now(), datetime.min.time()) + timedelta(days = 1)
+				date_to = date_from - timedelta(days = 1)
+			reported_events = EventService().filter(
+				system = system, date_created__lte = date_from, date_created__gte = date_to).count()
+			open_incidents = IncidentService().filter(
+				system = system, incident_type__name = 'Realtime', date_created__lte = date_from, date_created__gte =
+				date_to).exclude(state__name = 'Resolved').count()
+			closed_incidents = IncidentService().filter(
+				system = system, incident_type__name = 'Realtime', state__name = 'Resolved', date_created__lte =
+				date_from, date_created__gte = date_to).count()
+			scheduled_incidents = IncidentService().filter(
+				system = system, incident_type__name = 'Scheduled', date_created__lte = date_from, date_created__gte =
+				date_to).exclude(state__name = 'Completed').count()
+			data = {
+				'reported_events': reported_events, 'open_incidents': open_incidents, 'closed_incidents':
+					closed_incidents, 'scheduled_incidents': scheduled_incidents
+			}
 			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Get incidents exception %s" % ex)
