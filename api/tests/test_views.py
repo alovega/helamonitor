@@ -8,7 +8,7 @@ import pytest
 from mixer.backend.django import mixer
 
 from django.test import TestCase, RequestFactory
-from django.contrib.auth.models import User
+from core.models import User
 from api.views import report_event, create_incident, update_incident, get_incident, health_check, get_access_token
 
 pytestmark = pytest.mark.django_db
@@ -32,9 +32,9 @@ class TestViews(TestCase):
 		oauth = mixer.blend('api.oauth', token = '12345', state = state)
 		request = self.factory.post(
 			'api/report_event', {
-				'system': system.name, 'event_type': event_type.name, 'interface': interface.name,
+				'system_id': system.id, 'event_type': event_type.name, 'interface': interface.name,
 				'response': 'response', 'request': 'request', 'code': '404', 'description': 'Error occurred',
-				'client_id': oauth.app_user.app.id, 'token': '12345'
+				'client_id': oauth.app_user.app.id, 'token': '12345', 'method': 'method', 'stack_trace': 'stack_trace'
 			}
 		)
 		response = report_event(request)
@@ -51,7 +51,7 @@ class TestViews(TestCase):
 		mixer.blend('base.IncidentType', name = 'Scheduled', state = state)
 		request = self.factory.post(
 			'api/create_incident', {
-				'incident_type': 'Scheduled', 'system': system.name, 'escalation_level': escalation_level.name,
+				'incident_type': 'Scheduled', 'system_id': system.id, 'escalation_level': escalation_level.id,
 				'name': 'HP Upgrade', 'description': 'Scheduled Upgrade of HP to v3', 'scheduled_for': '2019-09-20',
 				'scheduled_until': '2019-09-21', 'state': 'Scheduled', 'priority_level': '5',
 				'client_id': oauth.app_user.app.id, 'token': '12345'
@@ -68,11 +68,11 @@ class TestViews(TestCase):
 		incident = mixer.blend('core.Incident')
 		escalation_level = mixer.blend('base.EscalationLevel', state = state)
 		oauth = mixer.blend('api.oauth', token = '12345', state = state)
-		mixer.blend('base.State', name = 'Identified')
+		resolution_state = mixer.blend('base.State', name = 'Identified')
 		request = self.factory.post(
 			'api/update_incident', {
-				'incident_id': incident.id, 'name': 'Increased number of errors in HP', 'state': 'Identified',
-				'escalation_level': escalation_level.name, 'description': 'Increased errors affecting TakeLoan',
+				'incident_id': incident.id, 'name': 'Increased number of errors in HP', 'state': resolution_state.id,
+				'escalation_level': escalation_level.id, 'description': 'Increased errors affecting TakeLoan',
 				'priority_level': '4', 'client_id': oauth.app_user.app.id, 'token': '12345'
 			}
 		)
@@ -127,3 +127,5 @@ class TestViews(TestCase):
 		response = json.loads(response.content)
 		assert response.get('code') == '800.200.001', 'Should create an access token %s' % request
 		assert response['data'].get('token') is not None, 'Should return a token'
+
+	# def

@@ -16,13 +16,13 @@ class TestIncidentLogger(object):
 		system = mixer.blend('core.System', state = state)
 		escalation_level = mixer.blend('base.EscalationLevel', state = state)
 		incident = IncidentAdministrator().log_incident(
-			incident_type = incident_type, system = system, escalation_level = escalation_level,
+			incident_type = incident_type, system = system.id, escalation_level = escalation_level.id,
 			name = 'Scheduled Maintenance', description = 'Scheduled Maintenance for Hela-Plan', priority_level = "4",
 			state = mixer.blend('base.State', name = "Scheduled").name, scheduled_for = '2019-09-19',
 			scheduled_until = '2019-09-20'
 		)
 		failed_incident_creation = IncidentAdministrator().log_incident(
-			incident_type = incident_type, system = system, escalation_level = escalation_level,
+			incident_type = incident_type, system = system.id, escalation_level = escalation_level.id,
 			name = 'Scheduled Maintenance', description = 'Scheduled Maintenance for Hela-Plan', priority_level = "str",
 			state = mixer.blend('base.State', name = "Realtime").name
 		)
@@ -39,11 +39,11 @@ class TestIncidentLogger(object):
 		investigating_state = mixer.blend('base.state', name = 'Identified')
 		incident = mixer.blend('core.Incident', state = investigating_state)
 		incident_update = IncidentAdministrator().update_incident(
-			incident.id, state = investigating_state.name, escalation_level = escalation_level, name = incident.name,
+			incident.id, state = investigating_state.id, escalation_level = escalation_level.id, name = incident.name,
 			description = "Priority Level Increased to 4 with increased error occurrence", priority_level = "4"
 		)
 		failing_incident_update = IncidentAdministrator().update_incident(
-			incident.id, state = investigating_state.name, escalation_level = escalation_level, name = incident.name,
+			incident.id, state = investigating_state.id, escalation_level = escalation_level.id, name = incident.name,
 			description = "Priority Level Increased to 4 with increased error occurrence", priority_level = "str"
 		)
 		assert incident_update.get('code') == '800.200.001', "Should update the incident successfully"

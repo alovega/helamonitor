@@ -44,7 +44,7 @@ def report_event(request):
 	try:
 		data = get_request_data(request)
 		event = EventLog.log_event(
-			event_type = data.get('event_type'), system = data.get('system'), interface = data.get('interface'),
+			event_type = data.get('event_type'), system = data.get('system_id'), interface = data.get('interface'),
 			response = data.get('response'), request = data.get('request'), code = data.get('code'),
 			description = data.get('description'), stack_trace = data.get('stack_trace'), method = data.get('method')
 		)
@@ -72,6 +72,27 @@ def get_events(request):
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('Get events Exception: %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def get_event(request):
+	"""
+	Get an event from a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: The requested recipient or a status code indicating errors if any.
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		event = EventLog.get_event(
+			event_id = data.get('event_id'), system_id = data.get('system_id')
+		)
+		return JsonResponse(event)
+	except Exception as ex:
+		lgr.exception('Get Event Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -119,7 +140,7 @@ def create_incident(request):
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
 
 
 @csrf_exempt
@@ -298,6 +319,26 @@ def get_access_token(request):
 	except Exception as ex:
 		lgr.exception("Get Access token Exception %s " % ex)
 	return JsonResponse({'code': '800.400.001'})
+
+
+@csrf_exempt
+def verify_token(request):
+	"""
+	Verifies an access token granted to a user
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code and the token with its expiry time
+	@rtype: dict
+	@param request:
+	@return:
+	"""
+	try:
+		data = get_request_data(request)
+		token = UserAdministrator.verify_token(data.get('token'))
+		return JsonResponse(token)
+	except Exception as ex:
+		lgr.exception('Verify access token exception %s' % ex)
+	return {'code': '800.500.001'}
 
 
 @csrf_exempt

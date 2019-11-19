@@ -5,7 +5,7 @@ This is the Api services tests module.
 import datetime
 import pytest
 from mixer.backend.django import mixer
-from django.contrib.auth.models import User
+from core.models import User
 from api.backend.services import OauthService, AppUserService, AppService
 
 pytestmark = pytest.mark.django_db
