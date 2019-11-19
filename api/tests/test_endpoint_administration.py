@@ -17,21 +17,21 @@ class TestEndpointAdministration(object):
 		system = mixer.blend('core.System', state = state)
 		endpoint = EndpointAdministrator.create_endpoint(
 			state_id = state.id, endpoint_type_id = endpoint_type.id, system_id = system.id,
-			endpoint = "https://mail.google.com", name = "mail", description = "Endpoint for Google mail",
+			url = "https://mail.google.com", name = "mail", description = "Endpoint for Google mail",
 			response_time = 5
 		)
 		endpoint2 = EndpointAdministrator.create_endpoint(
 			state_id = state.id, endpoint_type_id = endpoint_type.id, system_id = system.id,
-			endpoint = "https://mail.google.com", name = "mail", description = "Endpoint for Google mail",
+			url = "https://mail.google.com", name = "mail", description = "Endpoint for Google mail",
 			response_time = 5
 		)
 		endpoint3 = EndpointAdministrator.create_endpoint(
 			state_id = state.id, endpoint_type_id = endpoint_type.id, system_id = system.id,
-			endpoint = "https://mail.google.com", name = "", description = "Endpoint for Google mail",
+			url = "https://mail.google.com", name = "", description = "Endpoint for Google mail",
 			response_time = 5
 		)
 		assert endpoint.get('code') == '800.200.001', "Should create an endpoint"
-		assert endpoint2.get('code') == '200.400.007', "Should return error code"
+		assert endpoint2.get('code') == '800.400.001', "Should return error code"
 		assert endpoint2.get('message') == 'An endpoint with this url or name exists'
 		assert endpoint3.get('code') == '800.400.002', "Should return error code for missing parameters"
 		assert endpoint3.get('message') == 'Missing parameters'
@@ -47,11 +47,11 @@ class TestEndpointAdministration(object):
 		)
 		updated_endpoint = EndpointAdministrator.update_endpoint(
 			endpoint.id,  state.id, description = "Google mail", response_time = 3,
-			endpoint = "https://mail.googl.com", name = "mail"
+			url = "https://mail.googl.com", name = "mail"
 		)
 		updated_endpoint2 = EndpointAdministrator.update_endpoint(
 			endpoint.id, state.id, description = "Google mail", response_time = 3,
-			endpoint = "https://mail.googl.com", name = ""
+			url = "https://mail.googl.com", name = ""
 		)
 		assert updated_endpoint.get('code') == '800.200.001', "Should update an endpoint"
 		assert updated_endpoint2.get('code') == '800.400.002', "Should update an endpoint"
