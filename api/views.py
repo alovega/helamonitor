@@ -1103,3 +1103,24 @@ def edit_user(request):
 	except Exception as ex:
 		lgr.exception('Edit User Exception %s ' % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def dashboard_widgets_data(request):
+	"""
+	Retrieves  Dashboard widgets data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		widget_data = DashboardAdministration.dashboard_widgets_data(
+			system = data.get('system_id'), date_from = data.get('date_from'), date_to = data.get('date_to')
+		)
+		return JsonResponse(widget_data)
+	except Exception as ex:
+		lgr.exception('Get Dashboard widgets data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
