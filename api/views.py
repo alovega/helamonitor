@@ -679,9 +679,9 @@ def update_endpoint(request):
 	try:
 		data = get_request_data(request)
 		updated_endpoint = EndpointAdministrator.update_endpoint(
-			endpoint_id = data.get('endpoint_id'), state_id = data.get('state'),
-			response_time = data.get('optimal_response_time'), description = data.get('description'),
-			url = data.get('url'), name = data.get('name')
+			endpoint_id = data.get('endpoint_id'), state_id = data.get('State'),
+			response_time = data.get('OptimalResponseTime'), description = data.get('Description'),
+			url = data.get('Url'), name = data.get('EndpointName')
 		)
 		return JsonResponse(updated_endpoint)
 	except Exception as ex:
@@ -785,8 +785,8 @@ def update_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_recipient(
-			recipient_id = data.get('recipientId'), state_id = data.get('stateId'),
-			phone_number = data.get('phoneNumber')
+			recipient_id = data.get('recipientId'), state_id = data.get('State'),
+			phone_number = data.get('PhoneNumber')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
@@ -807,8 +807,8 @@ def update_system_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_system_recipient(
-			system_recipient_id = data.get('systemRecipientId'), state_id = data.get('stateId'),
-			notification_type_id = data.get('notificationTypeId')
+			system_recipient_id = data.get('systemRecipientId'), state_id = data.get('State'),
+			notification_type_id = data.get('NotificationType')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:

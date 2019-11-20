@@ -39,7 +39,7 @@ class RecipientAdministrator(object):
 		"""
 		try:
 			recipient = RecipientService().filter(id = recipient_id).values(
-				userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
+				userName = F('user__username'), phoneNumber = F('phone_number'), stateId = F('state'),
 				dateCreated = F('date_created'), recipientId = F('id')).first()
 			return {'code': '800.200.001', 'data': recipient}
 		except Exception as ex:
@@ -159,7 +159,7 @@ class RecipientAdministrator(object):
 			if not system_recipient_id:
 				return {"code": "800.400.002", "message": "missing parameters"}
 			system_recipient = SystemRecipientService().filter(id = system_recipient_id).values(
-				userName = F('recipient__user__username'), notificationType = F('notification_type__name'),
+				'state', userName = F('recipient__user__username'), notificationType = F('notification_type'),
 				systemRecipientId = F('id'), escalationLevel = F('escalation_level__name')
 			).first()
 			return {'code': '800.200.001', 'data': system_recipient}
