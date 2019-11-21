@@ -19,6 +19,8 @@ class User(AbstractUser, BaseModel):
 
     class Meta:
         db_table = 'auth_user'
+        ordering = ('username',)
+        unique_together = ('username',)
 
 
 def response_time_speed():
@@ -34,12 +36,16 @@ class System(GenericBaseModel):
     """
     Model for managing defined system
     """
-    version = models.CharField(max_length = 10, default='1.0.0')
+    version = models.CharField(max_length = 10, default = '1.0.0')
     admin = models.ForeignKey(User)
     state = models.ForeignKey(State)
 
     def __str__(self):
         return "%s %s" % (self.name, self.state)
+
+    # class Meta(object):
+    #     ordering = ('name',)
+    #     unique_together = ('name', )
 
 
 class Interface(GenericBaseModel):

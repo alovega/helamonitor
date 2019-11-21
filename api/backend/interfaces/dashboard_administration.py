@@ -43,7 +43,7 @@ class DashboardAdministration(object):
 					status = F('state__name')
 				).order_by('-date_created'))
 				incident.update(incident_updates = incident_updates)
-			status_data = {'incidents': current_incidents, 'current_state': {}}
+			status_data = {'system_id': system.id, 'incidents': current_incidents, 'current_state': {}}
 			endpoints = [str(endpoint) for endpoint in list(
 				EndpointService().filter(system = system).values_list('state__name', flat = True))]
 			status_data.update(current_state = {
@@ -76,8 +76,6 @@ class DashboardAdministration(object):
 						status_data.update(current_state = {
 							'state': 'status-operational', 'description': 'All Systems Operational'})
 						break
-			# status_data.update(
-				# current_state = {'state': 'status-operational', 'description': 'All systems are operational'})
 			return {'code': '800.200.001', 'data': status_data}
 		except Exception as ex:
 			lgr.exception('Get current system status exception %s' % ex)
