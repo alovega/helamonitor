@@ -11,10 +11,10 @@ from api.views import report_event, get_events, get_event, get_error_rates, crea
     update_rule, get_rule, get_rules, delete_rule, create_system, update_system, get_systems, delete_system, \
     create_user, get_user, delete_user, get_users, get_endpoints, create_endpoints, update_endpoint, edit_user, \
     get_recipients, create_recipient, update_recipient, get_endpoint, get_recipient, \
-    get_look_up_data, delete_recipient, delete_endpoint, get_notifications, get_logged_in_user_details,  \
-    get_system_status, edit_logged_in_user_details, get_logged_in_user_recent_notifications,  past_incidents, \
+    get_look_up_data, delete_recipient, delete_endpoint, get_notifications, get_logged_in_user_details, \
+    get_system_status, edit_logged_in_user_details, get_logged_in_user_recent_notifications, past_incidents, \
     get_logged_in_user_notifications, get_system_recipients, edit_logged_in_user_password, get_system_recipient, \
-    update_system_recipient, create_system_recipient, delete_system_recipient, get_system_response_time_data
+    update_system_recipient, create_system_recipient, delete_system_recipient, get_system_response_time_data, table_data
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -75,4 +75,5 @@ urlpatterns = [
     url(r'^get_user/$', get_user, name = 'get_user'),
     url(r'^get_response_time_data/$', get_system_response_time_data, name = 'get_response_time_data'),
     url(r'^dashboard_widgets_data/$', dashboard_widgets_data, name = 'dashboard_widgets_data'),
+    url(r'^get_table_data/$', table_data, name = 'table_data')
 ]

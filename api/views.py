@@ -22,6 +22,7 @@ from api.backend.interfaces.user_administration import UserAdministrator
 from api.backend.interfaces.notification_interface import NotificationLogger
 from api.backend.interfaces.look_up_interface import LookUpInterface
 from api.backend.interfaces.dashboard_administration import DashboardAdministration
+from api.backend.interfaces.table_interface import TableData
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
@@ -1124,3 +1125,23 @@ def dashboard_widgets_data(request):
 	except Exception as ex:
 		lgr.exception('Get Dashboard widgets data exception %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+@csrf_exempt
+def table_data(request):
+	"""
+	Retrieves  Table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		# parameters = data.get('body')
+		data_source = TableData.get_endpoints(
+			parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get Table data %s' % ex)
+	return JsonResponse({'code': '800.500.001 %s' %ex})
