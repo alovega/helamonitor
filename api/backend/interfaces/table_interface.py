@@ -129,7 +129,7 @@ class TableData(object):
 					).order_by(
 						str(parameters.get('orderColumn'))))
 			else:
-				data = list(EndpointService().filter().values(
+				data = list(RecipientService().filter().values(
 					userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
 					dateCreated = F('date_created'), recipientId = F('id')
 				))
