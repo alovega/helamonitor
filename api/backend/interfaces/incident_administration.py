@@ -5,7 +5,7 @@ Class for incident Administration
 import logging
 import dateutil.parser
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
+import uuid
 from core.models import User
 from django.db.models import F, Q
 
@@ -57,11 +57,14 @@ class IncidentAdministrator(object):
 		try:
 			system = SystemService().get(pk = system, state__name = "Active")
 			incident_type = IncidentTypeService().get(name = incident_type, state__name = "Active")
-			state = state if incident_type.name == 'Realtime' else "Scheduled"
-			escalation_level = EscalationLevelService().get(
-				pk = escalation_level, state__name = "Active")
+			try:
+				state = StateService().get(pk = uuid.UUID(state))
+			except ValueError:
+				state = StateService().get(name = state) if incident_type.name == 'Realtime' else StateService(
+				).get(name = 'Scheduled')
+			escalation_level = EscalationLevelService().get(pk = escalation_level, state__name = "Active")
 			if system is None or incident_type is None or escalation_level is None:
-				return {"code": "800.400.002 %s" % system}
+				return {"code": "800.400.002"}
 			if incident_type.name == "Realtime" and event_type is not None:
 				incident = IncidentService().filter(event_type__name = event_type, system = system).exclude(
 					Q(state__name = 'Resolved'), Q(state__name = 'Completed')).order_by('-date_created').first()
@@ -193,21 +196,21 @@ class IncidentAdministrator(object):
 		try:
 			system = SystemService().get(pk = system, state__name = 'Active')
 			incident = IncidentService().filter(pk = incident_id, system = system).values(
-				'name', 'state', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
-				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
-				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name'),
-			).first()
+				'id', 'name', 'description', 'priority_level', 'date_created', 'date_modified',
+				'scheduled_for', 'scheduled_until', system_id = F('system__id'), incident_type_name = F(
+					'incident_type__name'), state_id = F('state__id'), state_name = F('state__name'),
+				system_name = F('system__name'), event_type_id = F('event_type__id')).first()
 			if system is None or incident is None:
 				return {'code': '800.400.002'}
 			incident_updates = list(IncidentLogService().filter(incident__id = incident_id).values(
-				'description', 'priority_level', 'date_created', 'escalation_level',
-				'date_modified', user_name = F('user__username'), status = F('state__name')
-			).order_by('-date_created'))
+				'id', 'description', 'priority_level', 'date_created', 'date_modified', user_id = F('user__id'),
+				escalation_level_id = F('escalation_level__id'), state_name = F('state__name'), state_id = F(
+					'state__id')).order_by('-date_created'))
 			incident.update(incident_updates = incident_updates)
 			return {'code': '800.200.001', 'data': incident}
 		except Exception as ex:
 			lgr.exception("Incident Administration Exception: %s" % ex)
-		return {'code': '800.400.001'}
+		return {'code': '800.400.001', 'err': str(ex)}
 
 	@staticmethod
 	def get_incidents(system, **kwargs):
