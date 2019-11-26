@@ -4,7 +4,6 @@ Class for incident Administration
 """
 import logging
 import dateutil.parser
-from datetime import datetime
 import uuid
 from core.models import User
 from django.db.models import F, Q
@@ -226,7 +225,6 @@ class IncidentAdministrator(object):
 			system = SystemService().get(name = system, state__name = 'Active')
 			if not system:
 				return {'code': '800.400.002'}
-
 			incidents = list(IncidentService().filter(system = system).values(
 				'name', 'state', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
 				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
@@ -237,9 +235,7 @@ class IncidentAdministrator(object):
 					'description', 'priority_level', 'date_created', 'escalation_level', 'date_modified',
 					status = F('state__name'), user_name = F('user__username')).order_by('-date_created'))
 				incident.update(incident_updates = incident_updates)
-
 			return {'code': '800.200.001', 'data': incidents}
-
 		except Exception as ex:
 			lgr.exception("Get incidents exception %s" % ex)
 		return {'code': '800.400.001'}

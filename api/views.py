@@ -108,8 +108,8 @@ def get_error_rates(request):
 	"""
 	try:
 		data = get_request_data(request)
-		event = EventLog.get_error_rate(
-			system_id = data.get('system_id')
+		event = DashboardAdministration.get_error_rate(
+			system_id = data.get('system_id'), start_date = data.get('start_date'),  end_date = data.get('end_date')
 		)
 		return JsonResponse(event)
 	except Exception as ex:
