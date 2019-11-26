@@ -16,6 +16,7 @@ class User(AbstractUser, BaseModel):
     Model for managing system users
     """
     phone_number = models.CharField(max_length = 15, null = True, blank = True)
+    # deleted = models.BooleanField(default = False)
 
     class Meta:
         db_table = 'auth_user'
@@ -43,9 +44,9 @@ class System(GenericBaseModel):
     def __str__(self):
         return "%s %s" % (self.name, self.state)
 
-    # class Meta(object):
-    #     ordering = ('name',)
-    #     unique_together = ('name', )
+    class Meta(object):
+        ordering = ('name',)
+        unique_together = ('name', )
 
 
 class Interface(GenericBaseModel):
