@@ -17,7 +17,7 @@ class EscalationRuleAdministrator(object):
 	"""
 
 	@staticmethod
-	def create_rule(name, description, system, event_type, nth_event, state, escalation_level, duration, **kwargs):
+	def create_rule(name, description, system, event_type, nth_event, escalation_level, duration, **kwargs):
 		"""
 		Creates an escalation rule for a selected system.
 		@param name: Name of the escalation rule to be created
@@ -30,10 +30,8 @@ class EscalationRuleAdministrator(object):
 		@type event_type: str
 		@param nth_event: Number of event of a certain type that need to be logged to raise an escalation
 		@type nth_event: str
-		@param duration:Time period within which certain events muct occur to trigger an escalation.
+		@param duration: Time period within which certain events must occur to trigger an escalation.
 		@type duration: str
-		@param state: State of the incident. Defaults to Active
-		@type state: str
 		@param escalation_level: Level at which an escalation is configured with a set of recipients
 		@type escalation_level: str
 		@param kwargs: Extra key-value arguments to pass for incident logging
@@ -41,28 +39,22 @@ class EscalationRuleAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			# return {'code': '800.200.001', 'data': {
-			# 	'name': name, 'description': description, 'system': system, 'nth_event': nth_event, 'duration': duration,
-			# 	'escalation_level': escalation_level, 'state': state
-			# }}
-			system = SystemService().get(name = system, state__name = "Active")
-			state = StateService().get(name = state)
-			escalation_level = EscalationLevelService().get(name = escalation_level, state__name = "Active")
-			event_type = EventTypeService().get(name = event_type, state__name = 'Active')
-			if system is None or state is None or escalation_level is None or event_type is None:
+			system = SystemService().get(pk = system, state__name = "Active")
+			escalation_level = EscalationLevelService().get(pk = escalation_level, state__name = "Active")
+			event_type = EventTypeService().get(pk = event_type, state__name = 'Active')
+			if system is None or escalation_level is None or event_type is None:
 				return {"code": "800.400.002"}
 
 			escalation_rule = EscalationRuleService().create(
 				name = name, description = description, system = system, nth_event = int(nth_event),
-				duration = int(duration), state = state, escalation_level = escalation_level, event_type = event_type
+				duration = int(duration), state = StateService().get(name = 'Active'), escalation_level =
+				escalation_level, event_type = event_type
 			)
 			if escalation_rule is not None:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id, system = system).values(
-					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
-					'nth_event', rule_id = F('id'), escalation = F('escalation_level__name'),
-					eventtype = F('event_type__name'), status = F('state__name'), system_name = F('system__name')
-				).first()
-
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name')).first()
 				duration = int(rule.get('duration'))
 				hours, remainder = divmod(duration, 60 * 60)
 				minutes, seconds = divmod(remainder, 60)
@@ -75,8 +67,8 @@ class EscalationRuleAdministrator(object):
 
 	@staticmethod
 	def update_rule(
-			rule_id, name = None, description = None, nth_event = None, state = None,
-			escalation_level = None, duration = None, event_type = None, **kwargs):
+			rule_id, name = None, description = None, nth_event = None, escalation_level = None,
+			duration = None, event_type = None, **kwargs):
 		"""
 		Updates an escalation rule for a selected system.
 		@param rule_id: The id of the rule to be updated
@@ -91,8 +83,6 @@ class EscalationRuleAdministrator(object):
 		@type duration: str | None
 		@param event_type: The event type to be applied for an escalation with the rule.
 		@type event_type: str | None
-		@param state: State of the incident. Defaults to Active
-		@type state: str | None
 		@param escalation_level: Level at which an escalation is configured with a set of recipients
 		@type escalation_level: str | None
 		@param kwargs: Extra key-value arguments to pass for incident logging
@@ -108,24 +98,22 @@ class EscalationRuleAdministrator(object):
 			nth_event = int(nth_event) if nth_event is not None else escalation_rule.nth_event
 			duration = int(duration) if duration is not None else escalation_rule.duration
 			escalation_level = EscalationLevelService().filter(
-				name = escalation_level, state__name = 'Active').first() if escalation_level is not None else \
+				pk = escalation_level, state__name = 'Active').first() if escalation_level is not None else \
 				escalation_rule.escalation_level
 			event_type = EventTypeService().filter(
-				name = event_type, state__name = 'Active').first() if event_type is not None else \
+				pk = event_type, state__name = 'Active').first() if event_type is not None else \
 				escalation_rule.event_type
-			state = StateService().filter(name = state).first() if state is not None else escalation_rule.state
+			state = escalation_rule.state
 
 			updated_escalation_rule = EscalationRuleService().update(
 				pk = escalation_rule.id, name = name, description = description, nth_event = int(nth_event),
 				duration = duration, state = state, escalation_level = escalation_level, event_type = event_type
 			)
-
 			if updated_escalation_rule is not None:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id).values(
-					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
-					'nth_event',  rule_id = F('id'), escalation = F('escalation_level__name'), eventtype = F(
-						'event_type__name'), status = F('state__name'), system_name = F('system__name')
-				).first()
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name')).first()
 				duration = int(rule.get('duration'))
 				hours, remainder = divmod(duration, 60 * 60)
 				minutes, seconds = divmod(remainder, 60)
@@ -134,7 +122,7 @@ class EscalationRuleAdministrator(object):
 				return {'code': '800.200.001', 'data': rule}
 		except Exception as ex:
 			lgr.exception("Escalation Rule Update exception %s" % ex)
-		return {"code": "800.400.001"}
+		return {"code": "800.400.001", 'err': str(ex)}
 
 	@staticmethod
 	def get_rule(rule_id, system_id, **kwargs):
@@ -155,10 +143,9 @@ class EscalationRuleAdministrator(object):
 				return {"code": "800.400.002"}
 			if escalation_rule:
 				rule = EscalationRuleService().filter(pk = escalation_rule.id).values(
-					'name', 'description', 'duration', 'date_created', 'date_modified', 'system_id',
-					'nth_event',  rule_id = F('id'), escalation = F('escalation_level__name'), eventtype = F(
-						'event_type__name'), status = F('state__name'), system_name = F('system__name')
-				).first()
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name')).first()
 				duration = int(rule.get('duration'))
 				hours, remainder = divmod(duration, 60 * 60)
 				minutes, seconds = divmod(remainder, 60)
@@ -181,14 +168,12 @@ class EscalationRuleAdministrator(object):
 		"""
 		try:
 			system = SystemService().filter(pk = system_id, state__name = 'Active').first()
-
 			if system is None:
 				return {"code": "800.400.002"}
 			escalation_rules = list(EscalationRuleService().filter(system = system).values(
-				'name', 'description', 'date_created', 'duration', 'date_modified', 'system_id',
-				'nth_event',  rule_id = F('id'), escalation = F('escalation_level__name'), eventtype = F(
-					'event_type__name'), status = F('state__name'), system_name = F('system__name')).order_by(
-				'-date_created'))
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name')).order_by('-date_created'))
 			for rule in escalation_rules:
 				duration = int(rule.get('duration'))
 				hours, remainder = divmod(duration, 60 * 60)

@@ -101,7 +101,7 @@ class TestViews(TestCase):
 		incident = mixer.blend('core.Incident', state = state, system = system)
 		oauth = mixer.blend('api.oauth', token = '12345', state = state)
 		request = self.factory.get('api/get_incident', {
-			'system': system.name, 'incident_id': incident.id, 'client_id': oauth.app_user.app.id, 'token': '12345'
+			'system_id': system.id, 'incident_id': incident.id, 'client_id': oauth.app_user.app.id, 'token': '12345'
 		})
 		response = get_incident(request)
 		response = json.loads(response.content)
