@@ -38,6 +38,8 @@ class SystemAdministrator(object):
 		@rtype: dict
 		"""
 		try:
+			if SystemService().get(name = name):
+				return {'code': '800.400.100', 'message': 'System name already in use'}
 			admin = User.objects.get(pk = admin_id)
 			system = SystemService().create(
 				name = name, description = description, state = StateService().get(name = 'Active'), admin = admin)
@@ -72,6 +74,8 @@ class SystemAdministrator(object):
 			system = SystemService().get(pk = system, state__name = 'Active')
 			if not system:
 				return {'code': '800.400.200'}
+			if SystemService().get(name = name) and name != system.name:
+				return {'code': '800.400.100', 'message': 'System name already in use'}
 			name = name if name is not None else system.name
 			description = description if description is not None else system.description
 			admin_id = admin_id if admin_id is not None else system.admin_id
