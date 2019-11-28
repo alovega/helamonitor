@@ -140,7 +140,7 @@ def create_incident(request):
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -237,7 +237,7 @@ def get_incidents(request):
 	try:
 		data = get_request_data(request)
 		incident = IncidentAdministrator.get_incidents(
-			system = data.get('system'), date_from = data.get('date_from'), date_to = data.get('date_to')
+			system = data.get('system_id'), incident_type = data.get('incident_type'), states = data.get('states')
 		)
 		return JsonResponse(incident)
 	except Exception as ex:
@@ -384,7 +384,7 @@ def update_rule(request):
 		return JsonResponse(rule)
 	except Exception as ex:
 		lgr.exception('Rule creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -465,7 +465,7 @@ def create_system(request):
 		return JsonResponse(rules)
 	except Exception as ex:
 		lgr.exception('System creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -878,6 +878,7 @@ def get_system_recipient(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def get_look_up_data(request):
 	"""
 	Get a specific endpoint
@@ -1080,7 +1081,7 @@ def get_system_response_time_data(request):
 	"""
 	try:
 		data = get_request_data(request)
-		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('systemId'))
+		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('system_id'))
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('edit logged in user password update Exception: %s' % ex)

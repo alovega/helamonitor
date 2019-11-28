@@ -18,9 +18,7 @@ def get_request_data(request):
 		if request is not None:
 			request_meta = getattr(request, 'META', {})
 			request_method = getattr(request, 'method', None)
-			if request_meta.get('CONTENT_TYPE', '') == 'application/json':
-				data = json.loads(request.body)
-			elif str(request_meta.get('CONTENT_TYPE', '')).startswith('multipart/form-data;'):  # Special handling for
+			if str(request_meta.get('CONTENT_TYPE', '')).startswith('multipart/form-data;'):  # Special handling for
 				# Form Data?
 				data = request.POST.copy()
 				data = data.dict()
@@ -30,6 +28,8 @@ def get_request_data(request):
 			elif request_method == 'POST':
 				data = request.POST.copy()
 				data = data.dict()
+			elif request_meta.get('CONTENT_TYPE', '') == 'application/json':
+				data = json.loads(request.body)
 			if not data:
 				request_body = getattr(request, 'body', None)
 				if request_body:
