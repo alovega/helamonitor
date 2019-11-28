@@ -1130,6 +1130,7 @@ def dashboard_widgets_data(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def endpoint_table_data(request):
 	"""
 	Retrieves  Table data
@@ -1151,6 +1152,7 @@ def endpoint_table_data(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def recipient_table_data(request):
 	"""
 	Retrieves  Table data
@@ -1171,6 +1173,7 @@ def recipient_table_data(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def system_recipient_table_data(request):
 	"""
 	Retrieves  Table data
