@@ -107,8 +107,8 @@ def get_error_rates(request):
 	"""
 	try:
 		data = get_request_data(request)
-		event = EventLog.get_error_rate(
-			system_id = data.get('system_id')
+		event = DashboardAdministration.get_error_rate(
+			system_id = data.get('system_id'), start_date = data.get('start_date'),  end_date = data.get('end_date')
 		)
 		return JsonResponse(event)
 	except Exception as ex:
@@ -215,7 +215,7 @@ def get_incident(request):
 	try:
 		data = get_request_data(request)
 		incident = IncidentAdministrator.get_incident(
-			system = data.get('system'), incident_id = data.get('incident_id')
+			system = data.get('system_id'), incident_id = data.get('incident_id')
 		)
 		return JsonResponse(incident)
 	except Exception as ex:
@@ -356,8 +356,8 @@ def create_rule(request):
 	try:
 		data = get_request_data(request)
 		rule = EscalationRuleAdministrator.create_rule(
-			name = data.get('name'), description = data.get('description'), system = data.get('system'),
-			nth_event = data.get('nth_event'), state = data.get('state'), duration = data.get('duration'),
+			name = data.get('name'), description = data.get('description'), system = data.get('system_id'),
+			nth_event = data.get('nth_event'), duration = data.get('duration'),
 			escalation_level = data.get('escalation_level'), event_type = data.get('event_type')
 		)
 		return JsonResponse(rule)
@@ -380,7 +380,7 @@ def update_rule(request):
 		data = get_request_data(request)
 		rule = EscalationRuleAdministrator.update_rule(
 			rule_id = data.get('rule_id'), name = data.get('name'), description = data.get('description'),
-			nth_event = data.get('nth_event'), state = data.get('state'), duration = data.get('duration'),
+			nth_event = data.get('nth_event'), duration = data.get('duration'),
 			escalation_level = data.get('escalation_level'), event_type = data.get('event_type')
 		)
 		return JsonResponse(rule)
@@ -462,11 +462,12 @@ def create_system(request):
 	try:
 		data = get_request_data(request)
 		rules = SystemAdministrator.create_system(
-			name = data.get('name'), description = data.get('description'), admin_id = data.get('admin_id'))
+			name = data.get('name'), description = data.get('description'), admin_id = data.get('admin'), version =
+			data.get('version'))
 		return JsonResponse(rules)
 	except Exception as ex:
 		lgr.exception('System creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
+	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
 
 
 @csrf_exempt
@@ -482,8 +483,8 @@ def update_system(request):
 	try:
 		data = get_request_data(request)
 		rules = SystemAdministrator.update_system(
-			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
-			admin_id = data.get('admin_id'), version = data.get('version')
+			system = data.get('id'), name = data.get('name'), description = data.get('description'),
+			admin_id = data.get('admin'), version = data.get('version')
 		)
 		return JsonResponse(rules)
 	except Exception as ex:
@@ -502,7 +503,7 @@ def get_system(request):
 	"""
 	try:
 		data = get_request_data(request)
-		system = SystemAdministrator.get_system(system_id = data.get('system_id'))
+		system = SystemAdministrator.get_system(system = data.get('id'))
 		return JsonResponse(system)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
@@ -539,7 +540,7 @@ def delete_system(request):
 	"""
 	try:
 		data = get_request_data(request)
-		deleted_system = SystemAdministrator.delete_system(system_id = data.get('system_id'))
+		deleted_system = SystemAdministrator.delete_system(system = data.get('id'))
 		return JsonResponse(deleted_system)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)

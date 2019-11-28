@@ -76,7 +76,7 @@ class UserAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			user = User.objects.get(id = user_id)
+			user = User.objects.filter(id = user_id, is_active = True).first()
 			if user:
 				user.username = username if username else user.username
 				user.email = email if email else user.email
@@ -101,7 +101,7 @@ class UserAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			user = User.objects.filter(id = user_id).values().first()
+			user = User.objects.filter(id = user_id, is_active = True).values().first()
 			if not user:
 				return {"code": "800.400.002"}
 			return {'code': '800.200.001', 'data': user}
@@ -118,7 +118,7 @@ class UserAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			users = list(User.objects.filter().values().order_by('-date_joined'))
+			users = list(User.objects.filter(is_active = True).values().order_by('-date_joined'))
 			if users:
 				return {'code': '800.200.001', 'data': users}
 		except Exception as ex:
@@ -136,12 +136,10 @@ class UserAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			user = User.objects.filter(pk = user_id).first()
+			user = User.objects.filter(pk = user_id).update(is_active = False)
 			if user is None:
 				return {"code": "800.400.002"}
-			if user:
-				if user.delete():
-					return {'code': '800.200.001', 'Message': 'User deleted successfully'}
+			return {'code': '800.200.001', 'Message': 'User deleted successfully'}
 		except Exception as ex:
 			lgr.exception("Delete user exception %s" % ex)
 		return {"code": "800.400.001"}

@@ -3,10 +3,11 @@
 Class for dashboard data
 """
 import logging
-import calendar
 import dateutil.parser
+import calendar
 from datetime import datetime, timedelta
 from django.db.models import F, Q
+from django.utils import timezone
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, EventService, SystemService, \
@@ -43,7 +44,7 @@ class DashboardAdministration(object):
 					status = F('state__name')
 				).order_by('-date_created'))
 				incident.update(incident_updates = incident_updates)
-			status_data = {'incidents': current_incidents, 'current_state': {}}
+			status_data = {'system_id': system.id, 'incidents': current_incidents, 'current_state': {}}
 			endpoints = [str(endpoint) for endpoint in list(
 				EndpointService().filter(system = system).values_list('state__name', flat = True))]
 			status_data.update(current_state = {
@@ -76,8 +77,6 @@ class DashboardAdministration(object):
 						status_data.update(current_state = {
 							'state': 'status-operational', 'description': 'All Systems Operational'})
 						break
-			# status_data.update(
-				# current_state = {'state': 'status-operational', 'description': 'All systems are operational'})
 			return {'code': '800.200.001', 'data': status_data}
 		except Exception as ex:
 			lgr.exception('Get current system status exception %s' % ex)
@@ -174,4 +173,103 @@ class DashboardAdministration(object):
 			return {'code': '800.200.001', 'data': data}
 		except Exception as ex:
 			lgr.exception("Get incidents exception %s" % ex)
+		return {'code': '800.400.001'}
+
+	@staticmethod
+	def get_error_rate(system_id, start_date, end_date):
+		"""
+		Calculates and returns the error rate of a system based on logged events
+		@param: system_id: Id of the system
+		@type system_id: str
+		@param start_date: Start point of the data to be presented
+		@type: start_date: str
+		@param: end_date: End date of the period for which the data is to be extracted
+		@type end_date: str
+		@return: Response code indicating status and error rate graph data
+		"""
+		try:
+			system = SystemService().get(pk = system_id, state__name = 'Active')
+			if not system:
+				return {'code': '800.400.200'}
+			now = timezone.now()
+			start_date = dateutil.parser.parse(start_date)
+			end_date = dateutil.parser.parse(end_date)
+			period = start_date - end_date
+			labels = []
+			dataset = []
+			if period.days <= 1:
+				for i in range(1, 25):
+					past_hour = now - timedelta(hours = i, minutes = 0)
+					current_hour = past_hour + timedelta(hours = 1)
+					current_errors = EventService().filter(
+						system = system, event_type__name = 'Error', date_created__lte = current_hour,
+						date_created__gte = past_hour).count()
+					past_hour = past_hour.replace(minute = 0)
+					labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
+					dataset.append(current_errors)
+			elif period.days <= 7:
+				for i in range(0, 7):
+					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
+					past_day = current_day + timedelta(days = 1)
+					current_errors = EventService().filter(
+						system = system, event_type__name = 'Error', date_created__lte = past_day,
+						date_created__gte = current_day).count()
+					past_day = past_day.replace(hour = 0, minute = 0)
+					labels.append(past_day.strftime("%m/%d/%y  %H:%M"))
+					dataset.append(current_errors)
+			elif period.days <= 31:
+				for i in range(0, 31):
+					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
+					past_day = current_day + timedelta(days = 1)
+					current_errors = EventService().filter(
+						system = system, event_type__name = 'Error', date_created__lte = past_day,
+						date_created__gte = current_day).count()
+					# print(past_day, current_day)
+					past_day = past_day.replace(hour = 0, minute = 0)
+					labels.append(past_day.strftime("%m/%d/%y"))
+					dataset.append(current_errors)
+			elif period.days <= 365:
+				current_date = now.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
+				current_month = now.month
+				current_date = current_date.replace(
+					day = 1, hour = 0, minute = 0, second = 0, microsecond = 0) + timedelta(
+					days = calendar.monthrange(current_date.year, current_month)[1] - 1)
+				for i in range(1, 13):
+					if current_month > 1:
+						month_name = calendar.month_name[current_month]
+						end_date = current_date
+						start_date = current_date - timedelta(
+							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
+						current_date = current_date - timedelta(
+							days = calendar.monthrange(current_date.year, current_month)[1])
+						current_month = current_month - 1
+					else:
+						month_name = calendar.month_name[current_month]
+						end_date = current_date
+						start_date = current_date - timedelta(
+							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
+						current_date = current_date - timedelta(
+							days = calendar.monthrange(current_date.year, current_month)[1])
+						current_month = current_date.month
+					# print ('From %s to %s on month %s and total days of %s' % (
+					# 	start_date, end_date, month_name, calendar.monthrange(current_date.year, current_date.month)[1]))
+					current_errors = EventService().filter(
+						system = system, event_type__name = 'Error', date_created__lte = end_date,
+						date_created__gte = start_date).count()
+					labels.append('%s, %s' % (month_name, current_date.year))
+					dataset.append(current_errors)
+			else:
+				intervals = 24
+				for i in range(1, intervals + 1):
+					past_hour = now - timedelta(hours = i, minutes = 0)
+					current_hour = past_hour + timedelta(hours = 1)
+					current_errors = EventService().filter(
+						system = system, event_type__name = 'Error', date_created__lte = current_hour,
+						date_created__gte = past_hour).count()
+					past_hour = past_hour.replace(minute = 0)
+					labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
+					dataset.append(current_errors)
+			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset, 'period': period.days}}
+		except Exception as ex:
+			lgr.exception("Get Error rate Exception %s" % ex)
 		return {'code': '800.400.001'}
