@@ -80,8 +80,7 @@ class EndpointAdministrator(object):
 			state = StateService().get(id = state_id)
 			if not (state and name and description and response_time and url and update_endpoint):
 				return {
-					"code": "800.400.002", "message": "Error missing parameters %s   %s   %s   %s   %s   %s"%(state,
-					name, description,response_time, url, update_endpoint)
+					"code": "800.400.002", "message": "Error missing parameters"
 				}
 			endpoint = EndpointService().update(
 				pk = update_endpoint.id, description = description, state = state, name = name,
