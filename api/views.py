@@ -559,7 +559,7 @@ def create_user(request):
 		data = get_request_data(request)
 		user = UserAdministrator.create_user(
 			username = data.get('username'), password = data.get('password'), email = data.get('email'), first_name =
-			data.get('first_name'), last_name = data.get('last_name'))
+			data.get('firstname'), last_name = data.get('lastname'))
 		return JsonResponse(user)
 	except Exception as ex:
 		lgr.exception('User creation Exception: %s' % ex)
