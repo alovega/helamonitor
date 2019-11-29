@@ -145,7 +145,8 @@ class NotificationLogger(object):
 				status = F('state__name')))
 			sms_notification = list(NotificationService().filter(
 				recipient = recipient['phone_number']).values(
-				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
+				'message', 'recipient', type= F('notification_type__name'
+				                                ''), dateCreated=F('date_created'),
 				status = F('state__name'))
 			                        )
 			for sms in sms_notification:

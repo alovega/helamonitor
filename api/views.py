@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import json
 import logging
 import calendar
 
@@ -22,11 +21,11 @@ from api.backend.interfaces.user_administration import UserAdministrator
 from api.backend.interfaces.notification_interface import NotificationLogger
 from api.backend.interfaces.look_up_interface import LookUpInterface
 from api.backend.interfaces.dashboard_administration import DashboardAdministration
+from api.backend.interfaces.table_interface import TableData
 from api.backend.services import OauthService, AppUserService
 from api.backend.decorators import ensure_authenticated
 from base.backend.utilities import get_request_data, generate_access_token
 from base.backend.services import StateService
-from core.backend.services import SystemService
 
 lgr = logging.getLogger(__name__)
 
@@ -308,13 +307,16 @@ def get_access_token(request):
 					oauth = OauthService().update(pk = oauth.id, expires_at = token_expiry())
 				else:
 					oauth = OauthService().create(
-						app_user = app_user, token = generate_access_token(), state = StateService().get(name = 'Active')
+						app_user = app_user, token = generate_access_token(),
+						state = StateService().get(name = 'Active')
 					)
 				if not oauth:
 					return JsonResponse({'code': '800.400.001'})
-				return JsonResponse({'code': '800.200.001', 'data': {
-					'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())}
-				})
+				return JsonResponse({
+					                    'code': '800.200.001', 'data': {
+						'token': str(oauth.token), 'expires_at': calendar.timegm(oauth.expires_at.timetuple())
+					}
+				                    })
 		return JsonResponse({'code': '800.403.001'})
 	except Exception as ex:
 		lgr.exception("Get Access token Exception %s " % ex)
@@ -625,27 +627,6 @@ def get_users(request):
 
 @csrf_exempt
 @ensure_authenticated
-def get_endpoints(request):
-	"""
-	Get a specific systems endpoints
-	@param request: The Django WSGI Request to process
-	@type request: WSGIRequest
-	@return: The requested endpoints or a status code indicating errors if any.
-	@rtype: dict
-	"""
-	try:
-		data = get_request_data(request)
-		endpoints = EndpointAdministrator.get_system_endpoints(
-			system_id = data.get('system_id')
-		)
-		return JsonResponse(endpoints)
-	except Exception as ex:
-		lgr.exception('Endpoint get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
-
-
-@csrf_exempt
-@ensure_authenticated
 def create_endpoints(request):
 	"""
 	Creates endpoints from users
@@ -680,53 +661,13 @@ def update_endpoint(request):
 	try:
 		data = get_request_data(request)
 		updated_endpoint = EndpointAdministrator.update_endpoint(
-			endpoint_id = data.get('endpoint_id'), state_id = data.get('state'),
-			response_time = data.get('optimal_response_time'), description = data.get('description'),
-			url = data.get('url'), name = data.get('name')
+			endpoint_id = data.get('endpoint_id'), state_id = data.get('State'),
+			response_time = data.get('OptimalResponseTime'), description = data.get('Description'),
+			url = data.get('Url'), name = data.get('EndpointName')
 		)
 		return JsonResponse(updated_endpoint)
 	except Exception as ex:
 		lgr.exception('Endpoint update Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
-
-
-@csrf_exempt
-@ensure_authenticated
-def get_recipients(request):
-	"""
-	Get a specific systems endpoints
-	@param request: The Django WSGI Request to process
-	@type request: WSGIRequest
-	@return: The requested recipients or a status code indicating errors if any.
-	@rtype: dict
-	"""
-	try:
-		data = get_request_data(request)
-		recipients = RecipientAdministrator.get_recipients()
-		return JsonResponse(recipients)
-	except Exception as ex:
-		lgr.exception('Recipient get Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001'})
-
-
-@csrf_exempt
-@ensure_authenticated
-def get_system_recipients(request):
-	"""
-	Get a specific systems endpoints
-	@param request: The Django WSGI Request to process
-	@type request: WSGIRequest
-	@return: The requested recipients or a status code indicating errors if any.
-	@rtype: dict
-	"""
-	try:
-		data = get_request_data(request)
-		system_recipients = RecipientAdministrator.get_system_recipients(
-			system_id = data.get('systemId')
-		)
-		return JsonResponse(system_recipients)
-	except Exception as ex:
-		lgr.exception('Recipient get Exception: %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
 
 
@@ -765,7 +706,7 @@ def create_system_recipient(request):
 		data = get_request_data(request)
 		system_recipient = RecipientAdministrator.create_system_recipient(
 			system_id = data.get('systemId'), recipient_id = data.get('Recipient'),
-			escalations =data.get('escalations')
+			escalations = data.get('escalations')
 		)
 		return JsonResponse(system_recipient)
 	except Exception as ex:
@@ -786,8 +727,8 @@ def update_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_recipient(
-			recipient_id = data.get('recipientId'), state_id = data.get('stateId'),
-			phone_number = data.get('phoneNumber')
+			recipient_id = data.get('recipientId'), state_id = data.get('State'),
+			phone_number = data.get('PhoneNumber')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
@@ -808,8 +749,8 @@ def update_system_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_system_recipient(
-			system_recipient_id = data.get('systemRecipientId'), state_id = data.get('stateId'),
-			notification_type_id = data.get('notificationTypeId')
+			system_recipient_id = data.get('systemRecipientId'), state_id = data.get('State'),
+			notification_type_id = data.get('NotificationType')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
@@ -829,8 +770,7 @@ def get_endpoint(request):
 	"""
 	try:
 		data = get_request_data(request)
-		endpoint = EndpointAdministrator.get_endpoint(endpoint_id = data.get('endpoint_id')
-		)
+		endpoint = EndpointAdministrator.get_endpoint(endpoint_id = data.get('endpoint_id'))
 		return JsonResponse(endpoint)
 	except Exception as ex:
 		lgr.exception('Endpoint get Exception: %s' % ex)
@@ -1051,7 +991,7 @@ def edit_logged_in_user_password(request):
 		return JsonResponse(password)
 	except Exception as ex:
 		lgr.exception('edit logged in user password update Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' %ex})
+	return JsonResponse({'code': '800.500.001 %s'})
 
 
 @csrf_exempt
@@ -1125,4 +1065,68 @@ def dashboard_widgets_data(request):
 		return JsonResponse(widget_data)
 	except Exception as ex:
 		lgr.exception('Get Dashboard widgets data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def endpoint_table_data(request):
+	"""
+	Retrieves Endpoint   Table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		# parameters = data.get('body')
+		data_source = TableData.get_endpoints(
+			parameters = data.get('body'), system_id = data.get('system_id')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get Table data %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def recipient_table_data(request):
+	"""
+	Retrieves  Recipients Table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.get_recipients(
+			parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get Table data %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def system_recipient_table_data(request):
+	"""
+	Retrieves  System Recipients Table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.get_system_recipients(
+			parameters = data.get('body'), system_id = data.get('system_id')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get Table data %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
