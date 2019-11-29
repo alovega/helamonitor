@@ -15,21 +15,6 @@ class RecipientAdministrator(object):
 	"""
 
 	@staticmethod
-	def get_recipients():
-		"""
-		@return: response code dictionary for success or failure and a dictionary containing list of recipients
-		@rtype: dict
-		"""
-		try:
-			recipients = list(RecipientService().filter().values(
-				userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
-				dateCreated = F('date_created'), recipientId = F('id')))
-			return {'code': '800.200.001', 'data': recipients}
-		except Exception as ex:
-			lgr.exception("Recipient Administration Exception: %s" % ex)
-		return {'code': '800.400.001', 'message': 'Error while getting system recipients'}
-
-	@staticmethod
 	def get_recipient(recipient_id):
 		"""
 		@param recipient_id: Id of the recipient that you want to fetch
@@ -121,29 +106,6 @@ class RecipientAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception:  %s" % ex)
 		return {"code": "800.400.001", "message": "Error while updating recipient"}
-
-	@staticmethod
-	def get_system_recipients(system_id):
-		"""
-		@param system_id:id of the system the recipients belong to
-		@type system_id: str
-		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
-							recipients data
-		@rtype:dict
-		"""
-		try:
-			system = SystemService().get(id = system_id)
-			if not system:
-				return {"code": "800.400.002", "message": "Wrong parameters given"}
-			recipients = list(SystemRecipientService().filter(system = system).values(
-				userName = F('recipient__user__username'), systemRecipientId = F('id'), status = F('state__name'),
-				notificationType = F('notification_type__name'), dateCreated = F('date_created'),
-				escalationLevel = F('escalation_level__name')))
-
-			return {'code': '800.200.001', 'data': recipients}
-		except Exception as ex:
-			lgr.exception("Recipient Administration Exception:  %s" % ex)
-		return {"code": "800.400.002", "message": "Error while fetching recipients"}
 
 	@staticmethod
 	def get_system_recipient(system_recipient_id):

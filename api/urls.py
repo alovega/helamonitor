@@ -15,8 +15,7 @@ from api.views import report_event, get_events, get_event, get_error_rates, crea
     get_system_status, edit_logged_in_user_details, get_logged_in_user_recent_notifications, past_incidents, \
     get_logged_in_user_notifications, edit_logged_in_user_password, get_system_recipient, \
     update_system_recipient, create_system_recipient, delete_system_recipient, get_system_response_time_data, \
-    endpoint_table_data, recipient_table_data, system_recipient_table_data, get_recipients, get_system_recipients, \
-    get_endpoints
+    endpoint_table_data, recipient_table_data, system_recipient_table_data
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -43,9 +42,6 @@ urlpatterns = [
     url(r'^get_systems/$', get_systems, name = 'get_systems'),
     url(r'^get_endpoint/$', get_endpoint, name = 'get_endpoint'),
     url(r'^get_recipient/$', get_recipient, name = 'get_recipient'),
-    url(r'^get_endpoints/$', get_endpoints, name = 'get_endpoints'),
-    url(r'^get_recipients/$', get_recipients, name = 'get_recipients'),
-    url(r'^get_system_recipients/$', get_system_recipients, name = 'get_system_recipients'),
     url(r'^delete_recipient', delete_recipient, name = 'delete_recipient'),
     url(r'^delete_system_recipient', delete_system_recipient, name = 'delete_system_recipient'),
     url(r'^delete_endpoint', delete_endpoint, name = 'delete_endpoint'),

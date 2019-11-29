@@ -93,36 +93,6 @@ class EndpointAdministrator(object):
 		return {"code": "800.400.001", "message": "Error when updating an endpoint"}
 
 	@staticmethod
-	def get_system_endpoints(system_id):
-		"""
-
-		@param system_id: id for an existing system the endpoints belong to
-		@type: char
-		@return: endpoints:a dictionary containing a success code and a list of dictionaries containing  system
-							endpoints data
-		@rtype: dict
-		"""
-		try:
-			system = SystemService().get(id = system_id)
-			if not system:
-				return {"code": "800.400.002", "message": "It seems there is no existing system with such endpoints"}
-			endpoints = list(EndpointService().filter(system = system).values(
-				'id', 'name', 'description', 'date_modified', 'system__name', dateCreated=F(
-					'date_created'), responseTime=F('optimal_response_time'), Url=F('url'),
-				status= F(
-					'state__name'),
-				type=F('endpoint_type__name')
-			).order_by('-date_created'))
-			for endpoint in endpoints:
-				time = datetime.timedelta.total_seconds(endpoint.get('responseTime'))
-				del endpoint["responseTime"]
-				endpoint.update(responseTime = time)
-			return {'code': '800.200.001', 'data': endpoints}
-		except Exception as ex:
-			lgr.exception("Endpoint Administration exception: %s" % ex)
-		return {'code': '800.400.001', "message": "Error when fetching system endpoints"}
-
-	@staticmethod
 	def get_endpoint(endpoint_id):
 		"""
 		@param endpoint_id: id of the endpoint that is being fetched
