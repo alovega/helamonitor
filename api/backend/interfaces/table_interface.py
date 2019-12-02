@@ -367,7 +367,7 @@ class TableData(object):
 				else:
 					row = list(row.order_by(parameters.get('order_column')))
 			elif parameters.get('order_column', ''):
-				row = User.objects.filter(is_active = True).filter()
+				row = User.objects.filter(is_active = True).filter().values()
 				if parameters.get('order_dir', '') == 'desc':
 					row = list(row.order_by('-%s' % (parameters.get('order_column'))))
 				else:
@@ -387,13 +387,16 @@ class TableData(object):
 				value.update(item_index = index + 1)
 			paginator = Paginator(row, parameters.get('page_size', ''))
 			table_data = {'row': paginator.page(parameters.get('page_number', '')).object_list}
-			item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			if table_data.get('row'):
+				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			else:
+				item_range = [0, 0]
 			item_description = 'Showing %s to %s of %s items' % (
 				str(item_range[0]), str(item_range[1]), str(paginator.count))
 			table_data.update(
-				size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
-				range = item_description)
+					size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+					range = item_description)
 			return {'code': '800.200.001', 'data': table_data}
 		except Exception as ex:
 			lgr.exception('Get Users data exception: %s' % ex)
-		return {'code': '800.400.001', 'message': 'Error while fetching system users %s' % str(ex)}
+		return {'code': '800.400.001', 'message': 'Error while fetching system users'}
