@@ -1,11 +1,12 @@
 import datetime
 import logging
+
 from django.core.paginator import Paginator
 from django.db.models import Q
-
 from django.db.models import F
 
 from core.backend.services import SystemService, EndpointService, SystemRecipientService, RecipientService, EventService
+from core.models import User
 
 lgr = logging.getLogger(__name__)
 
@@ -280,7 +281,6 @@ class TableData(object):
 		@rtype: dict
 		"""
 		try:
-			# return {'code': '800.400.002', 'message': parameters}
 			system = SystemService().get(pk = system)
 			if not parameters and system:
 				return {'code': '800.400.002', 'message': 'Invalid parameters'}
@@ -338,4 +338,62 @@ class TableData(object):
 			return {'code': '800.200.001', 'data': table_data}
 		except Exception as ex:
 			lgr.exception('Get Events data exception: %s' % ex)
-		return {'code': '800.400.001', 'message': 'Error while fetching system events %s' % str(ex)}
+		return {'code': '800.400.001', 'message': 'Error while fetching system events'}
+
+	@staticmethod
+	def active_users(system, parameters):
+		"""
+		@param system: System the users where the users are registered in
+		@type: str
+		@param parameters: Parameters to be used in the server side data table
+		@type: dict
+		@return:a dictionary containing response code and the table data
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().get(pk = system)
+			if not parameters and system:
+				return {'code': '800.400.002', 'message': 'Invalid parameters'}
+			if parameters.get('search_query', '') and parameters.get('order_column', ''):
+				row = User.objects.filter(is_active = True).filter(
+					Q(username__icontains = parameters.get('search_query')) |
+					Q(first_name__icontains = parameters.get('search_query')) |
+					Q(last_name__icontains = parameters.get('search_query')) |
+					Q(email__icontains = parameters.get('search_query')) |
+					Q(phone_number__icontains = parameters.get('search_query'))
+				).values()
+				if parameters.get('order_dir', '') == 'desc':
+					row = list(row.order_by('-%s' % parameters.get('order_column')))
+				else:
+					row = list(row.order_by(parameters.get('order_column')))
+			elif parameters.get('order_column', ''):
+				row = User.objects.filter(is_active = True).filter()
+				if parameters.get('order_dir', '') == 'desc':
+					row = list(row.order_by('-%s' % (parameters.get('order_column'))))
+				else:
+					row = list(row.order_by(parameters.get('order_column')))
+			elif parameters.get('search_query', ''):
+				row = User.objects.filter(is_active = True).filter(
+					Q(username__icontains = parameters.get('search_query')) |
+					Q(first_name__icontains = parameters.get('search_query')) |
+					Q(last_name__icontains = parameters.get('search_query')) |
+					Q(email__icontains = parameters.get('search_query')) |
+					Q(phone_number__icontains = parameters.get('search_query'))
+				).values()
+			else:
+				row = User.objects.filter(is_active = True).filter().values()
+
+			for index, value in enumerate(row):
+				value.update(item_index = index + 1)
+			paginator = Paginator(row, parameters.get('page_size', ''))
+			table_data = {'row': paginator.page(parameters.get('page_number', '')).object_list}
+			item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			item_description = 'Showing %s to %s of %s items' % (
+				str(item_range[0]), str(item_range[1]), str(paginator.count))
+			table_data.update(
+				size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+				range = item_description)
+			return {'code': '800.200.001', 'data': table_data}
+		except Exception as ex:
+			lgr.exception('Get Users data exception: %s' % ex)
+		return {'code': '800.400.001', 'message': 'Error while fetching system users %s' % str(ex)}

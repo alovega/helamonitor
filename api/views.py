@@ -1149,5 +1149,26 @@ def event_table_data(request):
 		)
 		return JsonResponse(data_source)
 	except Exception as ex:
-		lgr.exception('Get events table data %s' % ex)
+		lgr.exception('Get events table data exception %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def active_users(request):
+	"""
+	Retrieves Active users data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the users table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.active_users(
+			system = data.get('system_id'), parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get active users table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001', 'message': str(ex)})
