@@ -15,7 +15,7 @@ from api.views import report_event, get_events, get_event, get_error_rates, crea
     get_system_status, edit_logged_in_user_details, get_logged_in_user_recent_notifications, past_incidents, \
     get_logged_in_user_notifications, edit_logged_in_user_password, get_system_recipient, \
     update_system_recipient, create_system_recipient, delete_system_recipient, get_system_response_time_data, \
-    endpoint_table_data, recipient_table_data, system_recipient_table_data
+    endpoint_table_data, recipient_table_data, system_recipient_table_data, event_table_data
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -75,6 +75,6 @@ urlpatterns = [
     url(r'^dashboard_widgets_data/$', dashboard_widgets_data, name = 'dashboard_widgets_data'),
     url(r'^get_endpoints_data/$', endpoint_table_data, name = 'endpoints_table_data'),
     url(r'^get_recipients_data/$', recipient_table_data, name = 'recipient_table_data'),
-    url(r'^get_system_recipient_data/$', system_recipient_table_data, name = 'system_recipient_table_data')
-
+    url(r'^get_system_recipient_data/$', system_recipient_table_data, name = 'system_recipient_table_data'),
+    url(r'^events_data/$', event_table_data, name = 'events_data')
 ]

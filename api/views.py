@@ -1130,3 +1130,24 @@ def system_recipient_table_data(request):
 	except Exception as ex:
 		lgr.exception('Get Table data %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def event_table_data(request):
+	"""
+	Retrieves Events table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the events table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.get_events(
+			system = data.get('system_id'), parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get events table data %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
