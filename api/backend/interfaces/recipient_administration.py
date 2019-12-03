@@ -124,7 +124,9 @@ class RecipientAdministrator(object):
 				'state', userName = F('recipient__user__username'), notificationType = F('notification_type'),
 				systemRecipientId = F('id'), escalationLevel = F('escalation_level__name')
 			).first()
-			return {'code': '800.200.001', 'data': system_recipient}
+			if system_recipient:
+				return {'code': '800.200.001', 'data': system_recipient}
+			return {'code': '800.200.001', 'data': 'There is no such system recipient'}
 		except Exception as ex:
 			lgr.exception("Recipient Administration Exception:  %s" % ex)
 		return {"code": "800.400.001", "message": "Error while fetching recipient"}
