@@ -1171,7 +1171,7 @@ def active_users(request):
 		return JsonResponse(data_source)
 	except Exception as ex:
 		lgr.exception('Get active users table data exception %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'message': str(ex)})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -1191,5 +1191,27 @@ def escalation_rules(request):
 		)
 		return JsonResponse(data_source)
 	except Exception as ex:
-		lgr.exception('Get active users table data exception %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'message': str(ex)})
+		lgr.exception('Get escalation rules table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def incidents(request):
+	"""
+	Retrieves incidents from a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the incidents table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.incidents(
+			system = data.get('system_id'), parameters = data.get('body'), incident_type = data.get('incident_type'),
+			state = data.get('state')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get incidents table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001'})

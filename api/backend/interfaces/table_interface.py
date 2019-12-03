@@ -6,7 +6,8 @@ from django.db.models import Q
 from django.db.models import F
 
 from core.backend.services import SystemService, EndpointService, SystemRecipientService, RecipientService, \
-	EventService, EscalationRuleService
+	EventService, EscalationRuleService, IncidentService
+from base.backend.services import IncidentTypeService
 from core.models import User
 
 lgr = logging.getLogger(__name__)
@@ -473,3 +474,86 @@ class TableData(object):
 		except Exception as ex:
 			lgr.exception('Get Users data exception: %s' % ex)
 		return {'code': '800.400.001', 'message': 'Error while fetching escalation rules'}
+
+	@staticmethod
+	def incidents(system, parameters, incident_type = None, **kwargs):
+		"""
+		@param system: System the incidents were created in
+		@type: str
+		@param incident_type: Type of the incident
+		@type: str | None
+		@param parameters: Parameters to be used in the server side data table
+		@type: dict
+		@param kwargs: Extra key-value pairs to be passed
+		@return:a dictionary containing response code and the table data
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().filter(pk = system).first()
+			incident_type = IncidentTypeService().filter(name = incident_type).first()
+			if not parameters and system:
+				return {'code': '800.400.002', 'message': 'Invalid parameters'}
+			states = kwargs.get('states', None)
+			row = IncidentService().filter(state__name__in = states) if states is not None else \
+				IncidentService().filter()
+			row = row.filter(incident_type = incident_type) if incident_type else row
+			if parameters.get('search_query', '') and parameters.get('order_column', ''):
+				row = row.filter(system = system).filter(
+					Q(name__icontains = parameters.get('search_query')) |
+					Q(decription__icontains = parameters.get('search_query')) |
+					Q(system__name__icontains = parameters.get('search_query')) |
+					Q(event_type__name__icontains = parameters.get('search_query')) |
+					Q(incident_type__name__icontains = parameters.get('search_query'))).values(
+					'id', 'name', 'description', 'priority_level', 'date_created', 'date_modified',
+					'scheduled_for', 'scheduled_until', system_id = F('system__id'), incident_type_name = F(
+						'incident_type__name'), state_id = F('state__id'), state_name = F('state__name'),
+					system_name = F('system__name'), event_type_id = F('event_type__id'))
+				if parameters.get('order_dir', '') == 'desc':
+					row = list(row.order_by('-%s' % parameters.get('order_column')))
+				else:
+					row = list(row.order_by(parameters.get('order_column')))
+			elif parameters.get('order_column', ''):
+				row = row.filter(system = system).values(
+					'id', 'name', 'description', 'priority_level', 'date_created', 'date_modified',
+					'scheduled_for', 'scheduled_until', system_id = F('system__id'), incident_type_name = F(
+						'incident_type__name'), state_id = F('state__id'), state_name = F('state__name'),
+					system_name = F('system__name'), event_type_id = F('event_type__id'))
+				if parameters.get('order_dir', '') == 'desc':
+					row = list(row.order_by('-%s' % (parameters.get('order_column'))))
+				else:
+					row = list(row.order_by(parameters.get('order_column')))
+			elif parameters.get('search_query', ''):
+				row = row.filter(system = system).filter(
+					Q(name__icontains = parameters.get('search_query')) |
+					Q(decription__icontains = parameters.get('search_query')) |
+					Q(system__name__icontains = parameters.get('search_query')) |
+					Q(event_type__name__icontains = parameters.get('search_query')) |
+					Q(incident_type__name__icontains = parameters.get('search_query'))).values(
+					'id', 'name', 'description', 'priority_level', 'date_created', 'date_modified',
+					'scheduled_for', 'scheduled_until', system_id = F('system__id'), incident_type_name = F(
+						'incident_type__name'), state_id = F('state__id'), state_name = F('state__name'),
+					system_name = F('system__name'), event_type_id = F('event_type__id'))
+			else:
+				row = row.filter(system = system).values(
+					'id', 'name', 'description', 'priority_level', 'date_created', 'date_modified',
+					'scheduled_for', 'scheduled_until', system_id = F('system__id'), incident_type_name = F(
+						'incident_type__name'), state_id = F('state__id'), state_name = F('state__name'),
+					system_name = F('system__name'), event_type_id = F('event_type__id'))
+
+			for index, value in enumerate(row):
+				value.update(item_index = index + 1)
+			paginator = Paginator(row, parameters.get('page_size', ''))
+			table_data = {'row': paginator.page(parameters.get('page_number', '')).object_list}
+			if table_data.get('row'):
+				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			else:
+				item_range = [0, 0]
+			item_description = 'Showing %s to %s of %s items' % (
+				str(item_range[0]), str(item_range[1]), str(paginator.count))
+			table_data.update(
+					size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+					range = item_description)
+			return {'code': '800.200.001', 'data': table_data}
+		except Exception as ex:
+			lgr.exception('Get Users data exception: %s' % ex)
+		return {'code': '800.400.001', 'message': 'Error while fetching incidents %s'%str(ex)}
