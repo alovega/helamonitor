@@ -100,7 +100,10 @@ class TableData(object):
 				value.update(responseTime = time, item_index = index + 1)
 			paginator = Paginator(row, parameters.get('page_size'))
 			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
-			item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			if table_data.get('row'):
+				item_range = [table_data.get('row')[0].get('item_index'),table_data.get('row')[-1].get('item_index')]
+			else:
+				item_range = [0, 0]
 			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
 			                   str(paginator.count) + ' ' + 'items'
 			table_data.update(size = paginator.num_pages, totalElements = paginator.count,
@@ -183,7 +186,10 @@ class TableData(object):
 				value.update(item_index = index + 1)
 			paginator = Paginator(row, parameters.get('page_size'))
 			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
-			item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			if table_data.get('row'):
+				item_range = [table_data.get('row')[0].get('item_index'),table_data.get('row')[-1].get('item_index')]
+			else:
+				item_range = [0, 0]
 			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
 			                   str(paginator.count) + ' ' + 'items'
 			table_data.update(size = paginator.num_pages, totalElements = paginator.count,
@@ -259,7 +265,10 @@ class TableData(object):
 				value.update(item_index = index + 1)
 			paginator = Paginator(row, parameters.get('page_size'))
 			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
-			item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			if table_data.get('row'):
+				item_range = [table_data.get('row')[0].get('item_index'),table_data.get('row')[-1].get('item_index')]
+			else:
+				item_range = [0, 0]
 			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
 			                   str(paginator.count) + ' ' + 'items'
 			table_data.update(size = paginator.num_pages, totalElements = paginator.count,
