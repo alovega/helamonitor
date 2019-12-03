@@ -203,37 +203,46 @@ class IncidentAdministrator(object):
 				return {'code': '800.400.002'}
 			incident_updates = list(IncidentLogService().filter(incident__id = incident_id).values(
 				'id', 'description', 'priority_level', 'date_created', 'date_modified', user_id = F('user__id'),
-				escalation_level_id = F('escalation_level__id'), state_name = F('state__name'), state_id = F(
-					'state__id')).order_by('-date_created'))
+				username = F('user__username'), escalation_level_id = F('escalation_level__id'), state_name = F(
+					'state__name'), state_id = F('state__id')).order_by('-date_created'))
 			incident.update(incident_updates = incident_updates)
 			return {'code': '800.200.001', 'data': incident}
 		except Exception as ex:
 			lgr.exception("Incident Administration Exception: %s" % ex)
-		return {'code': '800.400.001', 'err': str(ex)}
+		return {'code': '800.400.001'}
 
 	@staticmethod
-	def get_incidents(system, **kwargs):
+	def get_incidents(system, incident_type = None, **kwargs):
 		"""
-		Retrieves a incidents within the specified start and end date range within a system
+		Retrieves incidents within the specified system
 		@param system: System where the incident is created in
 		@type system: str
+		@param incident_type: Type of the incident
+		@type incident_type: str
 		@param kwargs: Extra key, value arguments to be passed
 		@return: incidents | response code to indicate errors retrieving the incident
 		@rtype: dict
 		"""
 		try:
-			system = SystemService().get(name = system, state__name = 'Active')
+			system = SystemService().get(pk = system, state__name = 'Active')
+			incident_type = IncidentTypeService().get(name = incident_type, state__name = 'Active')
 			if not system:
 				return {'code': '800.400.002'}
-			incidents = list(IncidentService().filter(system = system).values(
-				'name', 'state', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
-				'scheduled_for', 'scheduled_until', type = F('incident_type__name'), eventtype = F('event_type__name'),
-				incident_id = F('id'), status = F('state__name'), affected_system = F('system__name')
-			).order_by('-date_created'))
+			states = kwargs.get('states', None)
+			incidents = IncidentService().filter(state__name__in = states) if states is not None else \
+				IncidentService().filter()
+			incidents = incidents.filter(incident_type = incident_type) if incident_type else incidents
+
+			incidents = list(incidents.filter(system = system).values(
+				'id', 'name', 'description', 'priority_level', 'date_created', 'date_modified',
+				'scheduled_for', 'scheduled_until', system_id = F('system__id'), incident_type_name = F(
+					'incident_type__name'), state_id = F('state__id'), state_name = F('state__name'),
+				system_name = F('system__name'), event_type_id = F('event_type__id')).order_by('-date_created'))
 			for incident in incidents:
-				incident_updates = list(IncidentLogService().filter(incident__id = incident.get('incident_id')).values(
-					'description', 'priority_level', 'date_created', 'escalation_level', 'date_modified',
-					status = F('state__name'), user_name = F('user__username')).order_by('-date_created'))
+				incident_updates = list(IncidentLogService().filter(incident__id = incident.get('id')).values(
+					'id', 'description', 'priority_level', 'date_created', 'date_modified', user_id = F('user__id'),
+					username = F('user__username'), escalation_level_id = F('escalation_level__id'), state_name = F(
+						'state__name'), state_id = F('state__id')).order_by('-date_created'))
 				incident.update(incident_updates = incident_updates)
 			return {'code': '800.200.001', 'data': incidents}
 		except Exception as ex:

@@ -139,7 +139,7 @@ def create_incident(request):
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -236,7 +236,7 @@ def get_incidents(request):
 	try:
 		data = get_request_data(request)
 		incident = IncidentAdministrator.get_incidents(
-			system = data.get('system'), date_from = data.get('date_from'), date_to = data.get('date_to')
+			system = data.get('system_id'), incident_type = data.get('incident_type'), states = data.get('states')
 		)
 		return JsonResponse(incident)
 	except Exception as ex:
@@ -386,7 +386,7 @@ def update_rule(request):
 		return JsonResponse(rule)
 	except Exception as ex:
 		lgr.exception('Rule creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -467,7 +467,7 @@ def create_system(request):
 		return JsonResponse(rules)
 	except Exception as ex:
 		lgr.exception('System creation Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001', 'err': str(ex)})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -561,7 +561,7 @@ def create_user(request):
 		data = get_request_data(request)
 		user = UserAdministrator.create_user(
 			username = data.get('username'), password = data.get('password'), email = data.get('email'), first_name =
-			data.get('first_name'), last_name = data.get('last_name'))
+			data.get('firstname'), last_name = data.get('lastname'))
 		return JsonResponse(user)
 	except Exception as ex:
 		lgr.exception('User creation Exception: %s' % ex)
@@ -818,6 +818,7 @@ def get_system_recipient(request):
 
 
 @csrf_exempt
+@ensure_authenticated
 def get_look_up_data(request):
 	"""
 	Get a specific endpoint
@@ -1020,7 +1021,7 @@ def get_system_response_time_data(request):
 	"""
 	try:
 		data = get_request_data(request)
-		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('systemId'))
+		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('system_id'))
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('edit logged in user password update Exception: %s' % ex)
@@ -1129,3 +1130,66 @@ def system_recipient_table_data(request):
 	except Exception as ex:
 		lgr.exception('Get Table data %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def event_table_data(request):
+	"""
+	Retrieves Events table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the events table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.get_events(
+			system = data.get('system_id'), parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get events table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def active_users(request):
+	"""
+	Retrieves Active users data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the users table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.active_users(
+			system = data.get('system_id'), parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get active users table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001', 'message': str(ex)})
+
+
+@csrf_exempt
+@ensure_authenticated
+def escalation_rules(request):
+	"""
+	Retrieves escalation rules for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the escalation rules table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.escalation_rules(
+			system = data.get('system_id'), parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get active users table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001', 'message': str(ex)})

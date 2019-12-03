@@ -164,7 +164,7 @@ class EscalationRule(GenericBaseModel):
     escalation_level = models.ForeignKey(EscalationLevel)
     event_type = models.ForeignKey(EventType)
     nth_event = models.IntegerField(default=1, help_text="Limit of n events to satisfy this rule")
-    duration = models.PositiveIntegerField(
+    duration = models.DurationField(
         help_text="Time period within which the nth occurrence of an event type will be escalated", null=True,
         blank = True
     )

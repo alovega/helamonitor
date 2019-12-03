@@ -269,7 +269,7 @@ class DashboardAdministration(object):
 					past_hour = past_hour.replace(minute = 0)
 					labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
 					dataset.append(current_errors)
-			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset, 'period': period.days}}
+			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
 		return {'code': '800.400.001'}
