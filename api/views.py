@@ -1172,3 +1172,24 @@ def active_users(request):
 	except Exception as ex:
 		lgr.exception('Get active users table data exception %s' % ex)
 	return JsonResponse({'code': '800.500.001', 'message': str(ex)})
+
+
+@csrf_exempt
+@ensure_authenticated
+def escalation_rules(request):
+	"""
+	Retrieves escalation rules for a system
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the escalation rules table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.escalation_rules(
+			system = data.get('system_id'), parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get active users table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001', 'message': str(ex)})

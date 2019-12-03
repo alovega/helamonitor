@@ -1,11 +1,12 @@
-import datetime
+from datetime import timedelta
 import logging
 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models import F
 
-from core.backend.services import SystemService, EndpointService, SystemRecipientService, RecipientService, EventService
+from core.backend.services import SystemService, EndpointService, SystemRecipientService, RecipientService, \
+	EventService, EscalationRuleService
 from core.models import User
 
 lgr = logging.getLogger(__name__)
@@ -96,7 +97,7 @@ class TableData(object):
 					Url = F('url'), responseTime = F('optimal_response_time'), status = F('state__name'),
 					Id = F('id'), type = F('endpoint_type__name')))
 			for index, value in enumerate(row):
-				time = datetime.timedelta.total_seconds(value.get('responseTime'))
+				time = timedelta.total_seconds(value.get('responseTime'))
 				del value["responseTime"]
 				value.update(responseTime = time, item_index = index + 1)
 			paginator = Paginator(row, parameters.get('page_size'))
@@ -400,3 +401,75 @@ class TableData(object):
 		except Exception as ex:
 			lgr.exception('Get Users data exception: %s' % ex)
 		return {'code': '800.400.001', 'message': 'Error while fetching system users'}
+
+	@staticmethod
+	def escalation_rules(system, parameters):
+		"""
+		@param system: System the escalation rules are defined in
+		@type: str
+		@param parameters: Parameters to be used in the server side data table
+		@type: dict
+		@return:a dictionary containing response code and the table data
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().get(pk = system)
+			if not parameters and system:
+				return {'code': '800.400.002', 'message': 'Invalid parameters'}
+			if parameters.get('search_query', '') and parameters.get('order_column', ''):
+				row = EscalationRuleService().filter(system = system).filter(
+					Q(description__icontains = parameters.get('search_query')) |
+					Q(name__icontains = parameters.get('search_query')) |
+					Q(system__name__icontains = parameters.get('search_query')) |
+					Q(event_type__name__icontains = parameters.get('search_query')) |
+					Q(escalation_level__name__icontains = parameters.get('search_query'))).values(
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name'))
+				if parameters.get('order_dir', '') == 'desc':
+					row = list(row.order_by('-%s' % parameters.get('order_column')))
+				else:
+					row = list(row.order_by(parameters.get('order_column')))
+			elif parameters.get('order_column', ''):
+				row = EscalationRuleService().filter(system = system).values(
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name'))
+				if parameters.get('order_dir', '') == 'desc':
+					row = list(row.order_by('-%s' % (parameters.get('order_column'))))
+				else:
+					row = list(row.order_by(parameters.get('order_column')))
+			elif parameters.get('search_query', ''):
+				row = EscalationRuleService().filter(system = system).filter(
+					Q(description__icontains = parameters.get('search_query')) |
+					Q(name__icontains = parameters.get('search_query')) |
+					Q(system__name__icontains = parameters.get('search_query')) |
+					Q(event_type__name__icontains = parameters.get('search_query')) |
+					Q(escalation_level__name__icontains = parameters.get('search_query'))).values(
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name'))
+			else:
+				row = EscalationRuleService().filter(system = system).values(
+					'id', 'name', 'description', 'duration', 'date_created', 'date_modified', 'nth_event',
+					system_id = F('system'), escalation_level_name = F('escalation_level__name'), state_name = F(
+						'state__name'), event_type_name = F('event_type__name'))
+
+			for index, value in enumerate(row):
+				value.update(duration = timedelta.total_seconds(value.get('duration')))
+				value.update(item_index = index + 1)
+			paginator = Paginator(row, parameters.get('page_size', ''))
+			table_data = {'row': paginator.page(parameters.get('page_number', '')).object_list}
+			if table_data.get('row'):
+				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			else:
+				item_range = [0, 0]
+			item_description = 'Showing %s to %s of %s items' % (
+				str(item_range[0]), str(item_range[1]), str(paginator.count))
+			table_data.update(
+					size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+					range = item_description)
+			return {'code': '800.200.001', 'data': table_data}
+		except Exception as ex:
+			lgr.exception('Get Users data exception: %s' % ex)
+		return {'code': '800.400.001', 'message': 'Error while fetching escalation rules'}
