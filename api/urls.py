@@ -5,7 +5,7 @@ The URLs for API endpoints
 from django.conf.urls import url
 
 from api.views import report_event, get_events, get_event, get_error_rates, create_incident, update_incident, \
-    health_check, dashboard_widgets_data, \
+    health_check, dashboard_widgets_data, incidents, incident_events, \
     get_incident, get_access_token, verify_token, get_incidents, get_incident_events, delete_incident, get_system, \
     create_rule, \
     update_rule, get_rule, get_rules, delete_rule, create_system, update_system, get_systems, delete_system, \
@@ -79,5 +79,7 @@ urlpatterns = [
     url(r'^get_system_recipient_data/$', system_recipient_table_data, name = 'system_recipient_table_data'),
     url(r'^events_data/$', event_table_data, name = 'events_data'),
     url(r'^active_users/$', active_users, name = 'active_users'),
-    url(r'^escalation_rules/$', escalation_rules, name = 'escalation_rules')
+    url(r'^escalation_rules/$', escalation_rules, name = 'escalation_rules'),
+    url(r'^incidents/$', incidents, name = 'incidents'),
+    url(r'^incident_events/$', incident_events, name = 'incident_events'),
 ]
