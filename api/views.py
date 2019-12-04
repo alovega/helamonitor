@@ -705,7 +705,7 @@ def create_system_recipient(request):
 	try:
 		data = get_request_data(request)
 		system_recipient = RecipientAdministrator.create_system_recipient(
-			system_id = data.get('systemId'), recipient_id = data.get('Recipient'),
+			system_id = data.get('system_id'), recipient_id = data.get('Recipient'),
 			escalations = data.get('escalations')
 		)
 		return JsonResponse(system_recipient)
