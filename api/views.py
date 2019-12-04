@@ -810,7 +810,8 @@ def get_system_recipient(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipient = RecipientAdministrator.get_system_recipient(system_recipient_id = data.get('systemRecipientId'))
+		recipient = RecipientAdministrator.get_system_recipient(recipient_id = data.get('recipientId'), system_id =
+		data.get('system_id'))
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('Look up data get Exception: %s' % ex)

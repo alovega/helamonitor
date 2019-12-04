@@ -1,4 +1,3 @@
-
 import logging
 from django.db.models import F
 
@@ -108,23 +107,43 @@ class RecipientAdministrator(object):
 		return {"code": "800.400.001", "message": "Error while updating recipient"}
 
 	@staticmethod
-	def get_system_recipient(system_recipient_id):
+	def get_system_recipient(recipient_id, system_id):
 		"""
-		@param system_recipient_id:id of the system recipient you are fetching
-		@type system_recipient_id: str
+		@param system_id: the id of the system the recipient belongs to
+		@type:str
+		@param recipient_id: the id of the recipient
+		@type: str
 		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
 							recipient data
 		@rtype:dict
 		"""
 
 		try:
-			if not system_recipient_id:
+			escalations_levels = []
+			notification_types = []
+			state = []
+			system = SystemService().get(id = system_id)
+			recipient = RecipientService().get(id = recipient_id)
+			if not (system and recipient):
 				return {"code": "800.400.002", "message": "missing parameters"}
-			system_recipient = SystemRecipientService().filter(id = system_recipient_id).values(
+			system_recipient = SystemRecipientService().filter(system = system, recipient = recipient).values(
+				userName = F('recipient__user__username'), recipientId=F('recipient'),
+				systemRecipientId = F('id')).first()
+			recipients = list(SystemRecipientService().filter(system = system, recipient = recipient).values(
 				'state', userName = F('recipient__user__username'), notificationType = F('notification_type'),
-				systemRecipientId = F('id'), escalationLevel = F('escalation_level__name')
-			).first()
+				systemRecipientId = F('id'), escalationLevel = F('escalation_level')
+			))
 			if system_recipient:
+				for recipient in recipients:
+					escalations_levels.append(recipient.get('escalationLevel'))
+					notification_types.append(recipient.get('notificationType'))
+					state.append(recipient.get('state'))
+				data = [{
+					'EscalationLevel': escalations_levels[i], 'NotificationType': notification_types[i],
+					'State': state[i]
+				}
+					for i in range(len(escalations_levels))]
+				system_recipient.update(escalationLevels = data);
 				return {'code': '800.200.001', 'data': system_recipient}
 			return {'code': '800.200.001', 'data': 'There is no such system recipient'}
 		except Exception as ex:
@@ -164,24 +183,24 @@ class RecipientAdministrator(object):
 		"""
 
 		try:
-			system = SystemService().get(id=system_id)
-			recipient = RecipientService().get(id=recipient_id)
-			if not(system, recipient, escalations):
-				return{"code": "800.400.002", "message": "Invalid parameters given"}
+			system = SystemService().get(id = system_id)
+			recipient = RecipientService().get(id = recipient_id)
+			if not (system and recipient and escalations):
+				return {"code": "800.400.002", "message": "Invalid parameters given"}
 
 			for escalation in escalations:
 				if SystemRecipientService().filter(
-						system = system, recipient=recipient,
-						escalation_level=EscalationLevelService().get(id=escalation.get('EscalationLevel')),
+						system = system, recipient = recipient,
+						escalation_level = EscalationLevelService().get(id = escalation.get('EscalationLevel')),
 				):
 					return {
 						"code": "800.400.001",
 						"message": "system recipient already exist consider updating the recipient"
 					}
 				SystemRecipientService().create(
-					system= system, recipient = recipient,
-					escalation_level=EscalationLevelService().get(id=escalation.get('EscalationLevel')),
-					notification_type= NotificationTypeService().get(id=escalation.get('NotificationType')),
+					system = system, recipient = recipient,
+					escalation_level = EscalationLevelService().get(id = escalation.get('EscalationLevel')),
+					notification_type = NotificationTypeService().get(id = escalation.get('NotificationType')),
 					state = StateService().get(name = 'Active')
 				)
 			return {"code": "800.200.001", "message": " successfully created a system recipient"}
