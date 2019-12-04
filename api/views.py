@@ -1209,9 +1209,27 @@ def incidents(request):
 		data = get_request_data(request)
 		data_source = TableData.incidents(
 			system = data.get('system_id'), parameters = data.get('body'), incident_type = data.get('incident_type'),
-			state = data.get('state')
+			states = data.get('states')
 		)
 		return JsonResponse(data_source)
 	except Exception as ex:
 		lgr.exception('Get incidents table data exception %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@ensure_authenticated
+def incident_events(request):
+	"""
+	Retrieves incident events for a specified incident
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate status and the incident events table data
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.incidents(system = data.get('system_id'), incident = data.get('incident_id'))
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get incident events table data exception %s' % ex)
 	return JsonResponse({'code': '800.500.001'})
