@@ -295,7 +295,6 @@ class IncidentAdministrator(object):
 			incident_events = list(IncidentEventService().filter(incident = incident, state__name = 'Active').values(
 				incident_id = F('incident'), status = F('state__name'), event_id = F('event')
 			).order_by('-date_created'))
-			# return {'code': '800.200.001', 'data': incident_events}
 			events = []
 			for incident_event in incident_events:
 				event = EventLog.get_event(incident_event.get('event_id'), system.id)
