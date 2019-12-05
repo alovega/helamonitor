@@ -749,8 +749,7 @@ def update_system_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_system_recipient(
-			system_recipient_id = data.get('systemRecipientId'), state_id = data.get('State'),
-			notification_type_id = data.get('NotificationType')
+			recipient_id = data.get('recipient_id'), escalations = data.get('escalations')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
