@@ -1113,6 +1113,27 @@ def recipient_table_data(request):
 
 @csrf_exempt
 @ensure_authenticated
+def notification_table_data(request):
+	"""
+	Retrieves  Recipients Table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.get_notifications(
+			parameters = data.get('body'), system_id = data.get('system_id')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get Table data %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
 def system_recipient_table_data(request):
 	"""
 	Retrieves  System Recipients Table data
