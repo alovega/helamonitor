@@ -2,7 +2,7 @@ import pytest
 from mixer.backend.django import mixer
 
 from api.backend.interfaces.notification_interface import NotificationLogger
-from django.contrib.auth.models import User
+from core.models import User
 
 pytestmark = pytest.mark.django_db
 
