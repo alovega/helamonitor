@@ -1124,7 +1124,8 @@ def notification_table_data(request):
 	try:
 		data = get_request_data(request)
 		data_source = TableData.get_notifications(
-			parameters = data.get('body'), system_id = data.get('system_id')
+			parameters = data.get('body'), system_id = data.get('system_id'), notification_type = data.get(
+				'notification_type')
 		)
 		return JsonResponse(data_source)
 	except Exception as ex:
