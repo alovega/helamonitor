@@ -517,7 +517,7 @@ class TestEscalationRuleService(object):
         Test EscalationRule get service
         """
         system = mixer.blend('core.System')
-        mixer.blend('core.EscalationRule', system = system, duration = datetime.timedelta(minutes = 60).total_seconds())
+        mixer.blend('core.EscalationRule', system = system, duration = datetime.timedelta(minutes = 60))
         escalation_rule = EscalationRuleService().get(system = system.id)
         assert escalation_rule is not None, 'Should get a created  EscalationRule object'
 
@@ -525,7 +525,7 @@ class TestEscalationRuleService(object):
         """
         Test SystemRecipient filter service
         """
-        mixer.cycle(3).blend('core.EscalationRule', duration=datetime.timedelta(minutes=60).total_seconds())
+        mixer.cycle(3).blend('core.EscalationRule', duration=datetime.timedelta(minutes = 60))
         system_recipient = EscalationRuleService().filter()
         assert len(system_recipient) == 3, 'Should return 3 EscalationRule objects'
 
@@ -535,7 +535,7 @@ class TestEscalationRuleService(object):
         """
         system = mixer.blend('core.System')
         escalation_rule = mixer.blend(
-            'core.EscalationRule', duration = datetime.timedelta(minutes = 60).total_seconds())
+            'core.EscalationRule', duration = datetime.timedelta(minutes = 60))
         escalation_rule = EscalationRuleService().update(escalation_rule.id, system = system)
         assert escalation_rule is not None, 'Should create an EscalationRule Object'
         assert escalation_rule.system == system, 'Escalation Rule system is equals to system created'
@@ -550,7 +550,7 @@ class TestEscalationRuleService(object):
         escalation_level = mixer.blend('base.EscalationLevel')
         escalation_rule = EscalationRuleService().create(
             system = system, state = state, event_type = event_type, escalation_level = escalation_level,
-            duration = datetime.timedelta(minutes = 60).total_seconds(), name = '10th event', nth_event = 10,
+            duration = datetime.timedelta(minutes = 60), name = '10th event', nth_event = 10,
             description = 'Escalates to level High for every 10 events of type error recorded within 60 minutes'
         )
         assert escalation_rule is not None, 'Should create an Escalation Rule object'

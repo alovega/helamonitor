@@ -11,7 +11,7 @@ from django.contrib.auth.hashers import check_password
 
 from api.backend.interfaces.recipient_administration import RecipientAdministrator
 from api.models import token_expiry
-from api.backend.interfaces.event_log import EventLog
+from api.backend.interfaces.event_administration import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.rules_administration import EscalationRuleAdministrator
 from api.backend.interfaces.endpoint_administration import EndpointAdministrator

@@ -285,7 +285,7 @@ class IncidentAdministrator(object):
 		@return: Response code dictionary to indicate if the incident_events were retrieved or not
 		@rtype: dict
 		"""
-		from api.backend.interfaces.event_log import EventLog
+		from api.backend.interfaces.event_administration import EventLog
 		try:
 			system = SystemService().filter(pk = system_id, state__name = 'Active').first()
 			incident = IncidentService().filter(pk = incident_id, system = system).first()
