@@ -1021,7 +1021,8 @@ def get_system_response_time_data(request):
 	"""
 	try:
 		data = get_request_data(request)
-		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('system_id'))
+		data = MonitorInterface.get_system_endpoint_response_time(
+			system_id = data.get('system_id'), start_date = data.get('start_date'),  end_date = data.get('end_date'))
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('edit logged in user password update Exception: %s' % ex)
