@@ -271,7 +271,7 @@ class DashboardAdministration(object):
 			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
-		return {'code': '800.400.001'}
+		return {'code': '800.400.001 %s' % str(ex)}
 
 	@staticmethod
 	def calculate_system_availability(system, date_from = None, date_to = None):
