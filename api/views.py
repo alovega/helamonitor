@@ -30,6 +30,66 @@ from base.backend.services import StateService
 lgr = logging.getLogger(__name__)
 
 
+class PublicEndpoints(object):
+	"""Class for grouping public api endpoints"""
+	@staticmethod
+	@csrf_exempt
+	def get_availability_trend(request):
+		"""
+		Retrieves availability trend for a system within a give period
+		@param request: The Django WSGI Request to process
+		@type request: WSGIRequest
+		@return: A response code to indicate status and system uptime trend data
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			availability_trend = DashboardAdministration.availability_trend(
+				system = data.get('system'), interval = data.get('interval'))
+			return JsonResponse(availability_trend)
+		except Exception as ex:
+			lgr.exception('Get system availability percentage trend exception: %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_widgets_data(request):
+		"""
+		Retrieves Dashboard widgets data
+		@param request: The Django WSGI Request to process
+		@type request: WSGIRequest
+		@return: A response code and or dashboard widgets data
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			widget_data = DashboardAdministration.dashboard_widgets_data(
+				system = data.get('system_id'), date_from = data.get('date_from'), date_to = data.get('date_to')
+			)
+			return JsonResponse(widget_data)
+		except Exception as ex:
+			lgr.exception('Get Dashboard widgets data exception %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_endpoints(request):
+		"""
+		Retrieves endpoints for a public status page display
+		@param request: The Django WSGI Request to process
+		@type request: WSGIRequest
+		@return: A response code and or configured services
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			endpoints = EndpointAdministrator.get_endpoints(system = data.get('system'))
+			return JsonResponse(endpoints)
+		except Exception as ex:
+			lgr.exception('Get system services exception: %s ' % ex)
+		return JsonResponse({'code': '800.500.001', 'message': str(ex)})
+
+
 @csrf_exempt
 @ensure_authenticated
 def report_event(request):

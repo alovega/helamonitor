@@ -354,7 +354,7 @@ class DashboardAdministration(object):
 			if not system and interval:
 				return {'code': '800.400.002', 'message': 'Missing or invalid parameters'}
 			today = datetime.now(timezone.utc)
-			dataset = []
+			datasets = []
 			labels = []
 			if interval == 'day':
 				time_intervals = 24
@@ -381,9 +381,9 @@ class DashboardAdministration(object):
 					return {'code': '800.400.001', 'message': availability_percentage_result}
 				current_interval = (current_interval + timedelta(hours = 1)).replace(minute = 0)
 				labels.append(current_interval.strftime("%m/%d/%y  %H:%M"))
-				dataset.append(availability_percentage)
+				datasets.append(availability_percentage)
 			return {'code': '800.200.001', 'data': {
-				'labels': labels, 'dataset': dataset, 'time_intervals': time_intervals, 'identifier': identifier}}
+				'labels': labels, 'datasets': datasets, 'time_intervals': time_intervals, 'identifier': identifier}}
 		except Exception as ex:
 			lgr.exception("Get uptime trend data exception %s" % ex)
 		return {'code': '800.400.001', 'msg': 'Error. Could not retrieve system up time trend data'}

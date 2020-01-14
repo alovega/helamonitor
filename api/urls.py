@@ -16,7 +16,7 @@ from api.views import report_event, get_events, get_event, get_error_rates, crea
     get_logged_in_user_notifications, edit_logged_in_user_password, get_system_recipient, \
     update_system_recipient, create_system_recipient, delete_system_recipient, get_system_response_time_data, \
     endpoint_table_data, recipient_table_data, system_recipient_table_data, event_table_data, active_users,  \
-    escalation_rules
+    escalation_rules, PublicEndpoints
 
 urlpatterns = [
     url(r'^report_event/$', report_event, name = 'report_event'),
@@ -42,6 +42,7 @@ urlpatterns = [
     url(r'^get_incidents/$', get_incidents, name = 'get_incidents'),
     url(r'^get_systems/$', get_systems, name = 'get_systems'),
     url(r'^get_endpoint/$', get_endpoint, name = 'get_endpoint'),
+    url(r'^get_endpoints/$', PublicEndpoints.get_endpoints, name = 'get_endpoints'),
     url(r'^get_recipient/$', get_recipient, name = 'get_recipient'),
     url(r'^delete_recipient', delete_recipient, name = 'delete_recipient'),
     url(r'^delete_system_recipient', delete_system_recipient, name = 'delete_system_recipient'),
@@ -82,4 +83,5 @@ urlpatterns = [
     url(r'^escalation_rules/$', escalation_rules, name = 'escalation_rules'),
     url(r'^incidents/$', incidents, name = 'incidents'),
     url(r'^incident_events/$', incident_events, name = 'incident_events'),
+    url(r'^get_availability_trend/$', PublicEndpoints.get_availability_trend, name = 'get_availability_trend'),
 ]
