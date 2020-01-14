@@ -60,7 +60,7 @@ class SystemMonitorAdmin(admin.ModelAdmin):
     Admin for System monitor model
     """
     list_filter = ('date_created',)
-    list_display = ('system', 'state', 'response_time', 'date_modified', 'date_created')
+    list_display = ('system', 'endpoint', 'state', 'response_time', 'date_modified', 'date_created')
     ordering = ('-date_created',)
 
 
