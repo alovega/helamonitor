@@ -69,7 +69,7 @@ class EventLog(object):
 				return {'code': '800.200.001', 'data': created_event}
 		except Exception as ex:
 			lgr.exception('Event processor exception %s' % ex)
-		return {"code": "800.400.001"}
+		return {'code': '800.400.001'}
 
 	@staticmethod
 	def escalate_event(event):
@@ -87,7 +87,7 @@ class EventLog(object):
 			for matched_rule in matched_rules:
 				escalated_events = EventService().filter(
 					event_type = event.event_type, date_created__range = (
-						now - timedelta(seconds = matched_rule.duration), now))
+						now - timedelta(seconds = matched_rule.duration.total_seconds()), now))
 				if escalated_events.count() >= matched_rule.nth_event > 0:
 					return IncidentAdministrator.log_incident(
 						name = matched_rule.name, incident_type = "Realtime",
@@ -99,7 +99,7 @@ class EventLog(object):
 			return {"code": "800.200.001"}
 		except Exception as ex:
 			lgr.exception("Event Logger exception %s " % ex)
-		return {"code": "800.400.001"}
+		return {'code': '800.400.001'}
 
 	@staticmethod
 	def get_event(event_id, system_id):

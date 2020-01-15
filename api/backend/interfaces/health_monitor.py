@@ -10,7 +10,7 @@ from datetime import timedelta
 from core.backend.services import SystemMonitorService, EndpointService, SystemService
 from base.backend.services import StateService, EventTypeService
 
-from api.backend.interfaces.event_log import EventLog
+from api.backend.interfaces.event_administration import EventLog
 
 lgr = logging.getLogger(__name__)
 
@@ -30,58 +30,61 @@ class MonitorInterface(object):
 		systems = []
 		try:
 			for endpoint in EndpointService().filter(system__state__name = "Active", endpoint_type__is_queried = True):
-				health_state = requests.get(endpoint.url)  # this stores the response of the  http request on url
-				status_data = {
-					"system": endpoint.system,
-					"response_time": datetime.timedelta(seconds = health_state.elapsed.total_seconds()),
-					"endpoint": endpoint, "response": health_state.content,
-					"state": StateService().get(name = 'Operational')
-				}
-				if health_state.status_code == 200:
-					if health_state.elapsed > endpoint.optimal_response_time:
-						status_data.update({
-							"response_time_speed": 'Slow', "event_type": EventTypeService().get(name = 'Warning'),
-							"description": 'Response time is not within the expected time',
-							"state": StateService().get(name ='Degraded Performance')
+				try:
+					health_state = requests.get(endpoint.url)
+					monitor_data = {
+						'system': endpoint.system,
+						'endpoint': endpoint,
+						'response_body': health_state.content,
+						'response_code': health_state.status_code,
+						'state': StateService().get(name = 'Operational'),
+					}
+					if health_state.status_code == 200:
+						if health_state.elapsed > endpoint.optimal_response_time:
+							monitor_data.update({
+								"response_time_speed": 'Slow', "event_type": EventTypeService().get(name = 'Warning'),
+								"description": 'Response time is not within the expected time',
+								"state": StateService().get(name ='Degraded Performance'), "response_time":
+									health_state.elapsed.total_seconds()})
+						else:
+							monitor_data.update({
+								'response_time_speed': 'Normal', "response_time": health_state.elapsed.total_seconds()})
+					else:
+						monitor_data.update({
+							"response_time_speed": None, "event_type": EventTypeService().get(name = 'Critical'),
+							"description": 'The system is not accessible', "state": StateService().get(
+								name = 'Major Outage')
+						})
+					system_status = SystemMonitorService().create(
+						system = monitor_data.get("system"), response_time = monitor_data.get("response_time"),
+						response_time_speed = monitor_data.get("response_time_speed"), state = StateService().get(
+							name = 'Active'), response_body = monitor_data.get("response_body"), endpoint =
+						monitor_data.get("endpoint"), response_code = monitor_data.get("response_code")
+					)
+					if system_status is not None:
+						systems.append({
+							"system": system_status.system.name, "status": system_status.state.name,
+							"endpoint": endpoint.url, 'monitor_data': monitor_data
 						})
 					else:
-						status_data.update({
-							"response_time_speed": 'Normal',
+						systems.append({
+							"system": system_status.system, "status": "failed", "endpoint": endpoint, 'monitor_data':
+							monitor_data
 						})
-				else:
-					status_data.update({
-						"response_time_speed": None,
-						"event_type": EventTypeService().get(name = 'Critical'),
-						"description": 'The system is not accessible',
-						"state": StateService().get(name = 'Major Outage')
-					})
-				system_status = SystemMonitorService().create(
-					system = status_data.get("system"), response_time = status_data.get("response_time"),
-					response_time_speed = status_data.get("response_time_speed"), response = status_data.get(
-						"response"), endpoint = status_data.get("endpoint"), state = status_data.get('state')
-				)
-				if system_status is not None:
-					systems.append({
-						"system": system_status.system.name, "status": system_status.state.name,
-						"endpoint": endpoint.url
-					})
-				else:
-					systems.append({
-						"system": system_status.system.name, "status": "failed", "endpoint": endpoint.endpoint
-					})
-
-				if status_data.get("event_type") is not None:
-					event = EventLog.log_event(
-						event_type = status_data.get("event_type").name, system = status_data.get("system").name,
-						description = status_data.get("description"), response = status_data.get('response'),
-						request = health_state.request
-					)
-					if event['code'] != "800.200.001":
-						lgr.warning("Event creation failed %s" % event)
+					if monitor_data.get("event_type") is not None:
+						event = EventLog.log_event(
+							event_type = monitor_data.get("event_type").name, system = monitor_data.get("system").id,
+							description = monitor_data.get("description"), response = monitor_data.get('response'),
+							request = health_state.request
+						)
+						if event['code'] != "800.200.001":
+							lgr.warning("Event creation failed %s" % event)
+				except requests.ConnectionError as e:
+					lgr.exception('Endpoint health check failed:  %s' % e)
 			return {"code": "800.200.001", "data": {"systems": systems}}
-		except Exception as e:
-			lgr.exception("Health Status exception:  %s" % e)
-		return {"code": "800.400.001", "data": "Error while logging system status"}
+		except Exception as ex:
+			lgr.exception("Health Status exception:  %s" % ex)
+		return {"code": "800.400.001", "message": "Error while performing health check"}
 
 	@staticmethod
 	def get_system_endpoint_response_time(system_id, start_date, end_date):

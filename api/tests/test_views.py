@@ -109,7 +109,7 @@ class TestViews(TestCase):
 			'client_id': oauth.app_user.app.id, 'token': '12345'
 		})).content)
 		assert response.get('code') == '800.200.001', 'Should get an incident successfully'
-		assert response.get('data').get('affected_system') == "HP", 'Should match the corresponding system name'
+		assert response.get('data').get('system_name') == "HP", 'Should match the corresponding system name'
 		assert invalid_response.get('code') == '800.400.002', 'Should return the status code for invalid request'
 
 	def test_get_access_code(self):
