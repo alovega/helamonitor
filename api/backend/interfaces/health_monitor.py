@@ -2,6 +2,8 @@ import datetime
 import logging
 
 import requests
+import dateutil.parser
+import calendar
 from django.db.models import F
 from django.utils import timezone
 from datetime import timedelta
@@ -82,9 +84,13 @@ class MonitorInterface(object):
 		return {"code": "800.400.001", "data": "Error while logging system status"}
 
 	@staticmethod
-	def get_system_endpoint_response_time(system_id):
+	def get_system_endpoint_response_time(system_id, start_date, end_date):
 		"""
 		Returns the response time of every endpoint for a specific system
+		@param end_date: End date of the period of which the data is to be extracted
+		@type:str
+		@param start_date: Start point of the data to be presented
+		@type: str
 		@param: system_id: Id of the system
 		@type system_id: str
 		@return: Response code indicating status and response time graph data
@@ -94,41 +100,163 @@ class MonitorInterface(object):
 			if not system:
 				return {'code': '800.400.200'}
 			now = timezone.now()
+			start_date = dateutil.parser.parse(start_date)
+			end_date = dateutil.parser.parse(end_date)
+			period = start_date - end_date
 			labels = []
 			label = []
 			dataset = []
-			for i in range(1, 25):
-				past_hour = now - timedelta(hours = i, minutes = 0)
-				current_hour = past_hour + timedelta(hours = 1)
-				response_times = list(SystemMonitorService().filter(
-					system = system, date_created__lte = current_hour,
-					date_created__gte = past_hour).values(
-					name= F('endpoint__name'), responseTime = F('response_time'),
-					dateCreated=F('date_created')))
-				past_hour = past_hour.replace(minute = 0)
-				label.append(past_hour.strftime("%m/%d/%y  %H:%M"))
-				result = {"Initial": {"data": [0]}}
-				for response_time in response_times:
-					response_time.update(
-						responseTime=timedelta.total_seconds(response_time.get('responseTime')),
-						dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
-					)
-					dataset.append(response_time)
-					labels.append(response_time['dateCreated'])
-				if dataset:
-					label = []
-					[label.append(item) for item in labels if item not in label]
-					result = {}
-					for row in dataset:
-						if row["name"] in result:
-							result[row["name"]]["data"].append(row["responseTime"])
-							result[row["name"]]["dateCreated"].append(row["dateCreated"])
-						else:
-							result[row["name"]] = {
-								"label": row["name"],
-								"data": [row["responseTime"]],
-								"dateCreated": [row["dateCreated"]],
-							}
+			if period.days <= 1:
+				for i in range(1, 25):
+					past_hour = now - timedelta(hours = i, minutes = 0)
+					current_hour = past_hour + timedelta(hours = 1)
+					response_times = list(SystemMonitorService().filter(
+						system = system, date_created__lte = current_hour,
+						date_created__gte = past_hour).values(
+						name= F('endpoint__name'), responseTime = F('response_time'),
+						dateCreated=F('date_created')))
+					past_hour = past_hour.replace(minute = 0)
+					label.append(past_hour.strftime("%m/%d/%y  %H:%M"))
+					result = {"Initial": {"data": [0]}}
+					for response_time in response_times:
+						response_time.update(
+							responseTime=timedelta.total_seconds(response_time.get('responseTime')),
+							dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+						)
+						dataset.append(response_time)
+						labels.append(response_time['dateCreated'])
+					if dataset:
+						label = []
+						[label.append(item) for item in labels if item not in label]
+						result = {}
+						for row in dataset:
+							if row["name"] in result:
+								result[row["name"]]["data"].append(row["responseTime"])
+								result[row["name"]]["dateCreated"].append(row["dateCreated"])
+							else:
+								result[row["name"]] = {
+									"label": row["name"],
+									"data": [row["responseTime"]],
+									"dateCreated": [row["dateCreated"]],
+								}
+			elif period.days <= 7:
+				for i in range(0, 7):
+					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
+					past_day = current_day + timedelta(days = 1)
+					response_times = list(SystemMonitorService().filter(
+						system = system, date_created__lte = past_day,
+						date_created__gte = current_day).values(
+						name= F('endpoint__name'), responseTime = F('response_time'),
+						dateCreated=F('date_created')))
+					past_day = past_day.replace(hour = 0, minute = 0)
+					label.append(past_day.strftime("%m/%d/%y  %H:%M"))
+					result = {"Initial": {"data": [0]}}
+					for response_time in response_times:
+						response_time.update(
+							responseTime=timedelta.total_seconds(response_time.get('responseTime')),
+							dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+						)
+						dataset.append(response_time)
+						labels.append(response_time['dateCreated'])
+					if dataset:
+						label = []
+						[label.append(item) for item in labels if item not in label]
+						result = {}
+						for row in dataset:
+							if row["name"] in result:
+								result[row["name"]]["data"].append(row["responseTime"])
+								result[row["name"]]["dateCreated"].append(row["dateCreated"])
+							else:
+								result[row["name"]] = {
+									"label": row["name"],
+									"data": [row["responseTime"]],
+									"dateCreated": [row["dateCreated"]],
+								}
+			elif period.days <= 31:
+				for i in range(0, 31):
+					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
+					past_day = current_day + timedelta(days = 1)
+					response_times = list(SystemMonitorService().filter(
+						system = system, date_created__lte = past_day,
+						date_created__gte = current_day).values(
+						name= F('endpoint__name'), responseTime = F('response_time'),
+						dateCreated=F('date_created')))
+					past_day = past_day.replace(hour = 0, minute = 0)
+					label.append(past_day.strftime("%m/%d/%y  %H:%M"))
+					result = {"Initial": {"data": [0]}}
+					for response_time in response_times:
+						response_time.update(
+							responseTime=timedelta.total_seconds(response_time.get('responseTime')),
+							dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+						)
+						dataset.append(response_time)
+						labels.append(response_time['dateCreated'])
+					if dataset:
+						label = []
+						[label.append(item) for item in labels if item not in label]
+						result = {}
+						for row in dataset:
+							if row["name"] in result:
+								result[row["name"]]["data"].append(row["responseTime"])
+								result[row["name"]]["dateCreated"].append(row["dateCreated"])
+							else:
+								result[row["name"]] = {
+									"label": row["name"],
+									"data": [row["responseTime"]],
+									"dateCreated": [row["dateCreated"]],
+								}
+			elif period.days <= 365:
+				current_date = now.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
+				current_month = now.month
+				current_date = current_date.replace(
+					day = 1, hour = 0, minute = 0, second = 0, microsecond = 0) + timedelta(
+					days = calendar.monthrange(current_date.year, current_month)[1] - 1)
+				for i in range(1, 13):
+					if current_month > 1:
+						month_name = calendar.month_name[current_month]
+						end_date = current_date
+						start_date = current_date - timedelta(
+							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
+						current_date = current_date - timedelta(
+							days = calendar.monthrange(current_date.year, current_month)[1])
+						current_month = current_month - 1
+					else:
+						month_name = calendar.month_name[current_month]
+						end_date = current_date
+						start_date = current_date - timedelta(
+							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
+						current_date = current_date - timedelta(
+							days = calendar.monthrange(current_date.year, current_month)[1])
+						current_month = current_date.month
+					response_times = list(SystemMonitorService().filter(
+						system = system, date_created__lte = end_date,
+						date_created__gte = start_date).values(
+						name = F('endpoint__name'), responseTime = F('response_time'),
+						dateCreated = F('date_created')))
+					label.append('%s, %s' % (month_name, current_date.year))
+					result = {"Initial": {"data": [0]}}
+					for response_time in response_times:
+						response_time.update(
+							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
+							dateCreated = response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+						)
+						dataset.append(response_time)
+						labels.append(response_time['dateCreated'])
+					if dataset:
+						label = []
+						[label.append(item) for item in labels if item not in label]
+						result = {}
+						for row in dataset:
+							if row["name"] in result:
+								result[row["name"]]["data"].append(row["responseTime"])
+								result[row["name"]]["dateCreated"].append(row["dateCreated"])
+							else:
+								result[row["name"]] = {
+									"label": row["name"],
+									"data": [row["responseTime"]],
+									"dateCreated": [row["dateCreated"]],
+								}
+
 			return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)

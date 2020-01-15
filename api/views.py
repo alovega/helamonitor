@@ -749,8 +749,7 @@ def update_system_recipient(request):
 	try:
 		data = get_request_data(request)
 		updated_recipient = RecipientAdministrator.update_system_recipient(
-			system_recipient_id = data.get('systemRecipientId'), state_id = data.get('State'),
-			notification_type_id = data.get('NotificationType')
+			recipient_id = data.get('recipient_id'), escalations = data.get('escalations')
 		)
 		return JsonResponse(updated_recipient)
 	except Exception as ex:
@@ -810,7 +809,8 @@ def get_system_recipient(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipient = RecipientAdministrator.get_system_recipient(system_recipient_id = data.get('systemRecipientId'))
+		recipient = RecipientAdministrator.get_system_recipient(recipient_id = data.get('recipientId'), system_id =
+		data.get('system_id'))
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('Look up data get Exception: %s' % ex)
@@ -1021,7 +1021,8 @@ def get_system_response_time_data(request):
 	"""
 	try:
 		data = get_request_data(request)
-		data = MonitorInterface.get_system_endpoint_response_time(system_id = data.get('system_id'))
+		data = MonitorInterface.get_system_endpoint_response_time(
+			system_id = data.get('system_id'), start_date = data.get('start_date'),  end_date = data.get('end_date'))
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('edit logged in user password update Exception: %s' % ex)
@@ -1104,6 +1105,28 @@ def recipient_table_data(request):
 		data = get_request_data(request)
 		data_source = TableData.get_recipients(
 			parameters = data.get('body')
+		)
+		return JsonResponse(data_source)
+	except Exception as ex:
+		lgr.exception('Get Table data %s' % ex)
+	return JsonResponse({'code': '800.500.001'})
+
+
+@csrf_exempt
+@ensure_authenticated
+def notification_table_data(request):
+	"""
+	Retrieves  Recipients Table data
+	@param request: The Django WSGI Request to process
+	@type request: WSGIRequest
+	@return: A response code to indicate successful rule creation or otherwise
+	@rtype: dict
+	"""
+	try:
+		data = get_request_data(request)
+		data_source = TableData.get_notifications(
+			parameters = data.get('body'), system_id = data.get('system_id'), notification_type = data.get(
+				'notification_type')
 		)
 		return JsonResponse(data_source)
 	except Exception as ex:

@@ -1,13 +1,14 @@
 from datetime import timedelta
 import logging
+import pandas as pd
 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models import F
 
 from core.backend.services import SystemService, EndpointService, SystemRecipientService, RecipientService, \
-	EventService, EscalationRuleService, IncidentService, IncidentLogService, IncidentEventService
-from base.backend.services import IncidentTypeService
+	EventService, EscalationRuleService, IncidentService, IncidentLogService, IncidentEventService, NotificationService
+from base.backend.services import IncidentTypeService, NotificationTypeService
 from core.models import User
 
 lgr = logging.getLogger(__name__)
@@ -31,13 +32,12 @@ class TableData(object):
 		try:
 			if not parameters:
 				return {
-					"code": "800.400.002 %s" % parameters, "message": "invalid required parameters"
+					"code": "800.400.002", "message": "invalid required parameters"
 				}
 			system = SystemService().get(id = system_id)
 			if parameters.get('search_query') and parameters.get('order_column'):
 				if parameters.get('order_dir') == 'desc':
 					row = list(EndpointService().filter(
-						Q(system__id__icontains = system_id) |
 						Q(description__icontains = parameters.get('search_query')) |
 						Q(name__icontains = parameters.get('search_query')) |
 						Q(url__icontains = parameters.get('search_query')) |
@@ -104,7 +104,7 @@ class TableData(object):
 			paginator = Paginator(row, parameters.get('page_size'))
 			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
 			if table_data.get('row'):
-				item_range = [table_data.get('row')[0].get('item_index'),table_data.get('row')[-1].get('item_index')]
+				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
 			else:
 				item_range = [0, 0]
 			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
@@ -122,14 +122,15 @@ class TableData(object):
 		@param parameters: a dictionary containing parameters used for fetching endpoint data
 		@type: dict
 		@param system_id: Id of a system the endpoints will be attached to
-		@type: int
+		@type: char
 		@return:a dictionary containing response code and data to be used for data table
 		@rtype: dict
 		"""
 		try:
+			recipients_id = []
 			if not parameters:
 				return {
-					"code": "800.400.002 %s %s" % (parameters, system_id), "message": "invalid required parameters"
+					"code": "800.400.002", "message": "invalid required parameters"
 				}
 			system = SystemService().get(id = system_id)
 			if parameters.get('search_query') and parameters.get('order_column'):
@@ -142,7 +143,8 @@ class TableData(object):
 					).filter(system = system).values(
 						userName = F('recipient__user__username'), systemRecipientId = F('id'),
 						status = F('state__name'), notificationType = F('notification_type__name'),
-						dateCreated = F('date_created'), escalationLevel = F('escalation_level__name')).order_by(
+						dateCreated = F('date_created'), escalationLevel = F('escalation_level__name'),
+						recipientId = F('recipient')).order_by(
 						'-' + str(parameters.get('order_column'))))
 				else:
 					row = list(SystemRecipientService().filter(
@@ -154,21 +156,22 @@ class TableData(object):
 						userName = F('recipient__user__username'), systemRecipientId = F('id'),
 						status = F('state__name'),
 						notificationType = F('notification_type__name'), dateCreated = F('date_created'),
-						escalationLevel = F('escalation_level__name')).order_by(
+						escalationLevel = F('escalation_level__name'), recipientId = F('recipient')).order_by(
 						str(parameters.get('order_column'))))
 			elif parameters.get('order_column'):
 				if parameters.get('order_dir') == 'desc':
 					row = list(SystemRecipientService().filter(system = system).values(
 						userName = F('recipient__user__username'), systemRecipientId = F('id'),
 						status = F('state__name'), notificationType = F('notification_type__name'),
-						dateCreated = F('date_created'), escalationLevel = F('escalation_level__name')).order_by(
+						dateCreated = F('date_created'), escalationLevel = F('escalation_level__name'),
+						recipientId = F('recipient')).order_by(
 						'-' + str(parameters.get('order_column'))))
 				else:
 					row = list(SystemRecipientService().filter(system = system).values(
 						userName = F('recipient__user__username'), systemRecipientId = F('id'),
 						status = F('state__name'),
 						notificationType = F('notification_type__name'), dateCreated = F('date_created'),
-						escalationLevel = F('escalation_level__name')).order_by(
+						escalationLevel = F('escalation_level__name'), recipientId = F('recipient')).order_by(
 						str(parameters.get('order_column'))))
 			elif parameters.get('search_query'):
 				row = list(SystemRecipientService().filter(
@@ -179,18 +182,20 @@ class TableData(object):
 				).filter(system = system).values(
 					userName = F('recipient__user__username'), systemRecipientId = F('id'), status = F('state__name'),
 					notificationType = F('notification_type__name'), dateCreated = F('date_created'),
-					escalationLevel = F('escalation_level__name')))
+					escalationLevel = F('escalation_level__name'), recipientId = F('recipient')))
 			else:
 				row = list(SystemRecipientService().filter(system = system).values(
 					userName = F('recipient__user__username'), systemRecipientId = F('id'), status = F('state__name'),
 					notificationType = F('notification_type__name'), dateCreated = F('date_created'),
-					escalationLevel = F('escalation_level__name')))
-			for index, value in enumerate(row):
+					escalationLevel = F('escalation_level__name'), recipientId = F('recipient')))
+			df = pd.DataFrame(row)
+			data = [update_dict(k, g.to_dict(orient='list')) for k, g in df.groupby(df.userName)]
+			for index, value in enumerate(data):
 				value.update(item_index = index + 1)
-			paginator = Paginator(row, parameters.get('page_size'))
+			paginator = Paginator(data, parameters.get('page_size'))
 			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
 			if table_data.get('row'):
-				item_range = [table_data.get('row')[0].get('item_index'),table_data.get('row')[-1].get('item_index')]
+				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
 			else:
 				item_range = [0, 0]
 			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
@@ -201,6 +206,92 @@ class TableData(object):
 		except Exception as ex:
 			lgr.exception("System Recipient exception: %s" % ex)
 		return {"code": "800.400.001", "message": "Error while system recipient getting table data"}
+
+	@staticmethod
+	def get_notifications(parameters, system_id, notification_type = None):
+		"""
+		@param notification_type: Notification Type which the notification belongs to
+		@type: str
+		@param parameters: a dictionary containing parameters used for fetching notification data
+		@type: dict
+		@param system_id: Id of a system the notifications will be attached to
+		@type: char
+		@return: a dictionary containing response code and data to be used for data table
+		@rtype: dict
+		"""
+		try:
+			if not parameters:
+				return {
+					"code": "800.400.002", "message": "invalid required parameters"
+				}
+			system = SystemService().get(id = system_id)
+			notification_type = NotificationTypeService().filter(name = notification_type).first()
+			if parameters.get('search_query') and parameters.get('order_column'):
+				if parameters.get('order_dir') == 'desc':
+					row = list(NotificationService().filter(
+						Q(message__icontains = parameters.get('search_query')) |
+						Q(recipient__icontains = parameters.get('search_query')) |
+						Q(state__name__icontains = parameters.get('search_query')) |
+						Q(notification_type__name__icontains = parameters.get('search_query'))
+					).filter(system = system).filter(notification_type = notification_type).values(
+						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
+						Id = F('id'), type = F('notification_type__name')).order_by(
+						'-' + str(parameters.get('order_column'))))
+				else:
+					row = list(NotificationService().filter(
+						Q(message__icontains = parameters.get('search_query')) |
+						Q(recipient__icontains = parameters.get('search_query')) |
+						Q(state__name__icontains = parameters.get('search_query')) |
+						Q(notification_type__name__icontains = parameters.get('search_query'))
+					).filter(system = system).filter(notification_type = notification_type).values(
+						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
+						Id = F('id'), type = F('notification_type__name')).order_by(
+						str(parameters.get('order_column'))))
+
+			elif parameters.get('order_column'):
+				if parameters.get('order_dir') == 'desc':
+					row = list(NotificationService().filter(system = system).filter(
+						notification_type = notification_type).values(
+						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
+						Id = F('id'), type = F('notification_type__name')).order_by(
+						'-' + str(parameters.get('order_column'))))
+				else:
+					row = list(NotificationService().filter(system = system).filter(
+						notification_type = notification_type).values(
+						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
+						Id = F('id'), type = F('notification_type__name')).order_by(
+						str(parameters.get('order_column'))))
+
+			elif parameters.get('search_query'):
+				row = list(NotificationService().filter(
+					Q(message__icontains = parameters.get('search_query')) |
+					Q(recipient__icontains = parameters.get('search_query')) |
+					Q(state__name__icontains = parameters.get('search_query')) |
+					Q(notification_type__name__icontains = parameters.get('search_query'))
+				).filter(system = system).filter(notification_type = notification_type).values(
+					'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
+					Id = F('id'), type = F('notification_type__name')))
+			else:
+				row = list(NotificationService().filter(system = system).filter(
+					notification_type = notification_type).values(
+					'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
+					Id = F('id'), type = F('notification_type__name')))
+			for index, value in enumerate(row):
+				value.update(item_index = index + 1)
+			paginator = Paginator(row, parameters.get('page_size'))
+			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
+			if table_data.get('row'):
+				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+			else:
+				item_range = [0, 0]
+			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
+			                   str(paginator.count) + ' ' + 'items'
+			table_data.update(size = paginator.num_pages, totalElements = paginator.count,
+			                  totalPages = paginator.num_pages, range = item_description)
+			return {'code': '800.200.001', 'data': table_data}
+		except Exception as ex:
+			lgr.exception("Recipient Table exception: %s" % ex)
+		return {"code": "800.400.001", "message": "Error while getting notifications table data"}
 
 	@staticmethod
 	def get_recipients(parameters):
@@ -269,7 +360,7 @@ class TableData(object):
 			paginator = Paginator(row, parameters.get('page_size'))
 			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
 			if table_data.get('row'):
-				item_range = [table_data.get('row')[0].get('item_index'),table_data.get('row')[-1].get('item_index')]
+				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
 			else:
 				item_range = [0, 0]
 			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
@@ -407,8 +498,8 @@ class TableData(object):
 			item_description = 'Showing %s to %s of %s items' % (
 				str(item_range[0]), str(item_range[1]), str(paginator.count))
 			table_data.update(
-					size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
-					range = item_description)
+				size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+				range = item_description)
 			return {'code': '800.200.001', 'data': table_data}
 		except Exception as ex:
 			lgr.exception('Get Users data exception: %s' % ex)
@@ -480,8 +571,8 @@ class TableData(object):
 			item_description = 'Showing %s to %s of %s items' % (
 				str(item_range[0]), str(item_range[1]), str(paginator.count))
 			table_data.update(
-					size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
-					range = item_description)
+				size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+				range = item_description)
 			return {'code': '800.200.001', 'data': table_data}
 		except Exception as ex:
 			lgr.exception('Get Users data exception: %s' % ex)
@@ -569,8 +660,8 @@ class TableData(object):
 			item_description = 'Showing %s to %s of %s items' % (
 				str(item_range[0]), str(item_range[1]), str(paginator.count))
 			table_data.update(
-					size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
-					range = item_description)
+				size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+				range = item_description)
 			return {'code': '800.200.001', 'data': table_data}
 		except Exception as ex:
 			lgr.exception('Get Users data exception: %s' % ex)
@@ -634,9 +725,13 @@ class TableData(object):
 			item_description = 'Showing %s to %s of %s items' % (
 				str(item_range[0]), str(item_range[1]), str(paginator.count))
 			table_data.update(
-					size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
-					range = item_description)
+				size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+				range = item_description)
 			return {'code': '800.200.001', 'data': table_data}
 		except Exception as ex:
 			lgr.exception('Get Users data exception: %s' % ex)
 		return {'code': '800.400.001', 'message': 'Error while fetching incident events'}
+
+def update_dict(user_name, d):
+	d['userName'] = user_name
+	return d
