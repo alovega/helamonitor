@@ -12,7 +12,7 @@ from api.views import report_event, get_events, get_event, get_error_rates, crea
     create_user, get_user, delete_user, get_users, create_endpoints, update_endpoint, edit_user, \
     create_recipient, update_recipient, get_endpoint, get_recipient, \
     get_look_up_data, delete_recipient, delete_endpoint, get_notifications, get_logged_in_user_details, \
-    get_system_status, edit_logged_in_user_details, get_logged_in_user_recent_notifications, past_incidents, \
+    edit_logged_in_user_details, get_logged_in_user_recent_notifications, past_incidents, \
     get_logged_in_user_notifications, edit_logged_in_user_password, get_system_recipient, \
     update_system_recipient, create_system_recipient, delete_system_recipient, get_system_response_time_data, \
     endpoint_table_data, recipient_table_data, system_recipient_table_data, event_table_data, active_users, \
@@ -23,7 +23,8 @@ urlpatterns = [
     url(r'^get_events/$', get_events, name = 'get_events'),
     url(r'^get_event/$', get_event, name = 'get_event'),
     url(r'^get_error_rates/$', get_error_rates, name = 'get_error_rates'),
-    url(r'^get_system_status/$', get_system_status, name= 'get_system_status'),
+    url(r'^get_system_status/$', PublicEndpoints.get_system_status, name= 'get_system_status'),
+    url(r'^get_availability_summary/$', PublicEndpoints.get_availability_summary, name= 'get_availability_summary'),
     url(r'^create_incident/$', create_incident, name = 'create_incident'),
     url(r'^create_endpoints/$', create_endpoints, name = 'create_endpoints'),
     url(r'^create_recipient/$', create_recipient, name = 'create_recipient'),

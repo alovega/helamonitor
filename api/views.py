@@ -87,7 +87,45 @@ class PublicEndpoints(object):
 			return JsonResponse(endpoints)
 		except Exception as ex:
 			lgr.exception('Get system services exception: %s ' % ex)
-		return JsonResponse({'code': '800.500.001', 'message': str(ex)})
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_system_status(request):
+		"""
+		Retrieves current system status
+		@param request: The Django WSGI request to process
+		@type request: WSGIRequest
+		@return: A response code and the current system status information
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			system_status = DashboardAdministration.get_current_status(system = data.get('system_id'))
+			return JsonResponse(system_status)
+		except Exception as ex:
+			lgr.exception('Get system status exception: %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_availability_summary(request):
+		"""
+		Retrieves availability summary information
+		@param request: The Django WSGI request to process
+		@type request: WSGIRequest
+		@return: A response code and the availability summary information
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			availability_summary = DashboardAdministration.calculate_system_availability(
+				system = data.get('system_id'), interval = data.get('interval'), date_from = data.get('date_from'),
+				date_to = data.get('date_to'))
+			return JsonResponse(availability_summary)
+		except Exception as ex:
+			lgr.exception('Get availability summary exception: %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
