@@ -136,6 +136,7 @@ class TableData(object):
 			if parameters.get('search_query') and parameters.get('order_column'):
 				if parameters.get('order_dir') == 'desc':
 					row = list(SystemRecipientService().filter(
+						Q(recipient__user__is_active = True) |
 						Q(recipient__user__username__icontains = parameters.get('search_query')) |
 						Q(notification_type__name__icontains = parameters.get('search_query')) |
 						Q(escalation_level__name__icontains = parameters.get('search_query')) |
@@ -148,6 +149,7 @@ class TableData(object):
 						'-' + str(parameters.get('order_column'))))
 				else:
 					row = list(SystemRecipientService().filter(
+						Q(recipient__user__is_active = True) |
 						Q(recipient__user__username__icontains = parameters.get('search_query')) |
 						Q(notification_type__name__icontains = parameters.get('search_query')) |
 						Q(escalation_level__name__icontains = parameters.get('search_query')) |
@@ -160,14 +162,18 @@ class TableData(object):
 						str(parameters.get('order_column'))))
 			elif parameters.get('order_column'):
 				if parameters.get('order_dir') == 'desc':
-					row = list(SystemRecipientService().filter(system = system).values(
+					row = list(SystemRecipientService().filter(system = system).filter(
+						Q(recipient__user__is_active = True)
+					).values(
 						userName = F('recipient__user__username'), systemRecipientId = F('id'),
 						status = F('state__name'), notificationType = F('notification_type__name'),
 						dateCreated = F('date_created'), escalationLevel = F('escalation_level__name'),
 						recipientId = F('recipient')).order_by(
 						'-' + str(parameters.get('order_column'))))
 				else:
-					row = list(SystemRecipientService().filter(system = system).values(
+					row = list(SystemRecipientService().filter(system = system).filter(
+						Q(recipient__user__is_active = True)
+					).values(
 						userName = F('recipient__user__username'), systemRecipientId = F('id'),
 						status = F('state__name'),
 						notificationType = F('notification_type__name'), dateCreated = F('date_created'),
@@ -175,6 +181,7 @@ class TableData(object):
 						str(parameters.get('order_column'))))
 			elif parameters.get('search_query'):
 				row = list(SystemRecipientService().filter(
+					Q(recipient__user__is_active = True) |
 					Q(recipient__user__username__icontains = parameters.get('search_query')) |
 					Q(notification_type__name__icontains = parameters.get('search_query')) |
 					Q(escalation_level__name__icontains = parameters.get('search_query')) |
@@ -184,7 +191,9 @@ class TableData(object):
 					notificationType = F('notification_type__name'), dateCreated = F('date_created'),
 					escalationLevel = F('escalation_level__name'), recipientId = F('recipient')))
 			else:
-				row = list(SystemRecipientService().filter(system = system).values(
+				row = list(SystemRecipientService().filter(system = system).filter(
+					Q(recipient__user__is_active = True)
+				).values(
 					userName = F('recipient__user__username'), systemRecipientId = F('id'), status = F('state__name'),
 					notificationType = F('notification_type__name'), dateCreated = F('date_created'),
 					escalationLevel = F('escalation_level__name'), recipientId = F('recipient')))
