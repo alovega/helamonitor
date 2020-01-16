@@ -1029,7 +1029,9 @@ def get_logged_in_user_notifications(request):
 	"""
 	try:
 		data = get_request_data(request)
-		notifications = NotificationLogger.get_logged_in_user_notifications(token = data.get('token'))
+		notifications = NotificationLogger.get_logged_in_user_notifications(
+			token = data.get('token'), parameters = data.get('body')
+		)
 		return JsonResponse(notifications)
 	except Exception as ex:
 		lgr.exception('get logged in user recent notification Exception: %s' % ex)
