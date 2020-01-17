@@ -530,7 +530,7 @@
          "name":"Increased Errors in HelaPlan",
          "description":"Escalated every 3 errors reported from HelaPlan within an hour",
          "nth_event":3,
-         "duration":3600,
+         "duration":"3600",
          "event_type":"a67351da-f7e1-49df-9a45-5089d0a565b7",
          "escalation_level":"3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "system":"07b562ad-1c83-48ed-a100-d60c35fdb712",
@@ -546,7 +546,7 @@
          "name":"Critical Events in HelaPlan",
          "description":"Escalates every critical event occurrence reported from Hela Plan",
          "nth_event":1,
-         "duration":3600,
+         "duration":"3600",
          "event_type":"1cb729dc-093f-46b2-b9e4-2d9cabb6aaa5",
          "escalation_level":"d34740e0-a508-4a48-9a7b-f0fd5d88567b",
          "system":"07b562ad-1c83-48ed-a100-d60c35fdb712",
@@ -739,7 +739,7 @@
          "name":"Helaplan",
          "description":"Hela Plan System",
          "version":"1",
-         "admin":,
+         "admin":"38a20eb3-324c-4256-bb57-849eaac565d4",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
    },
@@ -752,7 +752,7 @@
          "name":"HelaMonitor",
          "description":"Hela monitor System",
          "version":"1",
-         "admin":"38a20eb3-324c-4256-bb57-849eaac565d",
+         "admin":"38a20eb3-324c-4256-bb57-849eaac565d4",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
    },
@@ -763,7 +763,7 @@
          "date_modified":"2019-09-16T07:56:06.540Z",
          "date_created":"2019-09-16T07:56:06.540Z",
          "phone_number":"0714309973",
-         "user":3,
+         "user":"38a20eb3-324c-4256-bb57-849eaac565d4",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
    },
@@ -772,6 +772,7 @@
       "pk":"20da137e-bd29-44bb-aae0-0f209d8d7962",
       "fields":{
          "date_modified":"2019-09-30T07:25:50.468Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-30T07:25:50.469Z",
          "description":"Test description",
          "incident":"3ec2e845-cf48-41c7-96bc-739342973480",
@@ -785,6 +786,7 @@
       "pk":"2e63a92f-8ac0-4e28-a0f4-079420adf4b5",
       "fields":{
          "date_modified":"2019-09-17T07:30:50.037Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-17T07:30:50.037Z",
          "description":"The problem has been discovered to be a recent commit. This will be rollbacked to previous commit",
          "incident":"3ec2e845-cf48-41c7-96bc-739342973480",
@@ -798,6 +800,7 @@
       "pk":"63a96f34-7ff8-4219-99b6-726f680b9aa3",
       "fields":{
          "date_modified":"2019-09-17T07:14:32.318Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-17T07:14:32.318Z",
          "description":"The HP scheduled mantainence is underway",
          "incident":"f1284ec4-f9a8-4b0f-aac7-fa22f49ed3b8",
@@ -811,6 +814,7 @@
       "pk":"7799dab0-1b9e-48db-9caa-9f194c468b3f",
       "fields":{
          "date_modified":"2019-09-14T20:30:59.917Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-14T20:30:59.917Z",
          "description":"Priority level of Critical event incident changed to 6",
          "incident":"8c032583-3c21-4700-8fce-f0c5d0cf5cc2",
@@ -824,6 +828,7 @@
       "pk":"96318f90-0d75-49a0-8382-92e525948480",
       "fields":{
          "date_modified":"2019-09-14T20:31:01.675Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-14T20:31:01.675Z",
          "description":"Priority level of Critical event incident changed to 7",
          "incident":"8c032583-3c21-4700-8fce-f0c5d0cf5cc2",
@@ -837,6 +842,7 @@
       "pk":"a8e2b951-d94a-47e6-bc0e-cb60b5458ed4",
       "fields":{
          "date_modified":"2019-09-30T07:25:45.354Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-30T07:25:45.354Z",
          "description":"Test description",
          "incident":"3ec2e845-cf48-41c7-96bc-739342973480",
@@ -850,6 +856,7 @@
       "pk":"b4d6d276-b7e1-4a53-b151-a014ea16d5ba",
       "fields":{
          "date_modified":"2019-09-30T07:25:14.023Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-30T07:25:14.023Z",
          "description":"Test description",
          "incident":"3ec2e845-cf48-41c7-96bc-739342973480",
@@ -863,6 +870,7 @@
       "pk":"b61bcc18-ec97-47ec-ade5-0b2a4bb64040",
       "fields":{
          "date_modified":"2019-09-14T20:35:41.828Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-14T20:35:41.828Z",
          "description":"Priority level of Critical event incident changed to 8",
          "incident":"8c032583-3c21-4700-8fce-f0c5d0cf5cc2",
@@ -876,6 +884,7 @@
       "pk":"d325927c-0760-41c8-b23f-31a45758648b",
       "fields":{
          "date_modified":"2019-09-17T07:27:33.300Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-17T07:27:33.300Z",
          "description":"Priority level of Test incident scheduled incident changed to 6",
          "incident":"3ec2e845-cf48-41c7-96bc-739342973480",
@@ -889,6 +898,7 @@
       "pk":"e4e68a89-9d4a-45e5-8bbe-20b61b916255",
       "fields":{
          "date_modified":"2019-09-17T07:34:26.548Z",
+         "escalation_level": "3fd1fb65-ec09-4945-9d28-d2a30b964853",
          "date_created":"2019-09-17T07:34:26.548Z",
          "description":"The incident has been resolved",
          "incident":"3ec2e845-cf48-41c7-96bc-739342973480",
@@ -903,7 +913,7 @@
       "fields":{
          "date_modified":"2019-09-30T07:16:48.874Z",
          "date_created":"2019-09-30T07:16:48.874Z",
-         "user":3,
+         "user":"38a20eb3-324c-4256-bb57-849eaac565d4",
          "app":"3cd49364-721a-4d3f-8bfa-141d93d6a8f7",
          "state":"078c962c-050e-4cbf-954e-bcc03ef6f25b"
       }
