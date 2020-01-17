@@ -172,7 +172,7 @@ class RecipientAdministrator(object):
 		return {"code": "800.400.001", "message": "Error while deleting recipient"}
 
 	@staticmethod
-	def create_system_recipient(system_id, recipient_id, escalations):
+	def create_system_recipient(system_id, user_id, escalations):
 		"""
 		@param system_id: The id of the system the recipient will belong to
 		@type:str
@@ -186,7 +186,7 @@ class RecipientAdministrator(object):
 
 		try:
 			system = SystemService().get(id = system_id)
-			recipient = RecipientService().get(id = recipient_id)
+			recipient = User.objects.get(id = user_id)
 			if not (system and recipient and escalations):
 				return {"code": "800.400.002", "message": "Invalid parameters given"}
 
