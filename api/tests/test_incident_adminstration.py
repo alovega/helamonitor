@@ -55,5 +55,5 @@ class TestIncidentLogger(object):
 		"""
 		state = mixer.blend('base.State', name = 'Active')
 		system = mixer.blend('core.System', state = state)
-		incident = IncidentAdministrator().get_incident(incident_id = 'id', system = system.name)
+		incident = IncidentAdministrator().get_incident(incident_id = 'id')
 		assert incident.get('code') == '800.400.001', 'Should get the incident successfully'
