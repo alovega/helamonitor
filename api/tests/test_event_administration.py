@@ -5,7 +5,7 @@ Tests for event_creation process
 from datetime import timedelta
 import pytest
 from mixer.backend.django import mixer
-from api.backend.interfaces.event_log import EventLog
+from api.backend.interfaces.event_administration import EventLog
 
 pytestmark = pytest.mark.django_db
 
@@ -24,11 +24,11 @@ class TestEventLog(object):
         event_type = mixer.blend('base.EventType', state=state)
         event = EventLog.log_event(
             system=system.id, event_type=event_type.name, description = "Test Event description",
-            interface = interface.name, state = state.name, code = "12345"
+            interface = interface.name, state = state.name, code = "404"
         )
         failing_event = EventLog.log_event(
             system='system', event_type=event_type.name, description = "Test Event description",
-            interface = 'interface', state = state.name, code = "12345"
+            interface = 'interface', state = state.name, code = "500"
         )
         assert event.get('code') == '800.200.001', "Should create an event successfully"
         assert failing_event.get('code') != '800.200.001', "Should fail during event creation"
@@ -46,7 +46,7 @@ class TestEventLog(object):
         mixer.blend('base.IncidentType', state=state, name="Realtime")
         mixer.blend(
             "core.EscalationRule", system=system, event_type=event_type, nth_event=1,
-            duration = 3600, escalation_level=escalation_level
+            duration = timedelta(hours = 2), escalation_level=escalation_level
         )
         event = mixer.blend(
             'core.Event', event_type=event_type, system=system, interface=interface, state=state,

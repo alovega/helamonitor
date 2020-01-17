@@ -56,8 +56,8 @@ class NotificationLogger(object):
 						"corporate_id": None, "message_code": 'HPS0006',
 						"replace_tags": {
 							"code": None, 'corporate': None,
-							'date': datetime.date.today().strftime('%d/%m/%y'),
-							'time': datetime.datetime.now().time().strftime('%I:%M%p')
+							'date': datetime.now().strftime('%d/%m/%y'),
+							'time': datetime.now().time().strftime('%I:%M%p')
 						}
 					}
 					# to do a call to notification API check if it returns a code for success
@@ -68,7 +68,7 @@ class NotificationLogger(object):
 						lgr.warn("Message sending failed: %s" % data)
 				else:
 					return {"code": "200.400.005"}
-			return {"code": "800.200.001 %s" % message}
+			return {"code": "800.200.001", "message": message}
 		except Exception as e:
 			lgr.exception("Notification logger exception %s" % e)
 		return {"code": "800.400.001", "message": "error in sending notification interface"}

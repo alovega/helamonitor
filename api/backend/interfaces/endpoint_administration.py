@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+from django.db.models import F
+
 from core.backend.services import SystemService, EndpointService
 from core.models import Endpoint
 from base.backend.services import StateService, EndpointTypeService
@@ -72,7 +74,6 @@ class EndpointAdministrator(object):
 		@return: Response code dictionary to indicate if the endpoint was updated or not
 		@rtype: dict
 		"""
-
 		try:
 			update_endpoint = EndpointService().get(pk = endpoint_id)
 			state = StateService().get(id = state_id)
@@ -112,6 +113,28 @@ class EndpointAdministrator(object):
 		except Exception as ex:
 			lgr.exception("Endpoint Administration exception: %s" % ex)
 		return {'code': '800.400.001', "message": "Error when fetching an endpoint"}
+
+	@staticmethod
+	def get_endpoints(system):
+		"""
+		@param system: System where the endpoint is configured
+		@type system:str
+		@return: endpoints: dictionary containing a success code and a list of dictionary containing endpoints data
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().filter(pk = system, state__name = 'Active')
+			if not system:
+				return {'code': '800.400.002', 'message': 'Invalid parameters'}
+			endpoints = list(EndpointService().filter(system = system).values(
+				'id', 'name', 'description', 'url', 'optimal_response_time',
+				'date_created', 'date_modified', system_name = F('system__name'),
+				type = F('endpoint_type__name'), state_name = F('state__name')
+			))
+			return {'code': '800.200.001', 'data': endpoints}
+		except Exception as ex:
+			lgr.exception("Endpoint Administration exception: %s" % ex)
+		return {'code': '800.400.001', "message": "Error. Could not retrieve endpoints"}
 
 	@staticmethod
 	def delete_endpoint(endpoint_id):

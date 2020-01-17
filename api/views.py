@@ -11,7 +11,7 @@ from django.contrib.auth.hashers import check_password
 
 from api.backend.interfaces.recipient_administration import RecipientAdministrator
 from api.models import token_expiry
-from api.backend.interfaces.event_log import EventLog
+from api.backend.interfaces.event_administration import EventLog
 from api.backend.interfaces.incident_administration import IncidentAdministrator
 from api.backend.interfaces.rules_administration import EscalationRuleAdministrator
 from api.backend.interfaces.endpoint_administration import EndpointAdministrator
@@ -28,6 +28,104 @@ from base.backend.utilities import get_request_data, generate_access_token
 from base.backend.services import StateService
 
 lgr = logging.getLogger(__name__)
+
+
+class PublicEndpoints(object):
+	"""Class for grouping public api endpoints"""
+	@staticmethod
+	@csrf_exempt
+	def get_availability_trend(request):
+		"""
+		Retrieves availability trend for a system within a give period
+		@param request: The Django WSGI Request to process
+		@type request: WSGIRequest
+		@return: A response code to indicate status and system uptime trend data
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			availability_trend = DashboardAdministration.availability_trend(
+				system = data.get('system'), interval = data.get('interval'))
+			return JsonResponse(availability_trend)
+		except Exception as ex:
+			lgr.exception('Get system availability percentage trend exception: %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_widgets_data(request):
+		"""
+		Retrieves Dashboard widgets data
+		@param request: The Django WSGI Request to process
+		@type request: WSGIRequest
+		@return: A response code and or dashboard widgets data
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			widget_data = DashboardAdministration.dashboard_widgets_data(
+				system = data.get('system_id'), date_from = data.get('date_from'), date_to = data.get('date_to')
+			)
+			return JsonResponse(widget_data)
+		except Exception as ex:
+			lgr.exception('Get Dashboard widgets data exception %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_endpoints(request):
+		"""
+		Retrieves endpoints for a public status page display
+		@param request: The Django WSGI Request to process
+		@type request: WSGIRequest
+		@return: A response code and or configured services
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			endpoints = EndpointAdministrator.get_endpoints(system = data.get('system'))
+			return JsonResponse(endpoints)
+		except Exception as ex:
+			lgr.exception('Get system services exception: %s ' % ex)
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_system_status(request):
+		"""
+		Retrieves current system status
+		@param request: The Django WSGI request to process
+		@type request: WSGIRequest
+		@return: A response code and the current system status information
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			system_status = DashboardAdministration.get_current_status(system = data.get('system_id'))
+			return JsonResponse(system_status)
+		except Exception as ex:
+			lgr.exception('Get system status exception: %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
+
+	@staticmethod
+	@csrf_exempt
+	def get_availability_summary(request):
+		"""
+		Retrieves availability summary information
+		@param request: The Django WSGI request to process
+		@type request: WSGIRequest
+		@return: A response code and the availability summary information
+		@rtype: dict
+		"""
+		try:
+			data = get_request_data(request)
+			availability_summary = DashboardAdministration.calculate_system_availability(
+				system = data.get('system_id'), interval = data.get('interval'), date_from = data.get('date_from'),
+				date_to = data.get('date_to'))
+			return JsonResponse(availability_summary)
+		except Exception as ex:
+			lgr.exception('Get availability summary exception: %s' % ex)
+		return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
@@ -199,11 +297,10 @@ def health_check(request):
 		return JsonResponse(data)
 	except Exception as ex:
 		lgr.exception('Health check interface  Exception: %s' % ex)
-	return JsonResponse({'code': '800.500.001 %s' % ex})
+	return JsonResponse({'code': '800.500.001'})
 
 
 @csrf_exempt
-@ensure_authenticated
 def get_incident(request):
 	"""
 	Get a specific incident
@@ -214,9 +311,7 @@ def get_incident(request):
 	"""
 	try:
 		data = get_request_data(request)
-		incident = IncidentAdministrator.get_incident(
-			system = data.get('system_id'), incident_id = data.get('incident_id')
-		)
+		incident = IncidentAdministrator.get_incident(incident_id = data.get('incident_id'))
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)

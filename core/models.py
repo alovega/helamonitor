@@ -98,10 +98,13 @@ class SystemMonitor(BaseModel):
     """
     system = models.ForeignKey(System)
     endpoint = models.ForeignKey(Endpoint)
-    response_time = models.DurationField(default=timedelta(), null = True, blank = True)
-    response_time_speed = models.CharField(max_length = 20, choices=response_time_speed(), default='Normal',
-                                           null = True, blank = True)
-    response = models.CharField(max_length=100, help_text='response returned when calling an endpoint')
+    response_time = models.DurationField(default = timedelta(), null = True, blank = True)
+    response_time_speed = models.CharField(
+        max_length = 100, choices=response_time_speed(), default='Normal', null = True, blank = True)
+    response_body = models.CharField(
+        max_length = 100, help_text = 'Body of the response returned when querying an endpoint', null = True,
+        blank = True)
+    response_code = models.PositiveIntegerField(max_length = 10, null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):

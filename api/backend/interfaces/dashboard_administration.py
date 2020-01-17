@@ -5,13 +5,15 @@ Class for dashboard data
 import logging
 import dateutil.parser
 import calendar
+import traceback
+
 from datetime import datetime, timedelta
 from django.db.models import F, Q
 from django.utils import timezone
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, EventService, SystemService, \
-	SystemRecipientService, RecipientService, EndpointService
+	SystemRecipientService, RecipientService, EndpointService, SystemMonitorService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
 lgr = logging.getLogger(__name__)
@@ -33,7 +35,7 @@ class DashboardAdministration(object):
 		try:
 			system = SystemService().get(pk = system, state__name = 'Active')
 			if system is None:
-				return {'code': '800.400.002', 'sys': str(system)}
+				return {'code': '800.400.002', 'message': 'Invalid parameters'}
 			current_incidents = list(IncidentService().filter(
 				system = system).exclude(Q(state__name = 'Resolved') | Q(state__name = 'Completed')).values(
 				'id', 'name', 'description', 'scheduled_for', 'scheduled_until', 'priority_level', 'event_type__name',
@@ -44,7 +46,9 @@ class DashboardAdministration(object):
 					status = F('state__name')
 				).order_by('-date_created'))
 				incident.update(incident_updates = incident_updates)
-			status_data = {'system_id': system.id, 'incidents': current_incidents, 'current_state': {}}
+			status_data = {
+				'system_id': system.id, 'name': system.name, 'description': system.description, 'incidents':
+					current_incidents, 'current_state': {}}
 			endpoints = [str(endpoint) for endpoint in list(
 				EndpointService().filter(system = system).values_list('state__name', flat = True))]
 			status_data.update(current_state = {
@@ -112,7 +116,7 @@ class DashboardAdministration(object):
 					system = system, date_created__gte = date, date_created__lt = date + timedelta(1)).exclude(
 					~(Q(state__name = 'Resolved') | Q(state__name = 'Completed'))
 				).values(
-					'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
+					'id', 'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
 					'scheduled_for', 'scheduled_until', type = F('incident_type__name'),
 					eventtype = F('event_type__name'), incident_id = F('id'), status = F('state__name'),
 					affected_system = F('system__name')
@@ -124,7 +128,6 @@ class DashboardAdministration(object):
 							user_name = F('user__username'), status = F('state__name')
 						).order_by('-date_created'))
 					incident.update(incident_updates = incident_updates)
-
 				data.append({'date': date, 'incidents': incidents})
 
 			return {'code': '800.200.001', 'data': data}
@@ -224,7 +227,6 @@ class DashboardAdministration(object):
 					current_errors = EventService().filter(
 						system = system, event_type__name = 'Error', date_created__lte = past_day,
 						date_created__gte = current_day).count()
-					# print(past_day, current_day)
 					past_day = past_day.replace(hour = 0, minute = 0)
 					labels.append(past_day.strftime("%m/%d/%y"))
 					dataset.append(current_errors)
@@ -251,8 +253,6 @@ class DashboardAdministration(object):
 						current_date = current_date - timedelta(
 							days = calendar.monthrange(current_date.year, current_month)[1])
 						current_month = current_date.month
-					# print ('From %s to %s on month %s and total days of %s' % (
-					# 	start_date, end_date, month_name, calendar.monthrange(current_date.year, current_date.month)[1]))
 					current_errors = EventService().filter(
 						system = system, event_type__name = 'Error', date_created__lte = end_date,
 						date_created__gte = start_date).count()
@@ -272,4 +272,136 @@ class DashboardAdministration(object):
 			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
-		return {'code': '800.400.001'}
+		return {'code': '800.400.001 %s' % str(ex)}
+
+	@staticmethod
+	def calculate_system_availability(system, interval = None, date_from = None, date_to = None):
+		"""
+		Calculates the system availability percentage within a specified start and end date range within a system
+		@param system: System whose availability percentage is to be computed
+		@type system: str
+		@param interval: time interval to be applied
+		@type interval: str | None
+		@param date_from: Start date of the time period
+		@type date_from: str
+		@param date_to: End date of the time period
+		@type date_to: str
+		@return: system_availability_metric data | response code to indicate errors retrieving availability trend of
+		the system
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().get(pk = system, state__name = 'Active')
+			if not system or not(interval or date_from and date_to):
+				return {'code': '800.400.002', 'message': 'Invalid parameters'}
+			if date_from and date_to:
+				date_from = dateutil.parser.parse(date_from)
+				date_to = dateutil.parser.parse(date_to)
+			else:
+				date_from = timezone.now()
+				if interval == 'day':
+					date_to = date_from - timedelta(hours = 24)
+				elif interval == 'week':
+					date_to = date_from - timedelta(hours = 24 * 7)
+				elif interval == 'month':
+					date_to = date_from - timedelta(hours = 24 * 30)
+				else:
+					return {'code': '800.400.002', 'message': 'Invalid time interval'}
+			endpoints = EndpointService().filter(system = system)
+			total_system_downtime = timedelta()
+			latest_downtime = timezone.now()
+			total_incidents = IncidentService().filter(
+				system = system, date_created__gt = date_to, date_created__lt = date_from).count()
+			for endpoint in endpoints:
+				previous_monitor = {'state': None, 'date': None}
+				saved_monitors = list(SystemMonitorService().filter(
+					endpoint = endpoint, date_created__gt = date_to, date_created__lt = date_from).order_by(
+					'date_created').values('date_created', state_name = F('state__name')))
+				for monitor in saved_monitors:
+					total_monitor_downtime = timedelta()
+					if monitor.get('state_name') != 'Operational':
+						previous_monitor = {'state': 'Down', 'date': monitor.get('date_created')} if \
+							previous_monitor.get('state') == 'Up' else previous_monitor
+						if previous_monitor.get('state') == 'Up':
+							previous_monitor.update(state = 'Down', date = monitor.get('date_created'))
+						if not previous_monitor.get('date') and (saved_monitors.index(monitor) == -1 or len(
+								saved_monitors) == 1):
+							total_monitor_downtime += date_from - monitor.get('date_created')
+						else:
+							if not previous_monitor.get('date'):
+								previous_monitor.update(state = 'Down', date = monitor.get('date_created'))
+							total_monitor_downtime += monitor.get('date_created') - previous_monitor.get('date')
+						previous_monitor.update(state = 'Down', date = monitor.get('date_created'))
+					else:
+						if not previous_monitor.get('date'):
+							previous_monitor.update(state = 'Up', date = monitor.get('date_created'))
+						total_monitor_downtime += monitor.get('date_created') - previous_monitor.get('date')
+						previous_monitor.update(state = 'Up', date = monitor.get('date_created'))
+					latest_downtime = previous_monitor.get('date')
+					total_system_downtime += total_monitor_downtime
+			return {
+				'code': '800.200.001', 'data': {
+					'start_date': date_to.isoformat(), 'end_date': date_from.isoformat(), 'total_period': str(
+						date_from - date_to), 'total_uptime': str((date_from - date_to) - total_system_downtime),
+					'total_downtime': total_system_downtime.total_seconds()
+					if total_system_downtime.total_seconds() > 0 else 0,
+					'uptime_percentage': round(((date_from - date_to) - total_system_downtime).total_seconds() / (
+							date_from - date_to).total_seconds() * 100, 2),
+					'downtime_percentage': round(
+						total_system_downtime.total_seconds() / (date_from - date_to).total_seconds() * 100, 2),
+					'duration_since_downtime': (timezone.now() - latest_downtime).total_seconds(),
+					'incident_count': total_incidents
+				}}
+		except Exception as ex:
+			lgr.exception("Calculate downtime percentage exception %s" % ex)
+		return {'code': '800.400.001', 'msg': 'Error. Could not calculate total system availability %s ' % str(ex)}
+
+	@staticmethod
+	def availability_trend(system, interval):
+		"""
+		Calculates the system availability percentage within a specified start and end date range within a system
+		@param system: System whose availability percentage is to be computed
+		@type system: str
+		@param interval: Time interval to be applied in retrieving metric data points
+		@return: Total system availability data points | response code to indicate errors while retrieving
+		availability trend of the system as data points to be plotted in a graph
+		@rtype: dict
+		"""
+		try:
+			system = SystemService().get(pk = system, state__name = 'Active')
+			if not system and interval:
+				return {'code': '800.400.002', 'message': 'Missing or invalid parameters'}
+			today = datetime.now(timezone.utc)
+			datasets = []
+			labels = []
+			if interval == 'day':
+				time_intervals = 24
+				interval_length = 1
+				identifier = 'day'
+			elif interval == 'week':
+				time_intervals = 7
+				interval_length = 24
+				identifier = 'week'
+			elif interval == 'month':
+				time_intervals = 30
+				interval_length = 24
+				identifier = 'month'
+			else:
+				return {'code': '800.400.002', 'message': 'Invalid time interval'}
+			for i in range(1, time_intervals + 1):
+				past_interval = today - timedelta(hours = i * interval_length)
+				current_interval = past_interval + timedelta(hours = interval_length)
+				availability_percentage_result = DashboardAdministration.calculate_system_availability(
+					system = system.id, date_from = current_interval.isoformat(), date_to = past_interval.isoformat())
+				if availability_percentage_result.get('code') == '800.200.001':
+					availability_percentage = availability_percentage_result.get('data').get('uptime_percentage')
+				else:
+					return {'code': '800.400.001', 'message': availability_percentage_result}
+				current_interval = (current_interval + timedelta(hours = 1)).replace(minute = 0)
+				labels.append(current_interval.strftime("%m/%d/%y  %H:%M"))
+				datasets.append(availability_percentage)
+			return {'code': '800.200.001', 'data': {
+				'labels': labels, 'datasets': datasets, 'time_intervals': time_intervals, 'identifier': identifier}}
+		except Exception as ex:
+			lgr.exception("Get uptime trend data exception %s" % ex)
+		return {'code': '800.400.001', 'msg': 'Error. Could not retrieve system up time trend data %s' % str(ex)}
