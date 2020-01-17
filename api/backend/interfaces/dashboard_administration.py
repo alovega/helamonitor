@@ -116,7 +116,7 @@ class DashboardAdministration(object):
 					system = system, date_created__gte = date, date_created__lt = date + timedelta(1)).exclude(
 					~(Q(state__name = 'Resolved') | Q(state__name = 'Completed'))
 				).values(
-					'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
+					'id', 'name', 'description', 'system_id', 'priority_level', 'date_created', 'date_modified',
 					'scheduled_for', 'scheduled_until', type = F('incident_type__name'),
 					eventtype = F('event_type__name'), incident_id = F('id'), status = F('state__name'),
 					affected_system = F('system__name')
@@ -128,7 +128,6 @@ class DashboardAdministration(object):
 							user_name = F('user__username'), status = F('state__name')
 						).order_by('-date_created'))
 					incident.update(incident_updates = incident_updates)
-
 				data.append({'date': date, 'incidents': incidents})
 
 			return {'code': '800.200.001', 'data': data}

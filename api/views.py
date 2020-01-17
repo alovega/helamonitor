@@ -301,7 +301,6 @@ def health_check(request):
 
 
 @csrf_exempt
-@ensure_authenticated
 def get_incident(request):
 	"""
 	Get a specific incident
@@ -312,9 +311,7 @@ def get_incident(request):
 	"""
 	try:
 		data = get_request_data(request)
-		incident = IncidentAdministrator.get_incident(
-			system = data.get('system_id'), incident_id = data.get('incident_id')
-		)
+		incident = IncidentAdministrator.get_incident(incident_id = data.get('incident_id'))
 		return JsonResponse(incident)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
