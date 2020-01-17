@@ -7,7 +7,22 @@ from django.contrib.auth.admin import UserAdmin
 from core.models import User, System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
     Event, EscalationRule, Incident, IncidentEvent, IncidentLog, Notification, Endpoint
 
-admin.site.register(User, UserAdmin)
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    """Admin for User model"""
+    admin_fieldsets = list(UserAdmin.fieldsets)
+    admin_fieldsets[1] = (
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'phone_number')})
+    )
+    admin_fieldsets = tuple(admin_fieldsets)
+    fieldsets = admin_fieldsets
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2', 'email', 'phone_number', 'first_name', 'last_name'),
+        }),
+    )
 
 
 @admin.register(System)

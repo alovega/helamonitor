@@ -26,7 +26,7 @@ class UserAdministrator(object):
 	"""
 
 	@staticmethod
-	def create_user(username, password, email, first_name, last_name, **kwargs):
+	def create_user(username, password, email, first_name = None, last_name = None, phone_number = None, **kwargs):
 		"""
 		Creates a user.
 		@param username: Username of the user to be created
@@ -36,9 +36,11 @@ class UserAdministrator(object):
 		@param password: Password of the user to be created
 		@type password: str
 		@param first_name: First name of the user
-		@type first_name: str
+		@type first_name: str | None
 		@param last_name: Last name of the user
-		@type last_name: str
+		@type last_name: str | None
+		@param phone_number: Phone number of the user to be created
+		@type email: str | None
 		@param kwargs: Extra key-value arguments to pass for user creation
 		@return: Response code dictionary to indicate if the user was created or not
 		@rtype: dict
@@ -48,7 +50,8 @@ class UserAdministrator(object):
 				return {"code": "800.400.001", 'message': 'Username already in use'}
 			if User.objects.filter(email = email).exists():
 				return {"code": "800.400.001", 'message': 'Email already in use'}
-			user = User.objects.create_user(username, email, password, first_name = first_name, last_name = last_name)
+			user = User.objects.create_user(
+				username, email, password, first_name = first_name, last_name = last_name, phone_number = phone_number)
 			user = User.objects.filter(id = user.id).values().first()
 			if user:
 				return {'code': '800.200.001', 'data': user}
@@ -58,7 +61,7 @@ class UserAdministrator(object):
 
 	@staticmethod
 	def update_user(
-			user_id, username = None, email = None, first_name = None, last_name = None, **kwargs):
+			user_id, username = None, email = None, first_name = None, last_name = None, phone_number = None, **kwargs):
 		"""
 		Updates a user.
 		@param user_id: Id of the user to be updated
@@ -71,21 +74,25 @@ class UserAdministrator(object):
 		@type first_name: str | None
 		@param last_name: Last name of the user
 		@type last_name: str | None
+		@param phone_number: Phone number of the user
+		@type phone_number: str | None
 		@param kwargs: Extra key-value arguments to pass for user creation
 		@return: Response code dictionary to indicate if the user was created or not
 		@rtype: dict
 		"""
 		try:
 			user = User.objects.filter(id = user_id, is_active = True).first()
+			if not user:
+				return {'code': '800.400.001', 'message': 'Invalid parameters'}
+			user.username = username if username else user.username
+			user.email = email if email else user.email
+			user.first_name = first_name if first_name else user.first_name
+			user.last_name = last_name if last_name else user.last_name
+			user.phone_number = phone_number if phone_number else user.phone_number
+			user.save()
+			user = User.objects.filter(id = user.id).values().first()
 			if user:
-				user.username = username if username else user.username
-				user.email = email if email else user.email
-				user.first_name = first_name if first_name else user.first_name
-				user.last_name = last_name if last_name else user.last_name
-				user.save()
-				user = User.objects.filter(id = user.id).values().first()
-				if user:
-					return {'code': '800.200.001', 'data': user}
+				return {'code': '800.200.001', 'data': user}
 		except Exception as ex:
 			lgr.exception("User Update exception %s" % ex)
 		return {"code": "800.400.001"}
