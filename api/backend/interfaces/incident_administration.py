@@ -182,24 +182,21 @@ class IncidentAdministrator(object):
 		return {'code': '800.400.001'}
 
 	@staticmethod
-	def get_incident(system, incident_id):
+	def get_incident(incident_id):
 		"""
 		Retrieves a single incident within a system
-		@param system: System where the incident is created in
-		@type system: str
 		@param incident_id: Id of the incident to be retrieved
 		@type incident_id: str
 		@return: incident | response code to indicate errors retrieving the incident
 		@rtype: dict
 		"""
 		try:
-			system = SystemService().get(pk = system, state__name = 'Active')
-			incident = IncidentService().filter(pk = incident_id, system = system).values(
+			incident = IncidentService().filter(pk = incident_id).values(
 				'id', 'name', 'description', 'priority_level', 'date_created', 'date_modified',
 				'scheduled_for', 'scheduled_until', system_id = F('system__id'), incident_type_name = F(
 					'incident_type__name'), state_id = F('state__id'), state_name = F('state__name'),
 				system_name = F('system__name'), event_type_id = F('event_type__id')).first()
-			if system is None or incident is None:
+			if incident is None:
 				return {'code': '800.400.002'}
 			incident_updates = list(IncidentLogService().filter(incident__id = incident_id).values(
 				'id', 'description', 'priority_level', 'date_created', 'date_modified', user_id = F('user__id'),

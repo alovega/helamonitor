@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+from django.db.models import F
+
 from core.backend.services import SystemService, EndpointService
 from core.models import Endpoint
 from base.backend.services import StateService, EndpointTypeService
