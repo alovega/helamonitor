@@ -656,7 +656,7 @@ def create_user(request):
 		data = get_request_data(request)
 		user = UserAdministrator.create_user(
 			username = data.get('username'), password = data.get('password'), email = data.get('email'), first_name =
-			data.get('firstname'), last_name = data.get('lastname'))
+			data.get('firstname'), last_name = data.get('lastname'), phone_number = data.get('phone_number'))
 		return JsonResponse(user)
 	except Exception as ex:
 		lgr.exception('User creation Exception: %s' % ex)
@@ -1138,7 +1138,8 @@ def edit_user(request):
 		data = get_request_data(request)
 		user = UserAdministrator.update_user(
 			user_id = data.get('user_id'), username = data.get('username'), password = data.get('password'),
-			email = data.get('email'), first_name = data.get('first_name'), last_name = data.get('last_name'))
+			email = data.get('email'), first_name = data.get('first_name'), last_name = data.get('last_name'),
+			phone_number = data.get('phone_number'))
 		return JsonResponse(user)
 	except Exception as ex:
 		lgr.exception('Edit User Exception %s ' % ex)
