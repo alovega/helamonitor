@@ -94,7 +94,7 @@ class RecipientAdministrator(object):
 		@rtype:dict
 		"""
 		try:
-			recipient = RecipientService().get(id = recipient_id)
+			recipient = User.objects.get(id = recipient_id)
 			if not (recipient and escalations):
 				return {"code": "800.400.002", "message": "Error missing parameters"}
 			for escalation in escalations:
@@ -109,11 +109,11 @@ class RecipientAdministrator(object):
 		return {"code": "800.400.001", "message": "Error while updating recipient"}
 
 	@staticmethod
-	def get_system_recipient(recipient_id, system_id):
+	def get_system_recipient(user_id, system_id):
 		"""
 		@param system_id: the id of the system the recipient belongs to
 		@type:str
-		@param recipient_id: the id of the recipient
+		@param user_id: the id of the recipient
 		@type: str
 		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
 							recipient data
@@ -125,14 +125,14 @@ class RecipientAdministrator(object):
 			state = []
 			system_recipient_id = []
 			system = SystemService().get(id = system_id)
-			recipient = RecipientService().get(id = recipient_id)
+			recipient = User.objects.get(id = user_id)
 			if not (system and recipient):
 				return {"code": "800.400.002", "message": "missing parameters"}
 			system_recipient = SystemRecipientService().filter(system = system, recipient = recipient).values(
-				userName = F('recipient__user__username'), recipientId=F('recipient'),
+				userName = F('recipient__username'), recipientId=F('recipient'),
 				systemRecipientId = F('id')).first()
 			recipients = list(SystemRecipientService().filter(system = system, recipient = recipient).values(
-				'state', userName = F('recipient__user__username'), notificationType = F('notification_type'),
+				'state', userName = F('recipient__username'), notificationType = F('notification_type'),
 				systemRecipientId = F('id'), escalationLevel = F('escalation_level')
 			))
 			if system_recipient:
@@ -172,11 +172,11 @@ class RecipientAdministrator(object):
 		return {"code": "800.400.001", "message": "Error while deleting recipient"}
 
 	@staticmethod
-	def create_system_recipient(system_id, recipient_id, escalations):
+	def create_system_recipient(system_id, user_id, escalations):
 		"""
 		@param system_id: The id of the system the recipient will belong to
 		@type:str
-		@param recipient_id: The id of the recipient
+		@param user_id: The id of the recipient
 		@type:str
 		@param escalations:A list of dictionaries containing notification type id and escalation level_id
 		@type:list
@@ -186,7 +186,7 @@ class RecipientAdministrator(object):
 
 		try:
 			system = SystemService().get(id = system_id)
-			recipient = RecipientService().get(id = recipient_id)
+			recipient = User.objects.get(id = user_id)
 			if not (system and recipient and escalations):
 				return {"code": "800.400.002", "message": "Invalid parameters given"}
 

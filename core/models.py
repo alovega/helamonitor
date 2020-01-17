@@ -128,7 +128,7 @@ class SystemRecipient(BaseModel):
     Model for managing recipient and a system
     """
     system = models.ForeignKey(System)
-    recipient = models.ForeignKey(Recipient)
+    recipient = models.ForeignKey(User)
     escalation_level = models.ForeignKey(EscalationLevel)
     notification_type = models.ForeignKey(NotificationType)
     state = models.ForeignKey(State)

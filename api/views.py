@@ -800,7 +800,7 @@ def create_system_recipient(request):
 	try:
 		data = get_request_data(request)
 		system_recipient = RecipientAdministrator.create_system_recipient(
-			system_id = data.get('system_id'), recipient_id = data.get('Recipient'),
+			system_id = data.get('system_id'), user_id = data.get('Recipient'),
 			escalations = data.get('escalations')
 		)
 		return JsonResponse(system_recipient)
@@ -904,7 +904,7 @@ def get_system_recipient(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipient = RecipientAdministrator.get_system_recipient(recipient_id = data.get('recipientId'), system_id =
+		recipient = RecipientAdministrator.get_system_recipient(user_id = data.get('recipientId'), system_id =
 		data.get('system_id'))
 		return JsonResponse(recipient)
 	except Exception as ex:
