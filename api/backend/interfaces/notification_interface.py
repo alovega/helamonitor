@@ -74,28 +74,7 @@ class NotificationLogger(object):
 		return {"code": "800.400.001", "message": "error in sending notification interface"}
 
 	@staticmethod
-	def get_system_notification(system_id):
-		"""
-
-		@param system_id: the id of the system the notification are from
-		@type:str
-		@return:returns a dict of a code for success or failure and data containing systems notifications
-		@rtype:dict
-		"""
-		try:
-			if not system_id:
-				return {"code": "800.400.002", "message": "Missing parameter system_id"}
-			notifications = list(NotificationService().filter(system__id= system_id).values(
-				'message', 'recipient', type= F('notification_type__name'), dateCreated=F('date_created'),
-				status = F('state__name')))
-			return {"code": "800.200.001", "data": notifications}
-
-		except Exception as ex:
-			lgr.exception("Notification logger exception %s" % ex)
-		return {"code": "800.400.001", "message": "error in fetching systems notifications"}
-
-	@staticmethod
-	def get_logged_in_user_recent_notifications(token, parameters):
+	def get_logged_in_user_recent_notifications(token):
 		"""
 
 		@param token: the given token of a logged in user
