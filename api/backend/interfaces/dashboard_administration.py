@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, EventService, SystemService, \
-	SystemRecipientService, RecipientService, EndpointService, SystemMonitorService
+	SystemRecipientService,  EndpointService, SystemMonitorService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
 lgr = logging.getLogger(__name__)

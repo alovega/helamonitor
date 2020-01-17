@@ -10,7 +10,7 @@ from django.db.models import F, Q
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentLogService, IncidentEventService, SystemService, \
-	SystemRecipientService, RecipientService, EscalationRuleService
+	SystemRecipientService,  EscalationRuleService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
 lgr = logging.getLogger(__name__)

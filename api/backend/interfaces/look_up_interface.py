@@ -5,7 +5,7 @@ from core.models import User
 
 from base.backend.services import StateService, EscalationLevelService, NotificationTypeService, EventTypeService, \
 	EndpointTypeService, IncidentTypeService
-from core.backend.services import SystemService, RecipientService
+from core.backend.services import SystemService
 
 lgr = logging.getLogger(__name__)
 
@@ -31,7 +31,6 @@ class LookUpInterface(object):
 			incident_type = list(IncidentTypeService().filter().values('id', 'name'))
 			user = list(User.objects.all().values('id', 'username'))
 			system = list(SystemService().filter().values('id', 'name'))
-			recipient = list(RecipientService().filter().values('id', userName=F('user__username')))
 			endpoint_states = list(StateService().filter(
 				Q(name = 'Operational') | Q(name = 'Minor Outage') | Q(name = 'Major Outage') |
 				Q(name = 'Under Maintenance') | Q(name = 'Degraded Performance')).values('id', 'name'))
@@ -43,7 +42,7 @@ class LookUpInterface(object):
 			lookups = {
 				'states': state, 'incident_types': incident_type, 'escalation_levels': escalation_level,
 				'notification_types': notification_type, 'endpoint_types': endpoint_type, 'event_types': event_type,
-				'users': user, 'systems': system, 'recipients': recipient,
+				'users': user, 'systems': system,
 				'realtime_incident_states': realtime_incident_states, 'endpoint_states': endpoint_states,
 				'scheduled_incident_states': scheduled_incident_states}
 

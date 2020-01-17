@@ -111,18 +111,6 @@ class SystemMonitor(BaseModel):
         return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_speed)
 
 
-class Recipient(BaseModel):
-    """
-    Model for managing the recipient of a system
-    """
-    user = models.ForeignKey(User)
-    phone_number = models.CharField(max_length=100)
-    state = models.ForeignKey(State)
-
-    def __str__(self):
-        return "%s" % self.user
-
-
 class SystemRecipient(BaseModel):
     """
     Model for managing recipient and a system

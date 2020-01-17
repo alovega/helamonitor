@@ -12,9 +12,9 @@ from django.db.models import Q
 from django.db.models import F
 
 from api.backend.services import OauthService
-from core.backend.services import NotificationService, SystemService, RecipientService
+from core.backend.services import NotificationService, SystemService
 from base.backend.services import StateService, NotificationTypeService
-
+from core.models import User
 
 lgr = logging.getLogger(__name__)
 
@@ -86,8 +86,8 @@ class NotificationLogger(object):
 		try:
 			user = OauthService().filter(token = token).values(user=F('app_user__user')).first()
 			user_id = user.get('user')
-			recipient = RecipientService().filter(user__id = user_id).values(
-				'phone_number', email=F('user__email')).first()
+			recipient = User.objects.filter(id = user_id).values(
+				'phone_number', 'email').first()
 			now = timezone.now()
 			recently = now - timedelta(hours = 6, minutes = 0)
 			current_hour = timezone.now()
@@ -124,8 +124,8 @@ class NotificationLogger(object):
 				}
 			user = OauthService().filter(token = token).values(user=F('app_user__user')).first()
 			user_id = user.get('user')
-			recipient = RecipientService().filter(user__id = user_id).values(
-				'phone_number', email = F('user__email')).first()
+			recipient = User.objects.filter(id = user_id).values(
+				'phone_number', 'email').first()
 			if parameters.get('search_query') and parameters.get('order_column'):
 				if parameters.get('order_dir') == 'desc':
 					row = list(NotificationService().filter(
@@ -191,7 +191,7 @@ class NotificationLogger(object):
 			                   str(paginator.count) + ' ' + 'items'
 			table_data.update(size = paginator.num_pages, totalElements = paginator.count,
 			                  totalPages = paginator.num_pages, range = item_description)
-			return {'code': '800.200.001', 'data': table_data}
+			return {'code': '800.200.001', 'data': table_data, 'recipient':recipient}
 		except Exception as ex:
 			lgr.exception("Notification Logger exception: %s" % ex)
 		return {"code": "800.400.001", "message": "error in fetching recent user notifications"}

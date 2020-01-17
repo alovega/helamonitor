@@ -6,8 +6,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models import F
 
-from core.backend.services import SystemService, EndpointService, SystemRecipientService, RecipientService, \
-	EventService, EscalationRuleService, IncidentService, IncidentLogService, IncidentEventService, NotificationService
+from core.backend.services import SystemService, EndpointService, SystemRecipientService, EventService, \
+	EscalationRuleService, IncidentService, IncidentLogService, IncidentEventService, NotificationService
 from base.backend.services import IncidentTypeService, NotificationTypeService
 from core.models import User
 
@@ -301,85 +301,6 @@ class TableData(object):
 		except Exception as ex:
 			lgr.exception("Recipient Table exception: %s" % ex)
 		return {"code": "800.400.001", "message": "Error while getting notifications table data"}
-
-	@staticmethod
-	def get_recipients(parameters):
-		"""
-		@param parameters: a dictionary containing parameters used for fetching endpoint data
-		@type: dict
-		@return:a dictionary containing response code and data to be used for data table
-		@rtype: dict
-		"""
-		try:
-			if not parameters:
-				return {
-					"code": "800.400.002", "message": "invalid required parameters"
-				}
-			if parameters.get('search_query') and parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = list(RecipientService().filter(
-						Q(user__username__icontains = parameters.get('search_query')) |
-						Q(phone_number__icontains = parameters.get('search_query')) |
-						Q(state__name__icontains = parameters.get('search_query'))
-					).values(
-						userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
-						dateCreated = F('date_created'), recipientId = F('id')
-					).order_by(
-						'-' + str(parameters.get('order_column'))))
-				else:
-					row = list(RecipientService().filter(
-						Q(user__username__icontains = parameters.get('search_query')) |
-						Q(phone_number__icontains = parameters.get('search_query')) |
-						Q(state__name__icontains = parameters.get('search_query'))
-					).values(
-						userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
-						dateCreated = F('date_created'), recipientId = F('id')
-					).order_by(
-						str(parameters.get('order_column'))))
-
-			elif parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = list(RecipientService().filter().values(
-						userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
-						dateCreated = F('date_created'), recipientId = F('id')
-					).order_by(
-						'-' + str(parameters.get('order_column'))))
-				else:
-					row = list(RecipientService().filter().values(
-						userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
-						dateCreated = F('date_created'), recipientId = F('id')
-					).order_by(
-						str(parameters.get('order_column'))))
-			elif parameters.get('search_query'):
-				row = list(RecipientService().filter(
-					Q(user__username__icontains = parameters.get('search_query')) |
-					Q(phone_number__icontains = parameters.get('search_query')) |
-					Q(state__name__icontains = parameters.get('search_query'))
-				).values(
-					userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
-					dateCreated = F('date_created'), recipientId = F('id')
-				))
-			else:
-				row = list(RecipientService().filter().values(
-					userName = F('user__username'), phoneNumber = F('phone_number'), status = F('state__name'),
-					dateCreated = F('date_created'), recipientId = F('id')
-				))
-			for index, value in enumerate(row):
-				value.update(item_index = index + 1)
-			paginator = Paginator(row, parameters.get('page_size'))
-			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
-			if table_data.get('row'):
-				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
-			else:
-				item_range = [0, 0]
-			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
-			                   str(paginator.count) + ' ' + 'items'
-			table_data.update(size = paginator.num_pages, totalElements = paginator.count,
-			                  totalPages = paginator.num_pages, range = item_description)
-			return {'code': '800.200.001', 'data': table_data}
-		except Exception as ex:
-			lgr.exception("Recipient Table exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Error while getting recipient table data"}
 
 	@staticmethod
 	def get_events(system, parameters):

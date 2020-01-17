@@ -9,7 +9,7 @@ from core.models import User
 
 # noinspection SpellCheckingInspection
 from core.backend.services import SystemService, InterfaceService, SystemCredentialService, \
-    RecipientService, SystemRecipientService, SystemMonitorService, EventService, IncidentService,\
+    SystemRecipientService, SystemMonitorService, EventService, IncidentService,\
     IncidentEventService, IncidentLogService, EndpointService, EscalationRuleService
 
 
@@ -183,47 +183,6 @@ class TestSystemMonitorService(object):
         assert system_monitor.response_time == datetime.timedelta(milliseconds = 300), 'Response time is equals to 300c'
 
 
-class TestRecipientService(object):
-    """
-    Tests for Recipient model Service
-    """
-    def test_get(self):
-        """
-        Test Recipient get service
-        """
-        mixer.blend('core.Recipient', phone_number='0712345678')
-        recipient = RecipientService().get(phone_number='0712345678')
-        assert recipient is not None, 'Should return a recipient object'
-        assert recipient.phone_number == '0712345678', 'Phone number is equals to Victor'
-
-    def test_filter(self):
-        """
-        Test Recipient filter service
-        """
-        mixer.cycle(3).blend('core.Recipient')
-        recipients = RecipientService().filter()
-        assert len(recipients) == 3, 'Should return 3 Recipients'
-
-    def test_create(self):
-        """
-        Test Recipient Create Service
-        """
-        state = mixer.blend('base.State')
-        user = mixer.blend('core.User')
-        recipient = RecipientService().create(phone_number = '0712345678', state = state, user = user)
-        assert recipient is not None, 'Should create a recipient object'
-        assert recipient.phone_number == '0712345678', 'Phone number is equals to 0712345678'
-
-    def test_update(self):
-        """
-        Test Recipient update Service
-        """
-        recipient = mixer.blend('core.Recipient')
-        recipient = RecipientService().update(recipient.id, phone_number='0712345678')
-        assert recipient is not None, 'Should create a recipient object'
-        assert recipient.phone_number == '0712345678', 'Phone number is equals to 0712345678'
-
-
 class TestSystemRecipientService(object):
     """
     Tests for SystemRecipient model Services
@@ -251,7 +210,7 @@ class TestSystemRecipientService(object):
         """
         system = mixer.blend('core.System')
         state = mixer.blend('base.State')
-        recipient = mixer.blend('core.Recipient')
+        recipient = mixer.blend('core.User')
         escalation_level = mixer.blend('base.EscalationLevel')
         notification_type = mixer.blend('base.NotificationType')
         system_recipient = SystemRecipientService().create(
