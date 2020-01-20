@@ -224,7 +224,7 @@ class TestSystemRecipientService(object):
         Test SystemRecipient update service
         """
         system_recipient = mixer.blend('core.SystemRecipient')
-        new_recipient = mixer.blend('core.Recipient')
+        new_recipient = mixer.blend('core.User')
         system_recipient = SystemRecipientService().update(system_recipient.id, recipient = new_recipient)
         assert system_recipient is not None, 'Should create a System Recipient object'
         assert system_recipient.recipient == new_recipient, 'System Recipient is changed to new_recipient'

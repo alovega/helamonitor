@@ -60,7 +60,7 @@ class TestRecipientAdministration(object):
 	def test_create_system_recipients(self):
 		state = mixer.blend('base.State', name = 'Active')
 		escalation_level = mixer.blend('base.EscalationLevel', state = state)
-		recipient = mixer.blend('core.Recipient', state = state)
+		recipient = mixer.blend('core.User', state = state)
 		notification = mixer.blend('core.Notification', state=state)
 		system = mixer.blend('core.System', state = state)
 		data = RecipientAdministrator.create_system_recipient(
@@ -79,7 +79,7 @@ class TestRecipientAdministration(object):
 	def test_update_system_recipients(self):
 		state = mixer.blend('base.State', name = 'Active')
 		escalation_level = mixer.blend('base.EscalationLevel', state = state)
-		recipient = mixer.blend('core.Recipient', state = state)
+		recipient = mixer.blend('core.User', state = state)
 		notification = mixer.blend('core.Notification', state=state)
 		system = mixer.blend('core.System', state = state)
 		system_recipient = mixer.blend('core.SystemRecipient', recipient=recipient)
@@ -96,7 +96,7 @@ class TestRecipientAdministration(object):
 
 	def test_get_system_recipients(self):
 		state = mixer.blend('base.State', name = 'Active')
-		recipient = mixer.blend('core.Recipient', state = state)
+		recipient = mixer.blend('core.User', state = state)
 		system = mixer.blend('core.System', state = state)
 		system_recipient = mixer.blend('core.SystemRecipient', recipient = recipient)
 		data = RecipientAdministrator.get_system_recipient(
@@ -112,7 +112,7 @@ class TestRecipientAdministration(object):
 
 	def test_delete_system_recipient(self):
 		state = mixer.blend('base.State', name = 'Active')
-		recipient = mixer.blend('core.Recipient', state = state)
+		recipient = mixer.blend('core.User', state = state)
 		system = mixer.blend('core.System', state = state)
 		system_recipient = mixer.blend('core.SystemRecipient', recipient = recipient)
 		data = RecipientAdministrator.delete_system_recipient(system_recipient_id = system_recipient.id)
