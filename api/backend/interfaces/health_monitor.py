@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 import requests
@@ -33,11 +32,11 @@ class MonitorInterface(object):
 				try:
 					health_state = requests.get(endpoint.url)
 					monitor_data = {
-						'system': endpoint.system,
-						'endpoint': endpoint,
+						'system': endpoint.system.name,
+						'endpoint': endpoint.name,
 						'response_body': health_state.content,
 						'response_code': health_state.status_code,
-						'state': StateService().get(name = 'Operational'),
+						'state': StateService().get(name = 'Operational').name,
 					}
 					if health_state.status_code == 200:
 						if health_state.elapsed > endpoint.optimal_response_time:
@@ -56,20 +55,22 @@ class MonitorInterface(object):
 								name = 'Major Outage')
 						})
 					system_status = SystemMonitorService().create(
-						system = monitor_data.get("system"), response_time = monitor_data.get("response_time"),
-						response_time_speed = monitor_data.get("response_time_speed"), state = StateService().get(
-							name = 'Active'), response_body = monitor_data.get("response_body"), endpoint =
-						monitor_data.get("endpoint"), response_code = monitor_data.get("response_code")
+						system = SystemService().get(name=monitor_data.get('system')),
+						response_time = timedelta(seconds = int(monitor_data.get('response_time'))),
+						response_time_speed = monitor_data.get("response_time_speed"),
+						state = StateService().get(name =monitor_data.get('state')),
+						response_body = monitor_data.get("response_body"),
+						endpoint = EndpointService().get(name=monitor_data.get("endpoint")),
+						response_code = monitor_data.get("response_code")
 					)
 					if system_status is not None:
 						systems.append({
 							"system": system_status.system.name, "status": system_status.state.name,
-							"endpoint": endpoint.url, 'monitor_data': monitor_data
+							"endpoint": endpoint.url
 						})
 					else:
 						systems.append({
-							"system": system_status.system, "status": "failed", "endpoint": endpoint, 'monitor_data':
-							monitor_data
+							"system": system_status.system, "status": "failed", "endpoint": endpoint
 						})
 					if monitor_data.get("event_type") is not None:
 						event = EventLog.log_event(

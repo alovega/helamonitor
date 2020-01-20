@@ -167,7 +167,9 @@ class TestSystemMonitorService(object):
         endpoint = mixer.blend('core.Endpoint')
         state = mixer.blend('base.State')
         system_monitor = SystemMonitorService().create(
-            system = system, state = state, endpoint = endpoint, response_time = datetime.timedelta(milliseconds = 300))
+            system = system, state = state, endpoint = endpoint, response_time = datetime.timedelta(
+                milliseconds = 300), response_time_speed = 'Normal', response_body = 'some body', response_code= '200'
+        )
         assert system_monitor is not None, 'Should create a SystemMonitor Object'
         assert system_monitor.response_time == datetime.timedelta(milliseconds = 300), 'Response time is equals to 300'
 
