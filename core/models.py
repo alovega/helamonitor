@@ -104,7 +104,7 @@ class SystemMonitor(BaseModel):
     response_body = models.CharField(
         max_length = 100, help_text = 'Body of the response returned when querying an endpoint', null = True,
         blank = True)
-    response_code = models.PositiveIntegerField(max_length = 10, null = True, blank = True)
+    response_code = models.PositiveIntegerField(null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):
