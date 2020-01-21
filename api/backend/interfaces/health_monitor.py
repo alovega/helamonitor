@@ -185,6 +185,11 @@ class MonitorInterface(object):
 						date_created__gte = current_day).values(
 						name= F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated=F('date_created')))
+
+					# dates = [x.get('dateCreated') for x in response_times]
+					# for d in (current_day - past_day for x in range(0, 30)):
+					# 	if d not in dates:
+					# 		response_times.append({'dateCreated': d, 'responseTime': 0})
 					past_day = past_day.replace(hour = 0, minute = 0)
 					label.append(past_day.strftime("%m/%d/%y  %H:%M"))
 					result = {"Initial": {"data": [0]}}
