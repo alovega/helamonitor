@@ -864,7 +864,7 @@ def get_endpoint(request):
 	"""
 	try:
 		data = get_request_data(request)
-		endpoint = EndpointAdministrator.get_endpoint(endpoint_id = data.get('endpoint_id'))
+		endpoint = EndpointAdministrator.get_endpoint(endpoint_id = data.get('endpointId'))
 		return JsonResponse(endpoint)
 	except Exception as ex:
 		lgr.exception('Endpoint get Exception: %s' % ex)
@@ -904,8 +904,8 @@ def get_system_recipient(request):
 	"""
 	try:
 		data = get_request_data(request)
-		recipient = RecipientAdministrator.get_system_recipient(user_id = data.get('recipientId'), system_id =
-		data.get('system_id'))
+		recipient = RecipientAdministrator.get_system_recipient(
+			user_id = data.get('recipient_id'), system_id = data.get('system_id'))
 		return JsonResponse(recipient)
 	except Exception as ex:
 		lgr.exception('Look up data get Exception: %s' % ex)
@@ -959,7 +959,7 @@ def delete_system_recipient(request):
 	try:
 		data = get_request_data(request)
 		recipient = RecipientAdministrator.delete_system_recipient(
-			system_recipient_id = data.get('systemRecipientId')
+			system_recipient_id = data.get('system_recipient_id')
 		)
 		return JsonResponse(recipient)
 
@@ -978,7 +978,7 @@ def delete_endpoint(request):
 	"""
 	try:
 		data = get_request_data(request)
-		endpoint = EndpointAdministrator.delete_endpoint(endpoint_id = data.get('endpoint_id'))
+		endpoint = EndpointAdministrator.delete_endpoint(endpoint_id = data.get('endpointId'))
 		return JsonResponse(endpoint)
 
 	except Exception as ex:
