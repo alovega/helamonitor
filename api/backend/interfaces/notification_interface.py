@@ -118,14 +118,14 @@ class NotificationLogger(object):
 		"""
 
 		try:
-			if not parameters:
-				return {
-					"code": "800.400.002", "message": "invalid required parameters"
-				}
 			user = OauthService().filter(token = token).values(user=F('app_user__user')).first()
 			user_id = user.get('user')
 			recipient = User.objects.filter(id = user_id).values(
 				'phone_number', 'email').first()
+			if not parameters or not token or not user:
+				return {
+					"code": "800.400.002", "message": "invalid required parameters"
+				}
 			if parameters.get('search_query') and parameters.get('order_column'):
 				if parameters.get('order_dir') == 'desc':
 					row = list(NotificationService().filter(
