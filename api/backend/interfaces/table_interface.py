@@ -113,12 +113,12 @@ class TableData(object):
 		"""
 		try:
 			system = SystemService().get(id = system_id)
-			notification_type = NotificationTypeService().filter(name = notification_type).first()
+			notification_type = NotificationTypeService().filter(name = parameters.get('extra_kwargs')).first()
 			columns = ['message', 'recipient', 'state__name', 'notification_type__name']
 			search = build_search_query(search_value = parameters.get('search_query'), columns = columns)
 			if not system or not parameters or not notification_type:
 				return {
-					"code": "800.400.002", "message": "invalid required parameters"
+					"code": "800.400.002", "message": "invalid required parameters %s" % notification_type
 				}
 			row = NotificationService().filter(system = system).filter(notification_type = notification_type)
 			if parameters.get('order_column'):

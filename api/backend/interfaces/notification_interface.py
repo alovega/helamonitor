@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.db.models import F
 
 from api.backend.services import OauthService
+from api.backend.utilities.common import build_search_query, paginate_data
 from core.backend.services import NotificationService, SystemService
 from base.backend.services import StateService, NotificationTypeService
 from core.models import User
@@ -126,71 +127,24 @@ class NotificationLogger(object):
 				return {
 					"code": "800.400.002", "message": "invalid required parameters"
 				}
-			if parameters.get('search_query') and parameters.get('order_column'):
+			row = NotificationService().filter(
+				Q(recipient = recipient['email']) | Q(recipient = recipient['phone_number'])
+			)
+			columns = ['message', 'recipient', 'state__name', 'notification_type__name']
+			search_query = build_search_query(search_value = parameters.get('search_query'), columns = columns)
+			if parameters.get('order_column'):
 				if parameters.get('order_dir') == 'desc':
-					row = list(NotificationService().filter(
-						Q(message__icontains = parameters.get('search_query')) |
-						Q(recipient__icontains = parameters.get('search_query')) |
-						Q(state__name__icontains = parameters.get('search_query')) |
-						Q(notification_type__name__icontains = parameters.get('search_query'))
-					).filter(Q(recipient = recipient['email']) | Q(recipient = recipient['phone_number'])).values(
-						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
-						Id = F('id'), type = F('notification_type__name')).order_by(
-						'-' + str(parameters.get('order_column'))))
+					row = row.order_by('-' + str(parameters.get('order_column')))
 				else:
-					row = list(NotificationService().filter(
-						Q(message__icontains = parameters.get('search_query')) |
-						Q(recipient__icontains = parameters.get('search_query')) |
-						Q(state__name__icontains = parameters.get('search_query')) |
-						Q(notification_type__name__icontains = parameters.get('search_query'))
-					).filter(Q(recipient = recipient['email']) | Q(recipient = recipient['phone_number'])).values(
-						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
-						Id = F('id'), type = F('notification_type__name')).order_by(
-						str(parameters.get('order_column'))))
-
-			elif parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = list(NotificationService().filter(
-						Q(recipient = recipient['email']) | Q(recipient = recipient['phone_number'])
-					).values(
-						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
-						Id = F('id'), type = F('notification_type__name')).order_by(
-						'-' + str(parameters.get('order_column'))))
-				else:
-					row = list(NotificationService().filter(
-						Q(recipient = recipient['email']) | Q(recipient = recipient['phone_number'])
-					).values(
-						'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
-						Id = F('id'), type = F('notification_type__name')).order_by(
-						str(parameters.get('order_column'))))
-
-			elif parameters.get('search_query'):
-				row = list(NotificationService().filter(
-					Q(message__icontains = parameters.get('search_query')) |
-					Q(recipient__icontains = parameters.get('search_query')) |
-					Q(state__name__icontains = parameters.get('search_query')) |
-					Q(notification_type__name__icontains = parameters.get('search_query'))
-				).filter(Q(recipient = recipient['email']) | Q(recipient = recipient['phone_number'])).values(
+					row = row.order_by(str(parameters.get('order_column')))
+			if parameters.get('search_query'):
+				row = row.filter(search_query)
+			row = list(row.values(
 					'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
 					Id = F('id'), type = F('notification_type__name')))
-			else:
-				row = list(NotificationService().filter(
-					Q(recipient = recipient['email']) | Q(recipient = recipient['phone_number'])
-				).values(
-					'message', 'recipient', dateCreated = F('date_created'), status = F('state__name'),
-					Id = F('id'), type = F('notification_type__name')))
-			for index, value in enumerate(row):
-				value.update(item_index = index + 1)
-			paginator = Paginator(row, parameters.get('page_size'))
-			table_data = {"row": paginator.page(parameters.get('page_number')).object_list}
-			if table_data.get('row'):
-				item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
-			else:
-				item_range = [0, 0]
-			item_description = 'Showing ' + str(item_range[0]) + ' to ' + str(item_range[1]) + ' of ' + \
-			                   str(paginator.count) + ' ' + 'items'
-			table_data.update(size = paginator.num_pages, totalElements = paginator.count,
-			                  totalPages = paginator.num_pages, range = item_description)
+			table_data = paginate_data(
+				data = row, page_size = parameters.get('page_size'), page_number = parameters.get('page_number')
+			)
 			return {'code': '800.200.001', 'data': table_data, 'recipient':recipient}
 		except Exception as ex:
 			lgr.exception("Notification Logger exception: %s" % ex)
