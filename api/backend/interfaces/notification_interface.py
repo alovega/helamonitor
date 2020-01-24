@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.db.models import F
 
 from api.backend.services import OauthService
-from api.backend.utilities.common import build_search_query, paginate_data
+from api.backend.utilities.common import build_search_query, paginate_data, extract_order
 from core.backend.services import NotificationService, SystemService
 from base.backend.services import StateService, NotificationTypeService
 from core.models import User
@@ -133,10 +133,10 @@ class NotificationLogger(object):
 			columns = ['message', 'recipient', 'state__name', 'notification_type__name']
 			search_query = build_search_query(search_value = parameters.get('search_query'), columns = columns)
 			if parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = row.order_by('-' + str(parameters.get('order_column')))
-				else:
-					row = row.order_by(str(parameters.get('order_column')))
+				row = extract_order(
+					order_column = parameters.get('order_column'), order_dir = parameters.get('order_dir'),
+					data = row
+				)
 			if parameters.get('search_query'):
 				row = row.filter(search_query)
 			row = list(row.values(

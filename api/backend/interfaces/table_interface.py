@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db.models import F
 
-from api.backend.utilities.common import build_search_query, paginate_data
+from api.backend.utilities.common import build_search_query, paginate_data, extract_order
 from core.backend.services import SystemService, EndpointService, SystemRecipientService, EventService, \
 	EscalationRuleService, IncidentService, IncidentLogService, IncidentEventService, NotificationService
 from base.backend.services import IncidentTypeService, NotificationTypeService
@@ -38,10 +38,10 @@ class TableData(object):
 			columns = ['description', 'name', 'url', 'state__name', 'endpoint_type__name']
 			search_query = build_search_query(search_value = parameters.get('search_query'), columns = columns)
 			if parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = row.order_by('-' + str(parameters.get('order_column')))
-				else:
-					row = row.order_by(str(parameters.get('order_column')))
+				row = extract_order(
+					order_column = parameters.get('order_column'), order_dir = parameters.get('order_dir'),
+					data = row
+				)
 			if parameters.get('search_query'):
 				row = row.filter(search_query)
 			row = list(row.values(
@@ -78,10 +78,10 @@ class TableData(object):
 			]
 			search_queries = build_search_query(search_value = parameters.get('search_query'), columns = columns)
 			if parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = row.order_by('-' + str(parameters.get('order_column')))
-				else:
-					row = row.order_by(str(parameters.get('order_column')))
+				row = extract_order(
+					order_column = parameters.get('order_column'), order_dir = parameters.get('order_dir'),
+					data = row
+				)
 			elif parameters.get('search_query'):
 				row = row.filter(search_queries)
 
@@ -100,7 +100,7 @@ class TableData(object):
 		return {"code": "800.400.001", "message": "Error while system recipient getting table data"}
 
 	@staticmethod
-	def get_notifications(parameters, system_id, notification_type = None):
+	def get_notifications(parameters, system_id):
 		"""
 		@param notification_type: Notification Type which the notification belongs to
 		@type: str
@@ -113,7 +113,7 @@ class TableData(object):
 		"""
 		try:
 			system = SystemService().get(id = system_id)
-			notification_type = NotificationTypeService().filter(name = parameters.get('extra_kwargs')).first()
+			notification_type = NotificationTypeService().filter(name = parameters.get('extra_data')).first()
 			columns = ['message', 'recipient', 'state__name', 'notification_type__name']
 			search = build_search_query(search_value = parameters.get('search_query'), columns = columns)
 			if not system or not parameters or not notification_type:
@@ -122,10 +122,10 @@ class TableData(object):
 				}
 			row = NotificationService().filter(system = system).filter(notification_type = notification_type)
 			if parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = row.order_by('-' + str(parameters.get('order_column')))
-				else:
-					row = row.order_by(str(parameters.get('order_column')))
+				row = extract_order(
+					order_column = parameters.get('order_column'), order_dir = parameters.get('order_dir'),
+					data = row
+				)
 
 			if parameters.get('search_query'):
 				row = row.filter(search)
@@ -159,10 +159,10 @@ class TableData(object):
 			columns = ['description', 'code', 'event_type__name', 'method', 'request']
 			search_query = build_search_query(search_value = parameters.get('search_query'), columns=columns)
 			if parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = row.order_by('-' + str(parameters.get('order_column')))
-				else:
-					row = row.order_by(str(parameters.get('order_column')))
+				row = extract_order(
+					order_column = parameters.get('order_column'), order_dir = parameters.get('order_dir'),
+					data = row
+				)
 
 			if parameters.get('search_query'):
 				row = row.filter(search_query)
@@ -198,10 +198,10 @@ class TableData(object):
 			columns = ['username', 'first_name', 'last_name', 'email', 'phone_number']
 			search_query = build_search_query(search_value = parameters.get('search_query'), columns = columns)
 			if parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = row.order_by('-' + str(parameters.get('order_column')))
-				else:
-					row = row.order_by(str(parameters.get('order_column')))
+				row = extract_order(
+					order_column = parameters.get('order_column'), order_dir = parameters.get('order_dir'),
+					data = row
+				)
 
 			if parameters.get('search_query'):
 				row = row.filter(search_query)
@@ -235,10 +235,10 @@ class TableData(object):
 			columns = ['description', 'name', 'system__name', 'event_type__name', 'escalation_level__name']
 			search_query = build_search_query(search_value = parameters.get('search_query'), columns = columns)
 			if parameters.get('order_column'):
-				if parameters.get('order_dir') == 'desc':
-					row = row.order_by('-' + str(parameters.get('order_column')))
-				else:
-					row = row.order_by(str(parameters.get('order_column')))
+				row = extract_order(
+					order_column = parameters.get('order_column'), order_dir = parameters.get('order_dir'),
+					data = row
+				)
 
 			if parameters.get('search_query'):
 				row = row.filter(search_query)
@@ -413,4 +413,3 @@ class TableData(object):
 def update_dict(user_name, d):
 	d['userName'] = user_name
 	return d
-

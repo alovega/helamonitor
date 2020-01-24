@@ -14,21 +14,25 @@ def paginate_data(data, page_size, page_number):
 	@type: dict
 	@return: returns paginated data
 	"""
-	for index, value in enumerate(data):
-		value.update(item_index = index + 1)
-	paginator = Paginator(data, page_size)
-	table_data = {'row': paginator.page(page_number).object_list}
-	if table_data.get('row'):
-		item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
-	else:
-		item_range = [0, 0]
-	item_description = 'Showing %s to %s of %s items' % (
-		str(item_range[0]), str(item_range[1]), str(paginator.count))
-	table_data.update(
-		size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
-		range = item_description)
+	try:
+		for index, value in enumerate(data):
+			value.update(item_index = index + 1)
+		paginator = Paginator(data, page_size)
+		table_data = {'row': paginator.page(page_number).object_list}
+		if table_data.get('row'):
+			item_range = [table_data.get('row')[0].get('item_index'), table_data.get('row')[-1].get('item_index')]
+		else:
+			item_range = [0, 0]
+		item_description = 'Showing %s to %s of %s items' % (
+			str(item_range[0]), str(item_range[1]), str(paginator.count))
+		table_data.update(
+			size = paginator.num_pages, totalElements = paginator.count, totalPages = paginator.num_pages,
+			range = item_description)
 
-	return table_data
+		return table_data
+	except Exception as e:
+		lgr.exception('Pagination Exception: %s', e)
+	return {"code": "800.400.001"}
 
 
 def build_search_query(search_value, columns, extra_columns = None):
@@ -77,3 +81,22 @@ def pop_first_none_empty_from_list(list_items):
 	except Exception as e:
 		lgr.exception('pop_first_none_empty_from_list Exception: %s', e)
 	return '', list_items
+
+def extract_order(order_dir, order_column, data):
+	"""
+	General function to perform ordering of columns
+	@param data: Queryset to be ordered
+	@param order_dir: string representing the direction of ordering descending or ascending
+	@type:str
+	@param order_column: the column to perform ordering
+	@type: str
+	@return: a dictionary containing ordered data
+	"""
+	try:
+		if order_dir == 'desc':
+			data = data.order_by('-' + str(order_column))
+		else:
+			data = data.order_by(str(order_column))
+		return data
+	except Exception as e:
+		lgr.exception('Extract order exception: %s' % e)
