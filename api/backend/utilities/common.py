@@ -82,6 +82,7 @@ def pop_first_none_empty_from_list(list_items):
 		lgr.exception('pop_first_none_empty_from_list Exception: %s', e)
 	return '', list_items
 
+
 def extract_order(order_dir, order_column, data):
 	"""
 	General function to perform ordering of columns

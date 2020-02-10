@@ -1,6 +1,7 @@
 import logging
 
 import requests
+import pandas as pd
 import dateutil.parser
 import calendar
 from django.db.models import F
@@ -18,6 +19,7 @@ class MonitorInterface(object):
 	"""
 	class for logging status  of  system micro-services
 	"""
+
 	@staticmethod
 	def perform_health_check():
 		"""
@@ -43,11 +45,13 @@ class MonitorInterface(object):
 							monitor_data.update({
 								"response_time_speed": 'Slow', "event_type": EventTypeService().get(name = 'Warning'),
 								"description": 'Response time is not within the expected time',
-								"state": StateService().get(name ='Degraded Performance'), "response_time":
-									health_state.elapsed.total_seconds()})
+								"state": StateService().get(name = 'Degraded Performance'), "response_time":
+									health_state.elapsed.total_seconds()
+							})
 						else:
 							monitor_data.update({
-								'response_time_speed': 'Normal', "response_time": health_state.elapsed.total_seconds()})
+								'response_time_speed': 'Normal', "response_time": health_state.elapsed.total_seconds()
+							})
 					else:
 						monitor_data.update({
 							"response_time_speed": None, "event_type": EventTypeService().get(name = 'Critical'),
@@ -55,12 +59,12 @@ class MonitorInterface(object):
 								name = 'Major Outage')
 						})
 					system_status = SystemMonitorService().create(
-						system = SystemService().get(name=monitor_data.get('system')),
+						system = SystemService().get(name = monitor_data.get('system')),
 						response_time = timedelta(seconds = int(monitor_data.get('response_time'))),
 						response_time_speed = monitor_data.get("response_time_speed"),
-						state = StateService().get(name =monitor_data.get('state')),
+						state = StateService().get(name = monitor_data.get('state')),
 						response_body = monitor_data.get("response_body"),
-						endpoint = EndpointService().get(name=monitor_data.get("endpoint")),
+						endpoint = EndpointService().get(name = monitor_data.get("endpoint")),
 						response_code = monitor_data.get("response_code")
 					)
 					if system_status is not None:
@@ -117,32 +121,23 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = current_hour,
 						date_created__gte = past_hour).values(
-						name= F('endpoint__name'), responseTime = F('response_time'),
-						dateCreated=F('date_created')))
+						name = F('endpoint__name'), responseTime = F('response_time'),
+						dateCreated = F('date_created')))
 					past_hour = past_hour.replace(minute = 0)
 					label.append(past_hour.strftime("%m/%d/%y  %H:%M"))
 					result = {"Initial": {"data": [0]}}
 					for response_time in response_times:
 						response_time.update(
-							responseTime=timedelta.total_seconds(response_time.get('responseTime')),
-							dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
+							dateCreated = response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
 						)
 						dataset.append(response_time)
 						labels.append(response_time['dateCreated'])
 					if dataset:
-						label = []
+						# label = []
 						[label.append(item) for item in labels if item not in label]
-						result = {}
-						for row in dataset:
-							if row["name"] in result:
-								result[row["name"]]["data"].append(row["responseTime"])
-								result[row["name"]]["dateCreated"].append(row["dateCreated"])
-							else:
-								result[row["name"]] = {
-									"label": row["name"],
-									"data": [row["responseTime"]],
-									"dateCreated": [row["dateCreated"]],
-								}
+						result = join_repetitive_dictionaries(dataset)
+
 			elif period.days <= 7:
 				for i in range(0, 7):
 					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
@@ -150,32 +145,23 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = past_day,
 						date_created__gte = current_day).values(
-						name= F('endpoint__name'), responseTime = F('response_time'),
-						dateCreated=F('date_created')))
+						name = F('endpoint__name'), responseTime = F('response_time'),
+						dateCreated = F('date_created')))
 					past_day = past_day.replace(hour = 0, minute = 0)
 					label.append(past_day.strftime("%m/%d/%y  %H:%M"))
 					result = {"Initial": {"data": [0]}}
 					for response_time in response_times:
 						response_time.update(
-							responseTime=timedelta.total_seconds(response_time.get('responseTime')),
-							dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
+							dateCreated = response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
 						)
 						dataset.append(response_time)
 						labels.append(response_time['dateCreated'])
 					if dataset:
-						label = []
+						# label = []
 						[label.append(item) for item in labels if item not in label]
-						result = {}
-						for row in dataset:
-							if row["name"] in result:
-								result[row["name"]]["data"].append(row["responseTime"])
-								result[row["name"]]["dateCreated"].append(row["dateCreated"])
-							else:
-								result[row["name"]] = {
-									"label": row["name"],
-									"data": [row["responseTime"]],
-									"dateCreated": [row["dateCreated"]],
-								}
+						data = join_repetitive_dictionaries(dataset)
+						result = add_missing_date_time_value(label = label, data = data)
 			elif period.days <= 31:
 				for i in range(0, 31):
 					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
@@ -183,37 +169,29 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = past_day,
 						date_created__gte = current_day).values(
-						name= F('endpoint__name'), responseTime = F('response_time'),
-						dateCreated=F('date_created')))
+						name = F('endpoint__name'), responseTime = F('response_time'),
+						dateCreated = F('date_created')))
 
-					# dates = [x.get('dateCreated') for x in response_times]
-					# for d in (current_day - past_day for x in range(0, 30)):
+					dates = [x.get('dateCreated') for x in response_times]
+					# for d in (past_day - timedelta(days=x) for x in range(0, 30)):
 					# 	if d not in dates:
-					# 		response_times.append({'dateCreated': d, 'responseTime': 0})
+					# 		response_times.append({'dateCreated': d,
+					# 			                      'responseTime': timedelta(days = 0, hours = 0,minutes = 0, seconds = 0)})
 					past_day = past_day.replace(hour = 0, minute = 0)
-					label.append(past_day.strftime("%m/%d/%y  %H:%M"))
+					label.append(past_day.strftime("%m/%d/%y %H:%M"))
 					result = {"Initial": {"data": [0]}}
 					for response_time in response_times:
 						response_time.update(
-							responseTime=timedelta.total_seconds(response_time.get('responseTime')),
-							dateCreated= response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
+							dateCreated = response_time["dateCreated"].strftime("%m/%d/%y %H:%M")
 						)
 						dataset.append(response_time)
 						labels.append(response_time['dateCreated'])
 					if dataset:
-						label = []
+						# label = []
 						[label.append(item) for item in labels if item not in label]
-						result = {}
-						for row in dataset:
-							if row["name"] in result:
-								result[row["name"]]["data"].append(row["responseTime"])
-								result[row["name"]]["dateCreated"].append(row["dateCreated"])
-							else:
-								result[row["name"]] = {
-									"label": row["name"],
-									"data": [row["responseTime"]],
-									"dateCreated": [row["dateCreated"]],
-								}
+						data = join_repetitive_dictionaries(dataset)
+						result = add_missing_date_time_value(label=label, data = data)
 			elif period.days <= 365:
 				current_date = now.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
 				current_month = now.month
@@ -247,26 +225,55 @@ class MonitorInterface(object):
 					for response_time in response_times:
 						response_time.update(
 							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
-							dateCreated = response_time["dateCreated"].strftime("%m/%d/%y  %H:%M")
+							dateCreated = response_time["dateCreated"].strftime("%m/%d/%y")
 						)
 						dataset.append(response_time)
 						labels.append(response_time['dateCreated'])
 					if dataset:
-						label = []
+						# label = []
 						[label.append(item) for item in labels if item not in label]
-						result = {}
-						for row in dataset:
-							if row["name"] in result:
-								result[row["name"]]["data"].append(row["responseTime"])
-								result[row["name"]]["dateCreated"].append(row["dateCreated"])
-							else:
-								result[row["name"]] = {
-									"label": row["name"],
-									"data": [row["responseTime"]],
-									"dateCreated": [row["dateCreated"]],
-								}
+						data = join_repetitive_dictionaries(dataset)
+						result = add_missing_date_time_value(label=label, data = data)
 
 			return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
-		return {'code': '800.400.001'}
+		return {'code': '800.400.001', 'responsetime': response_times}
+
+
+def join_repetitive_dictionaries(data):
+	"""
+
+	@param data: a dictionary holding data
+	@type: dict
+	@return:
+	"""
+	result = {}
+	response_data = {}
+	for row in data:
+		if row["name"] in result:
+			response_data['time'] = row["responseTime"]
+			response_data['dateCreated'] = row ["dateCreated"]
+			result[row["name"]]["data"].append(row["responseTime"])
+			result[row["name"]]["dateCreated"].append(row["dateCreated"])
+		else:
+			result[row["name"]] = {
+				"label": row["name"],
+				"data": [row["responseTime"]],
+				"dateCreated": [row["dateCreated"]],
+			}
+	return result
+
+
+def add_missing_date_time_value(label, data):
+	try:
+
+		for key in data.keys():
+			for d in label:
+				if d not in data[key]['dateCreated']:
+					data[key]['dateCreated'].append(d)
+					data[key]['data'].append(0.0)
+
+		return data
+	except Exception as ex:
+		lgr.exception("add missing date exception %s" % ex)

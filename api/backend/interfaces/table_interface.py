@@ -1,4 +1,3 @@
-from datetime import timedelta
 import logging
 import pandas as pd
 
@@ -102,8 +101,6 @@ class TableData(object):
 	@staticmethod
 	def get_notifications(parameters, system_id):
 		"""
-		@param notification_type: Notification Type which the notification belongs to
-		@type: str
 		@param parameters: a dictionary containing parameters used for fetching notification data
 		@type: dict
 		@param system_id: Id of a system the notifications will be attached to
