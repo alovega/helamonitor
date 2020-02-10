@@ -1,7 +1,6 @@
 import logging
 
 import requests
-import pandas as pd
 import dateutil.parser
 import calendar
 from django.db.models import F
@@ -160,8 +159,8 @@ class MonitorInterface(object):
 					if dataset:
 						# label = []
 						[label.append(item) for item in labels if item not in label]
-						data = join_repetitive_dictionaries(dataset)
-						result = add_missing_date_time_value(label = label, data = data)
+						result = join_repetitive_dictionaries(dataset)
+						# result = add_missing_date_time_value(label = label, data = data)
 			elif period.days <= 31:
 				for i in range(0, 31):
 					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
@@ -190,8 +189,8 @@ class MonitorInterface(object):
 					if dataset:
 						# label = []
 						[label.append(item) for item in labels if item not in label]
-						data = join_repetitive_dictionaries(dataset)
-						result = add_missing_date_time_value(label=label, data = data)
+						result = join_repetitive_dictionaries(dataset)
+						# result = add_missing_date_time_value(label=label, data = data)
 			elif period.days <= 365:
 				current_date = now.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
 				current_month = now.month
@@ -232,13 +231,13 @@ class MonitorInterface(object):
 					if dataset:
 						# label = []
 						[label.append(item) for item in labels if item not in label]
-						data = join_repetitive_dictionaries(dataset)
-						result = add_missing_date_time_value(label=label, data = data)
+						result = join_repetitive_dictionaries(dataset)
+						# result = add_missing_date_time_value(label=label, data = data)
 
-			return {'code': '800.200.001', 'data': {'labels': label, 'datasets': result}}
+			return {'code': '800.200.001', 'data': result}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
-		return {'code': '800.400.001', 'responsetime': response_times}
+		return {'code': '800.400.001'}
 
 
 def join_repetitive_dictionaries(data):
@@ -249,31 +248,30 @@ def join_repetitive_dictionaries(data):
 	@return:
 	"""
 	result = {}
-	response_data = {}
+	graph_data = []
 	for row in data:
 		if row["name"] in result:
-			response_data['time'] = row["responseTime"]
-			response_data['dateCreated'] = row ["dateCreated"]
-			result[row["name"]]["data"].append(row["responseTime"])
-			result[row["name"]]["dateCreated"].append(row["dateCreated"])
+			result[row["name"]]["series"].append(dict(value=row["responseTime"], name=row["dateCreated"]))
+			# result[row["name"]]["dateCreated"].append(row["dateCreated"])
 		else:
 			result[row["name"]] = {
-				"label": row["name"],
-				"data": [row["responseTime"]],
-				"dateCreated": [row["dateCreated"]],
+				# "dateCreated": [row["dateCreated"]],
+				"name": row["name"],
+				"series": [dict(value = row["responseTime"], name = row["dateCreated"])]
 			}
-	return result
+	for key in result.keys():
+		graph_data.append(result[key])
+	return graph_data
 
 
-def add_missing_date_time_value(label, data):
-	try:
-
-		for key in data.keys():
-			for d in label:
-				if d not in data[key]['dateCreated']:
-					data[key]['dateCreated'].append(d)
-					data[key]['data'].append(0.0)
-
-		return data
-	except Exception as ex:
-		lgr.exception("add missing date exception %s" % ex)
+# def add_missing_date_time_value(label, data):
+# 	try:
+#
+# 		for key in data.keys():
+# 			for d in label:
+# 				if d not in data[key]['dateCreated']:
+# 					data[key]['data'].append(dict(dateCreated=d, time=0.0))
+#
+# 		return data
+# 	except Exception as ex:
+# 		lgr.exception("add missing date exception %s" % ex)

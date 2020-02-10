@@ -168,3 +168,36 @@ LOGGING = {
 		},
 	},
 }
+
+
+# result = {}
+# 	response_data = []
+# 	for row in data:
+# 		if row["name"] in result:
+# 			response_data.append(dict(time=row["responseTime"], dateCreated=row["dateCreated"]))
+# 			# response_data['time'] = row["responseTime"]
+# 			# response_data['dateCreated'] = row ["dateCreated"]
+# 			result[row["name"]]["data"].append(response_data)
+# 			result[row["name"]]["dateCreated"].append(row["dateCreated"])
+# 		else:
+# 			result[row["name"]] = {
+# 				"label": row["name"],
+# 				"data": response_data.append(dict(time=row["responseTime"], dateCreated=row["dateCreated"])),
+# 				# "data": [row["responseTime"]],
+# 				"dateCreated": [row["dateCreated"]],
+# 			}
+# 	return result
+#
+#
+# def add_missing_date_time_value(label, data):
+# 	try:
+#
+# 		for key in data.keys():
+# 			for d in label:
+# 				if d not in data[key]['dateCreated']:
+# 					data[key]['data'].append(dict(time=0.0, dateCreated=d))
+# 					data[key]['data'].append(0.0)
+#
+# 		return data
+# 	except Exception as ex:
+# 		lgr.exception("add missing date exception %s" % ex)
