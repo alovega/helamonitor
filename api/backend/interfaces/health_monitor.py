@@ -110,8 +110,6 @@ class MonitorInterface(object):
 			start_date = dateutil.parser.parse(start_date)
 			end_date = dateutil.parser.parse(end_date)
 			period = start_date - end_date
-			labels = []
-			label = []
 			dataset = []
 			if period.days <= 1:
 				for i in range(1, 25):
@@ -129,9 +127,7 @@ class MonitorInterface(object):
 							dateCreated = response_time["dateCreated"]
 						)
 						dataset.append(response_time)
-						labels.append(response_time['dateCreated'])
 					if dataset:
-						[label.append(item) for item in labels if item not in label]
 						result = join_repetitive_dictionaries(dataset)
 
 			elif period.days <= 7:
@@ -143,8 +139,6 @@ class MonitorInterface(object):
 						date_created__gte = current_day).values(
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
-					past_day = past_day.replace(hour = 0, minute = 0)
-					label.append(past_day.strftime("%m/%d/%y  %H:%M"))
 					result = {"Initial": {"data": [0]}}
 					for response_time in response_times:
 						response_time.update(
@@ -152,9 +146,7 @@ class MonitorInterface(object):
 							dateCreated = response_time["dateCreated"]
 						)
 						dataset.append(response_time)
-						labels.append(response_time['dateCreated'])
 					if dataset:
-						[label.append(item) for item in labels if item not in label]
 						result = join_repetitive_dictionaries(dataset)
 			elif period.days <= 31:
 				for i in range(0, 31):
@@ -165,8 +157,6 @@ class MonitorInterface(object):
 						date_created__gte = current_day).values(
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
-					past_day = past_day.replace(hour = 0, minute = 0)
-					label.append(past_day)
 					result = {"Initial": {"data": [0]}}
 					for response_time in response_times:
 						response_time.update(
@@ -174,9 +164,7 @@ class MonitorInterface(object):
 							dateCreated = response_time["dateCreated"]
 						)
 						dataset.append(response_time)
-						labels.append(response_time['dateCreated'])
 					if dataset:
-						[label.append(item) for item in labels if item not in label]
 						result = join_repetitive_dictionaries(dataset)
 			elif period.days <= 365:
 				current_date = now.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
@@ -186,7 +174,6 @@ class MonitorInterface(object):
 					days = calendar.monthrange(current_date.year, current_month)[1] - 1)
 				for i in range(1, 13):
 					if current_month > 1:
-						month_name = calendar.month_name[current_month]
 						end_date = current_date
 						start_date = current_date - timedelta(
 							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
@@ -194,7 +181,6 @@ class MonitorInterface(object):
 							days = calendar.monthrange(current_date.year, current_month)[1])
 						current_month = current_month - 1
 					else:
-						month_name = calendar.month_name[current_month]
 						end_date = current_date
 						start_date = current_date - timedelta(
 							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
@@ -206,7 +192,6 @@ class MonitorInterface(object):
 						date_created__gte = start_date).values(
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
-					label.append('%s, %s' % (month_name, current_date.year))
 					result = {"Initial": {"data": [0]}}
 					for response_time in response_times:
 						response_time.update(
@@ -214,9 +199,7 @@ class MonitorInterface(object):
 							dateCreated = response_time["dateCreated"]
 						)
 						dataset.append(response_time)
-						labels.append(response_time['dateCreated'])
 					if dataset:
-						[label.append(item) for item in labels if item not in label]
 						result = join_repetitive_dictionaries(dataset)
 
 			return {'code': '800.200.001', 'data': result}
