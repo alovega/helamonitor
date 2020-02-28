@@ -735,7 +735,7 @@ def create_endpoints(request):
 		endpoint = EndpointAdministrator.create_endpoint(
 			state_id = data.get('state'), endpoint_type_id = data.get('endpoint_type'),
 			system_id = data.get('system_id'), name = data.get('name'), description = data.get('description'),
-			url = data.get('url'), response_time = data.get('optimal_response_time')
+			url = data.get('url'), response_time = data.get('optimal_response_time'), color = data.get('color')
 		)
 		return JsonResponse(endpoint)
 	except Exception as ex:
@@ -758,7 +758,7 @@ def update_endpoint(request):
 		updated_endpoint = EndpointAdministrator.update_endpoint(
 			endpoint_id = data.get('endpoint_id'), state_id = data.get('State'),
 			response_time = data.get('OptimalResponseTime'), description = data.get('Description'),
-			url = data.get('Url'), name = data.get('EndpointName')
+			url = data.get('Url'), name = data.get('EndpointName'), color = data.get('Color')
 		)
 		return JsonResponse(updated_endpoint)
 	except Exception as ex:

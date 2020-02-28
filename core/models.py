@@ -67,6 +67,7 @@ class Endpoint(GenericBaseModel):
     objects = None
     system = models.ForeignKey(System)
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
+    color = models.CharField(max_length=250)
     url = models.CharField(max_length=250)
     optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     state = models.ForeignKey(State)

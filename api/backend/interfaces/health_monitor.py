@@ -118,6 +118,7 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = current_hour,
 						date_created__gte = past_hour).values(
+						color = F('endpoint__color'),
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
 					result = {"Initial": {"data": [0]}}
@@ -137,6 +138,7 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = past_day,
 						date_created__gte = current_day).values(
+						color = F('endpoint__color'),
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
 					result = {"Initial": {"data": [0]}}
@@ -155,6 +157,7 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = past_day,
 						date_created__gte = current_day).values(
+						color = F('endpoint__color'),
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
 					result = {"Initial": {"data": [0]}}
@@ -190,6 +193,7 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = end_date,
 						date_created__gte = start_date).values(
+						'color',
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
 					result = {"Initial": {"data": [0]}}
@@ -217,13 +221,15 @@ def join_repetitive_dictionaries(data):
 	"""
 	result = {}
 	graph_data = []
+	colors = []
 	for row in data:
 		if row["name"] in result:
 			result[row["name"]]["series"].append(dict(value=row["responseTime"], name=row["dateCreated"]))
 		else:
 			result[row["name"]] = {
 				"name": row["name"],
-				"series": [dict(value = row["responseTime"], name = row["dateCreated"])]
+				"series": [dict(value = row["responseTime"], name = row["dateCreated"])],
+				"color": row["color"]
 			}
 	for key in result.keys():
 		graph_data.append(result[key])
