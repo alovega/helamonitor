@@ -197,8 +197,10 @@ class DashboardAdministration(object):
 			now = timezone.now()
 			start_date = dateutil.parser.parse(start_date)
 			end_date = dateutil.parser.parse(end_date)
+			series = []
+			color = "#E44D25"
+			name = "Number of errors"
 			period = start_date - end_date
-			labels = []
 			dataset = []
 			if period.days <= 1:
 				for i in range(1, 25):
@@ -208,8 +210,9 @@ class DashboardAdministration(object):
 						system = system, event_type__name = 'Error', date_created__lte = current_hour,
 						date_created__gte = past_hour).count()
 					past_hour = past_hour.replace(minute = 0)
-					labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
-					dataset.append(current_errors)
+					series.append(dict(value=current_errors, name=past_hour))
+				result = {"name": name, "color": color, "series": series}
+				dataset.append(result)
 			elif period.days <= 7:
 				for i in range(0, 7):
 					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
@@ -218,8 +221,9 @@ class DashboardAdministration(object):
 						system = system, event_type__name = 'Error', date_created__lte = past_day,
 						date_created__gte = current_day).count()
 					past_day = past_day.replace(hour = 0, minute = 0)
-					labels.append(past_day.strftime("%m/%d/%y  %H:%M"))
-					dataset.append(current_errors)
+					series.append(dict(value=current_errors, name=past_day))
+				result = {"name": name, "color": color, "series": series, "yAxisValue": "Number of Errors Occurred"}
+				dataset.append(result)
 			elif period.days <= 31:
 				for i in range(0, 31):
 					current_day = now - timedelta(days = i, hours = 0, minutes = 0)
@@ -228,8 +232,9 @@ class DashboardAdministration(object):
 						system = system, event_type__name = 'Error', date_created__lte = past_day,
 						date_created__gte = current_day).count()
 					past_day = past_day.replace(hour = 0, minute = 0)
-					labels.append(past_day.strftime("%m/%d/%y"))
-					dataset.append(current_errors)
+					series.append(dict(value=current_errors, name=past_day))
+				result = {"name": name, "color": color, "series": series, "yAxisValue": "Number of Errors Occurred"}
+				dataset.append(result)
 			elif period.days <= 365:
 				current_date = now.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
 				current_month = now.month
@@ -238,7 +243,6 @@ class DashboardAdministration(object):
 					days = calendar.monthrange(current_date.year, current_month)[1] - 1)
 				for i in range(1, 13):
 					if current_month > 1:
-						month_name = calendar.month_name[current_month]
 						end_date = current_date
 						start_date = current_date - timedelta(
 							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
@@ -246,7 +250,6 @@ class DashboardAdministration(object):
 							days = calendar.monthrange(current_date.year, current_month)[1])
 						current_month = current_month - 1
 					else:
-						month_name = calendar.month_name[current_month]
 						end_date = current_date
 						start_date = current_date - timedelta(
 							days = calendar.monthrange(end_date.year, end_date.month)[1] - 1)
@@ -256,8 +259,9 @@ class DashboardAdministration(object):
 					current_errors = EventService().filter(
 						system = system, event_type__name = 'Error', date_created__lte = end_date,
 						date_created__gte = start_date).count()
-					labels.append('%s, %s' % (month_name, current_date.year))
-					dataset.append(current_errors)
+					series.append(dict(value=current_errors, name=current_date))
+				result = {"name": name, "color": color, "series": series, "yAxisValue": "Number of Errors Occurred"}
+				dataset.append(result)
 			else:
 				intervals = 24
 				for i in range(1, intervals + 1):
@@ -267,9 +271,10 @@ class DashboardAdministration(object):
 						system = system, event_type__name = 'Error', date_created__lte = current_hour,
 						date_created__gte = past_hour).count()
 					past_hour = past_hour.replace(minute = 0)
-					labels.append(past_hour.strftime("%m/%d/%y  %H:%M"))
-					dataset.append(current_errors)
-			return {'code': '800.200.001', 'data': {'labels': labels, 'datasets': dataset}}
+					series.append(dict(value=current_errors, name=past_hour))
+				result = {"name": name, "color": color, "series": series, "yAxisValue": "Number of Errors Occurred"}
+				dataset.append(result)
+			return {'code': '800.200.001', 'data': dataset}
 		except Exception as ex:
 			lgr.exception("Get Error rate Exception %s" % ex)
 		return {'code': '800.400.001 %s' % str(ex)}
@@ -372,6 +377,9 @@ class DashboardAdministration(object):
 			if not system and interval:
 				return {'code': '800.400.002', 'message': 'Missing or invalid parameters'}
 			today = datetime.now(timezone.utc)
+			series = [];
+			color = '#008000';
+			name = 'Availability Percentage Trend'
 			datasets = []
 			labels = []
 			if interval == 'day':
@@ -398,10 +406,14 @@ class DashboardAdministration(object):
 				else:
 					return {'code': '800.400.001', 'message': availability_percentage_result}
 				current_interval = (current_interval + timedelta(hours = 1)).replace(minute = 0)
-				labels.append(current_interval.strftime("%m/%d/%y  %H:%M"))
-				datasets.append(availability_percentage)
-			return {'code': '800.200.001', 'data': {
-				'labels': labels, 'datasets': datasets, 'time_intervals': time_intervals, 'identifier': identifier}}
+				series.append(dict(value=availability_percentage, name=current_interval))
+				# labels.append(current_interval.strftime("%m/%d/%y  %H:%M"))
+			result = {
+				"name": name, "color": color, "series": series, 'time_intervals': time_intervals,
+				'identifier': identifier, "yAxisValue": "Availability Trend in Percentage"
+			}
+			datasets.append(result)
+			return {'code': '800.200.001', 'data':datasets}
 		except Exception as ex:
 			lgr.exception("Get uptime trend data exception %s" % ex)
 		return {'code': '800.400.001', 'msg': 'Error. Could not retrieve system up time trend data %s' % str(ex)}

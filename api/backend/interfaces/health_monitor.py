@@ -121,7 +121,7 @@ class MonitorInterface(object):
 						color = F('endpoint__color'),
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
-					result = {"Initial": {"data": [0]}}
+					result = [{"name": None, "series": None, "color": None, "yAxisValue": "Response Time in Seconds"}]
 					for response_time in response_times:
 						response_time.update(
 							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
@@ -141,7 +141,7 @@ class MonitorInterface(object):
 						color = F('endpoint__color'),
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
-					result = {"Initial": {"data": [0]}}
+					result = [{"name": None, "series": None, "color": None, "yAxisValue": "Response Time in Seconds"}]
 					for response_time in response_times:
 						response_time.update(
 							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
@@ -160,7 +160,7 @@ class MonitorInterface(object):
 						color = F('endpoint__color'),
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
-					result = {"Initial": {"data": [0]}}
+					result = [{"name": None, "series": None, "color": None, "yAxisValue": "Response Time in Seconds"}]
 					for response_time in response_times:
 						response_time.update(
 							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
@@ -193,10 +193,10 @@ class MonitorInterface(object):
 					response_times = list(SystemMonitorService().filter(
 						system = system, date_created__lte = end_date,
 						date_created__gte = start_date).values(
-						'color',
+						color= F('endpoint__color'),
 						name = F('endpoint__name'), responseTime = F('response_time'),
 						dateCreated = F('date_created')))
-					result = {"Initial": {"data": [0]}}
+					result = [{"name": None, "series": None, "color": None, "yAxisValue": "Response Time in Seconds"}]
 					for response_time in response_times:
 						response_time.update(
 							responseTime = timedelta.total_seconds(response_time.get('responseTime')),
@@ -221,16 +221,17 @@ def join_repetitive_dictionaries(data):
 	"""
 	result = {}
 	graph_data = []
-	colors = []
-	for row in data:
-		if row["name"] in result:
-			result[row["name"]]["series"].append(dict(value=row["responseTime"], name=row["dateCreated"]))
-		else:
-			result[row["name"]] = {
-				"name": row["name"],
-				"series": [dict(value = row["responseTime"], name = row["dateCreated"])],
-				"color": row["color"]
-			}
+	if data:
+		for row in data:
+			if row["name"] in result:
+				result[row["name"]]["series"].append(dict(value=row["responseTime"], name=row["dateCreated"]))
+			else:
+				result[row["name"]] = {
+					"name": row["name"],
+					"series": [dict(value = row["responseTime"], name = row["dateCreated"])],
+					"color": row["color"],
+					"yAxisValue": 'Response Time in Seconds'
+				}
 	for key in result.keys():
 		graph_data.append(result[key])
 	return graph_data
