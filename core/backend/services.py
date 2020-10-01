@@ -1,7 +1,7 @@
 """
 Services for Core module
 """
-from core.models import System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, Event, \
+from core.models import System, Interface, SystemCredential, SystemRecipient, SystemMonitor, Event, \
     Incident, IncidentEvent, IncidentLog, Notification, Endpoint, EscalationRule
 
 from base.backend.servicebase import ServiceBase
@@ -33,13 +33,6 @@ class SystemMonitorService(ServiceBase):
     Service for SystemMonitor CRUD
     """
     manager = SystemMonitor.objects
-
-
-class RecipientService(ServiceBase):
-    """
-    Service for Recipient CRUD
-    """
-    manager = Recipient.objects
 
 
 class SystemRecipientService(ServiceBase):

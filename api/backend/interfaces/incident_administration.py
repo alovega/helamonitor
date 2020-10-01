@@ -10,7 +10,7 @@ from django.db.models import F, Q
 
 from api.backend.interfaces.notification_interface import NotificationLogger
 from core.backend.services import IncidentService, IncidentLogService, IncidentEventService, SystemService, \
-	SystemRecipientService, RecipientService
+	SystemRecipientService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 
 lgr = logging.getLogger(__name__)
@@ -102,13 +102,13 @@ class IncidentAdministrator(object):
 					notification_type__name = 'Sms').values('recipient__id')
 				sms_notification = NotificationLogger().send_notification(
 					message = incident.description, message_type = "Sms", system_id = incident.system.id,
-					recipients = [str(recipient["phone_number"]) for recipient in RecipientService().filter(
-						id__in = sms_system_recipients, state__name = 'Active').values("phone_number")]
+					recipients = [str(recipient["phone_number"]) for recipient in User.objects.filter(
+						id__in = sms_system_recipients, is_active = True).values("phone_number")]
 				)
 				email_notification = NotificationLogger().send_notification(
 					message = incident.description, message_type = "Email", system_id = incident.system.id,
-					recipients = [str(recipient['user__email']) for recipient in RecipientService().filter(
-						id__in = email_system_recipients, state__name = 'Active').values('user__email')]
+					recipients = [str(recipient['user__email']) for recipient in User.objects.filter(
+						id__in = email_system_recipients, is_active = True).values('email')]
 				)
 				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
 					lgr.exception("Notification sending failed")
@@ -166,13 +166,13 @@ class IncidentAdministrator(object):
 					notification_type__name = 'Sms').values('recipient__id')
 				sms_notification = NotificationLogger().send_notification(
 					message = incident_log.description, message_type = "Sms", system_id = incident.system.id,
-					recipients = [str(recipient["phone_number"]) for recipient in RecipientService().filter(
-						id__in = sms_system_recipients, state__name = 'Active').values("phone_number")]
+					recipients = [str(recipient["phone_number"]) for recipient in User.objects.filter(
+						id__in = sms_system_recipients, is_active = True).values("phone_number")]
 				)
 				email_notification = NotificationLogger().send_notification(
 					message = incident_log.description, message_type = "Email", system_id = incident.system.id,
-					recipients = [str(recipient['user__email']) for recipient in RecipientService().filter(
-						id__in = email_system_recipients, state__name = 'Active').values('user__email')]
+					recipients = [str(recipient['user__email']) for recipient in User.objects.filter(
+						id__in = email_system_recipients, is_active = True).values('email')]
 				)
 				if sms_notification.get('code') != '800.200.001' or email_notification.get('code') != '800.200.001':
 					lgr.warning("Notification sending failed")

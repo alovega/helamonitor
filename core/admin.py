@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from core.models import User, System, Interface, SystemCredential, Recipient, SystemRecipient, SystemMonitor, \
+from core.models import User, System, Interface, SystemCredential, SystemRecipient, SystemMonitor, \
     Event, EscalationRule, Incident, IncidentEvent, IncidentLog, Notification, Endpoint
 
 
@@ -77,18 +77,6 @@ class SystemMonitorAdmin(admin.ModelAdmin):
     list_filter = ('date_created',)
     list_display = ('system', 'endpoint', 'state', 'response_time', 'date_modified', 'date_created')
     ordering = ('-date_created',)
-
-
-@admin.register(Recipient)
-class RecipientAdmin(admin.ModelAdmin):
-    """
-    Admin for Recipient Model
-    """
-    list_filter = ('date_created', )
-    list_display = (
-        'user', 'state', 'date_modified', 'date_created')
-    ordering = ('-date_created',)
-    search_fields = ('first_name', 'last_name')
 
 
 @admin.register(SystemRecipient)

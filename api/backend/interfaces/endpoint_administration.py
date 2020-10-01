@@ -16,8 +16,10 @@ class EndpointAdministrator(object):
 	"""
 
 	@staticmethod
-	def create_endpoint(name, description, url, system_id, response_time, endpoint_type_id, state_id):
+	def create_endpoint(name, description, url, system_id, color, response_time, endpoint_type_id, state_id):
 		"""
+		@param color: color the line graph will use when plotting
+		@type color: str
 		@param name: name of endpoint to be created
 		@type name:str
 		@param description: description of endpoint to be created
@@ -48,7 +50,7 @@ class EndpointAdministrator(object):
 				return {"code": "800.400.001", "message": "An endpoint with this url or name exists"}
 			endpoint = EndpointService().create(
 				name = name, description = description, url = url, system = system,
-				endpoint_type = endpoint_type,
+				endpoint_type = endpoint_type, color = color,
 				optimal_response_time = datetime.timedelta(seconds = int(response_time)), state = state
 			)
 			return {"code": "800.200.001", "message": "successfully created endpoint: %s" % endpoint.name}
@@ -57,8 +59,10 @@ class EndpointAdministrator(object):
 		return {"code": "800.400.001", "message": "Error when creating an endpoint"}
 
 	@staticmethod
-	def update_endpoint(endpoint_id, state_id, description, url, response_time, name):
+	def update_endpoint(endpoint_id, state_id, description, color, url, response_time, name):
 		"""
+		@param color: color the line graph will use while plotting
+		@type color: str
 		@param endpoint_id: id of the endpoint to be edited
 		@type endpoint_id: int
 		@param name: name of endpoint to be created
@@ -77,12 +81,12 @@ class EndpointAdministrator(object):
 		try:
 			update_endpoint = EndpointService().get(pk = endpoint_id)
 			state = StateService().get(id = state_id)
-			if not (state and name and description and response_time and url and update_endpoint):
+			if not (state and name and description and response_time and color and url and update_endpoint):
 				return {
 					"code": "800.400.002", "message": "Error missing parameters"
 				}
 			endpoint = EndpointService().update(
-				pk = update_endpoint.id, description = description, state = state, name = name,
+				pk = update_endpoint.id, description = description, state = state, name = name, color = color,
 				optimal_response_time = datetime.timedelta(seconds = float(response_time)), url = url
 			)
 			return {"code": "800.200.001", "message": "successfully updated endpoint: %s" % endpoint.name}
@@ -101,7 +105,7 @@ class EndpointAdministrator(object):
 		"""
 		try:
 			endpoint = EndpointService().filter(id = endpoint_id).values(
-				'id', 'name', 'description', 'url', 'optimal_response_time',
+				'id', 'name', 'color', 'description', 'url', 'optimal_response_time',
 				'date_created', 'date_modified', 'system__name', 'endpoint_type__name', 'state'
 			).first()
 			if not endpoint:

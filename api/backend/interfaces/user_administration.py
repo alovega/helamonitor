@@ -13,7 +13,7 @@ from core.models import User
 from django.db.models import F, Q
 from api.models import token_expiry
 from api.backend.interfaces.notification_interface import NotificationLogger
-from core.backend.services import RecipientService, EscalationRuleService
+from core.backend.services import  EscalationRuleService
 from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
 from api.backend.services import OauthService, AppUserService
 
@@ -164,7 +164,7 @@ class UserAdministrator(object):
 			user = AppUserService().filter(id = app_user.get('app_user')).values(userName = F(
 				'user__username'), email = F('user__email'), superUser = F('user__is_superuser'), firstName = F(
 				'user__first_name'), lastName = F('user__last_name'), log = F('user__logentry'),
-				staff = F('user__is_staff'), phoneNumber = F('user__recipient__phone_number'), password = F(
+				staff = F('user__is_staff'), phoneNumber = F('user__phone_number'), password = F(
 					'user__password')).first()
 			if user.get('superUser'):
 				user.update(role = 'Admin')
@@ -198,16 +198,13 @@ class UserAdministrator(object):
 		try:
 			user_id = OauthService().filter(token = token).values(userId=F('app_user__user__id')).first()
 			user = User.objects.get(id = user_id.get('userId'))
-			recipient = RecipientService().get(user__id = user_id.get('userId'))
 			if user:
 				user.username = username if username else user.username
 				user.email = email if email else user.email
 				user.first_name = first_name if first_name else user.first_name
 				user.last_name = last_name if last_name else user.last_name
+				user.phone_number = phone_number if phone_number else user.phone_number
 				user.save()
-				if recipient:
-					if phone_number:
-						RecipientService().update(pk=recipient.id, phone_number=phone_number)
 				updated_user = User.objects.filter(id = user_id.get('userId')).values().first()
 				return {'code': '800.200.001', "data": updated_user}
 		except Exception as ex:

@@ -127,3 +127,77 @@ STATIC_URL = '/static/'
 EXPIRY_SETTINGS = 30
 CORS_ORIGIN_ALLOW_ALL = True
 AUTH_USER_MODEL = 'core.User'
+
+VENV_ROOT = '/opt/logs/helamonitor/'
+
+LOGGING = {
+	'version': 1,
+	'disable_existing_loggers': False,
+	'formatters': {
+		'verbose': {
+			'format': '%(asctime)s-%(name)s %(module)s %(process)d %(thread)d-(%(threadName)-2s) %(levelname)s-%(message)s'
+		},
+		'simple': {
+			'format': '%(levelname)s %(message)s'
+		},
+	},
+	'filters': {
+		'special': {
+			'()': 'django.utils.log.RequireDebugFalse',
+		}
+	},
+	'handlers': {
+		'rotating_file': {
+			'level': 'INFO',
+			'formatter': 'verbose',
+			'class': 'logging.handlers.TimedRotatingFileHandler',
+			'filename': os.path.join(VENV_ROOT, '', 'monitor.log'),
+			'when': 'midnight',
+			'interval': 1,
+			'backupCount': 7,
+		},
+	},
+	'loggers': {
+		'core': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
+		'api': {
+			'handlers': ['rotating_file'],
+			'level': 'INFO',
+		},
+	},
+}
+
+
+# result = {}
+# 	response_data = []
+# 	for row in data:
+# 		if row["name"] in result:
+# 			response_data.append(dict(time=row["responseTime"], dateCreated=row["dateCreated"]))
+# 			# response_data['time'] = row["responseTime"]
+# 			# response_data['dateCreated'] = row ["dateCreated"]
+# 			result[row["name"]]["data"].append(response_data)
+# 			result[row["name"]]["dateCreated"].append(row["dateCreated"])
+# 		else:
+# 			result[row["name"]] = {
+# 				"label": row["name"],
+# 				"data": response_data.append(dict(time=row["responseTime"], dateCreated=row["dateCreated"])),
+# 				# "data": [row["responseTime"]],
+# 				"dateCreated": [row["dateCreated"]],
+# 			}
+# 	return result
+#
+#
+# def add_missing_date_time_value(label, data):
+# 	try:
+#
+# 		for key in data.keys():
+# 			for d in label:
+# 				if d not in data[key]['dateCreated']:
+# 					data[key]['data'].append(dict(time=0.0, dateCreated=d))
+# 					data[key]['data'].append(0.0)
+#
+# 		return data
+# 	except Exception as ex:
+# 		lgr.exception("add missing date exception %s" % ex)

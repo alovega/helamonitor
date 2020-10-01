@@ -23,16 +23,17 @@ class TestMonitorInterface(object):
 		)
 		endpoint_type = mixer.blend('base.EndpointType', is_queried = True)
 		mixer.blend(
-			'core.Endpoint', url="http://127.0.0.1:8000/api/get_systems/", system = system,
+			'core.Endpoint', url="https://github.com", system = system,
 			endpoint_type = endpoint_type,
-			optimal_response_time = datetime.timedelta(milliseconds = 10), state = system.state
+			optimal_response_time = datetime.timedelta(milliseconds = 10), state = state
 		)
 		mixer.blend('base.State', name = 'Major Outage')
+		mixer.blend('base.State', name = 'Degraded Performance')
 		mixer.blend('base.EventType', name = 'Critical', state = default)
 		monitor_manager = MonitorInterface.perform_health_check()
 		mixer.blend(
 			'core.Endpoint', url = "url", system = system, endpoint_type = endpoint_type,
-			optimal_response_time = datetime.timedelta(milliseconds = 5), state = system.state
+			optimal_response_time = datetime.timedelta(milliseconds = 5), state = state
 		)
 		failed_monitor = MonitorInterface.perform_health_check()
 		# assert monitor_manager.get('data').get('systems')[0] == '100.200.001'

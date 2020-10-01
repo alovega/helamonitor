@@ -67,6 +67,7 @@ class Endpoint(GenericBaseModel):
     objects = None
     system = models.ForeignKey(System)
     endpoint_type = models.ForeignKey(EndpointType, help_text='Endpoint type e.g an health-check endpoint')
+    color = models.CharField(max_length=250)
     url = models.CharField(max_length=250)
     optimal_response_time = models.DurationField(default= timedelta(milliseconds = 3000))
     state = models.ForeignKey(State)
@@ -104,23 +105,11 @@ class SystemMonitor(BaseModel):
     response_body = models.CharField(
         max_length = 100, help_text = 'Body of the response returned when querying an endpoint', null = True,
         blank = True)
-    response_code = models.PositiveIntegerField(max_length = 10, null = True, blank = True)
+    response_code = models.PositiveIntegerField(null = True, blank = True)
     state = models.ForeignKey(State)
 
     def __str__(self):
         return "%s %s %s %s" % (self.endpoint, self.system, self.state, self.response_time_speed)
-
-
-class Recipient(BaseModel):
-    """
-    Model for managing the recipient of a system
-    """
-    user = models.ForeignKey(User)
-    phone_number = models.CharField(max_length=100)
-    state = models.ForeignKey(State)
-
-    def __str__(self):
-        return "%s" % self.user
 
 
 class SystemRecipient(BaseModel):
@@ -128,7 +117,7 @@ class SystemRecipient(BaseModel):
     Model for managing recipient and a system
     """
     system = models.ForeignKey(System)
-    recipient = models.ForeignKey(Recipient)
+    recipient = models.ForeignKey(User)
     escalation_level = models.ForeignKey(EscalationLevel)
     notification_type = models.ForeignKey(NotificationType)
     state = models.ForeignKey(State)
