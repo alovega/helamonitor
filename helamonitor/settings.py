@@ -32,7 +32,7 @@ SECRET_KEY = '%lig#ahy0cn++-ef#v=wjz45&=avhup^tou*^+ku%rghw=jyg%'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['helamonitorapp.herokuapp.com']
+ALLOWED_HOSTS = ['helamonitorapp.herokuapp.com', 'localhost', '127.0.0.1']
 
 # Application definition
 
