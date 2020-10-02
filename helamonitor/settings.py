@@ -11,12 +11,19 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Quick-start development settings - unsuitable for production
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+
+#  Add configuration for static files storage using whitenoise
+STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -25,8 +32,7 @@ SECRET_KEY = '%lig#ahy0cn++-ef#v=wjz45&=avhup^tou*^+ku%rghw=jyg%'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['helamonitorapp.herokuapp.com']
 
 # Application definition
 
@@ -44,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -74,7 +81,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'helamonitor.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
@@ -84,7 +90,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -104,7 +109,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -118,7 +122,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
@@ -131,73 +134,43 @@ AUTH_USER_MODEL = 'core.User'
 VENV_ROOT = '/opt/logs/helamonitor/'
 
 LOGGING = {
-	'version': 1,
-	'disable_existing_loggers': False,
-	'formatters': {
-		'verbose': {
-			'format': '%(asctime)s-%(name)s %(module)s %(process)d %(thread)d-(%(threadName)-2s) %(levelname)s-%(message)s'
-		},
-		'simple': {
-			'format': '%(levelname)s %(message)s'
-		},
-	},
-	'filters': {
-		'special': {
-			'()': 'django.utils.log.RequireDebugFalse',
-		}
-	},
-	'handlers': {
-		'rotating_file': {
-			'level': 'INFO',
-			'formatter': 'verbose',
-			'class': 'logging.handlers.TimedRotatingFileHandler',
-			'filename': os.path.join(VENV_ROOT, '', 'monitor.log'),
-			'when': 'midnight',
-			'interval': 1,
-			'backupCount': 7,
-		},
-	},
-	'loggers': {
-		'core': {
-			'handlers': ['rotating_file'],
-			'level': 'INFO',
-		},
-		'api': {
-			'handlers': ['rotating_file'],
-			'level': 'INFO',
-		},
-	},
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s-%(name)s %(module)s %(process)d %(thread)d-(%(threadName)-2s) %(levelname)s-%(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'special': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        }
+    },
+    'handlers': {
+        'rotating_file': {
+            'level': 'INFO',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(VENV_ROOT, '', 'monitor.log'),
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 7,
+        },
+    },
+    'loggers': {
+        'core': {
+            'handlers': ['rotating_file'],
+            'level': 'INFO',
+        },
+        'api': {
+            'handlers': ['rotating_file'],
+            'level': 'INFO',
+        },
+    },
 }
 
-
-# result = {}
-# 	response_data = []
-# 	for row in data:
-# 		if row["name"] in result:
-# 			response_data.append(dict(time=row["responseTime"], dateCreated=row["dateCreated"]))
-# 			# response_data['time'] = row["responseTime"]
-# 			# response_data['dateCreated'] = row ["dateCreated"]
-# 			result[row["name"]]["data"].append(response_data)
-# 			result[row["name"]]["dateCreated"].append(row["dateCreated"])
-# 		else:
-# 			result[row["name"]] = {
-# 				"label": row["name"],
-# 				"data": response_data.append(dict(time=row["responseTime"], dateCreated=row["dateCreated"])),
-# 				# "data": [row["responseTime"]],
-# 				"dateCreated": [row["dateCreated"]],
-# 			}
-# 	return result
-#
-#
-# def add_missing_date_time_value(label, data):
-# 	try:
-#
-# 		for key in data.keys():
-# 			for d in label:
-# 				if d not in data[key]['dateCreated']:
-# 					data[key]['data'].append(dict(time=0.0, dateCreated=d))
-# 					data[key]['data'].append(0.0)
-#
-# 		return data
-# 	except Exception as ex:
-# 		lgr.exception("add missing date exception %s" % ex)
+prod_db = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(prod_db)

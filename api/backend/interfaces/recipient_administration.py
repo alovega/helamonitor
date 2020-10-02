@@ -83,25 +83,6 @@ class RecipientAdministrator(object):
 		return {"code": "800.400.001", "message": "Error while fetching recipient"}
 
 	@staticmethod
-	def delete_recipient(recipient_id):
-		"""
-		@param recipient_id:id of the recipient belong you are fetching
-		@type recipient_id: str
-		@return:recipients:a dictionary containing a success code and a list of dictionaries containing  system
-							recipient data
-		@rtype:dict
-		"""
-		try:
-			if not recipient_id:
-				return {"code": "800.400.002", "message": "invalid parameter"}
-			recipient = Recipient.objects.get(id = recipient_id)
-			recipient.delete()
-			return {'code': '800.200.001', 'message': 'successfully deleted the recipient'}
-		except Exception as ex:
-			lgr.exception("Recipient Administration Exception: %s" % ex)
-		return {"code": "800.400.001", "message": "Error while deleting recipient"}
-
-	@staticmethod
 	def create_system_recipient(system_id, user_id, escalations):
 		"""
 		@param system_id: The id of the system the recipient will belong to
