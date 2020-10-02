@@ -133,44 +133,5 @@ AUTH_USER_MODEL = 'core.User'
 
 VENV_ROOT = '/opt/logs/helamonitor/'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(asctime)s-%(name)s %(module)s %(process)d %(thread)d-(%(threadName)-2s) %(levelname)s-%(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
-    'filters': {
-        'special': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        }
-    },
-    'handlers': {
-        'rotating_file': {
-            'level': 'INFO',
-            'formatter': 'verbose',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(VENV_ROOT, '', 'monitor.log'),
-            'when': 'midnight',
-            'interval': 1,
-            'backupCount': 7,
-        },
-    },
-    'loggers': {
-        'core': {
-            'handlers': ['rotating_file'],
-            'level': 'INFO',
-        },
-        'api': {
-            'handlers': ['rotating_file'],
-            'level': 'INFO',
-        },
-    },
-}
-
 prod_db = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(prod_db)
