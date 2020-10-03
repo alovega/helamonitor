@@ -104,7 +104,7 @@ class SystemMonitor(BaseModel):
     response_time_speed = models.CharField(
         max_length=100, choices=response_time_speed(), default='Normal', null=True, blank=True)
     response_body = models.CharField(
-        max_length=1000, help_text='Body of the response returned when querying an endpoint', null=True,
+        max_length=10000, help_text='Body of the response returned when querying an endpoint', null=True,
         blank=True)
     response_code = models.PositiveIntegerField(null=True, blank=True)
     state = models.ForeignKey(State)
