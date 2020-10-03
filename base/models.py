@@ -13,7 +13,7 @@ class BaseModel(models.Model):
     """
     Define repeating fields to avoid redefining these in each model
     """
-    id = models.UUIDField(max_length=100, default=uuid.uuid4, unique=True, editable=False, primary_key=True)
+    id = models.UUIDField(max_length=200, default=uuid.uuid4, unique=True, editable=False, primary_key=True)
     date_modified = models.DateTimeField(auto_now=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
