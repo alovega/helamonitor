@@ -9,13 +9,13 @@ from django.db import IntegrityError
 
 import logging
 import dateutil.parser
+
+from base.backend.services import StateService
 from core.models import User
 from django.db.models import F, Q
 from api.models import token_expiry
-from api.backend.interfaces.notification_interface import NotificationLogger
-from core.backend.services import  EscalationRuleService
-from base.backend.services import StateService, EscalationLevelService, EventTypeService, IncidentTypeService
-from api.backend.services import OauthService, AppUserService
+from core.backend.services import SystemService
+from api.backend.services import OauthService, AppUserService, AppService
 
 lgr = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class UserAdministrator(object):
 	"""
 
 	@staticmethod
-	def create_user(username, password, email, first_name = None, last_name = None, phone_number = None, **kwargs):
+	def create_user(username, password, email, first_name=None, last_name=None, phone_number=None, **kwargs):
 		"""
 		Creates a user.
 		@param username: Username of the user to be created
@@ -52,9 +52,15 @@ class UserAdministrator(object):
 				return {"code": "800.400.001", 'message': 'Email already in use'}
 			user = User.objects.create_user(
 				username, email, password, first_name = first_name, last_name = last_name, phone_number = phone_number)
+			app = AppService().filter(system__name='Helaplan', state__name='Active').values().first()
+			if not app:
+				return {"code": "800.400.002", "message": 'No Authentication app tied to this system'}
 			user = User.objects.filter(id = user.id).values().first()
 			if user:
 				return {'code': '800.200.001', 'data': user}
+			app_user = AppUserService().create(app=app, user=user, state=StateService().get(name='Active'))
+			if not app_user:
+				return {'code': '800.400.003', "message": "Failed to create an app user"}
 		except Exception as ex:
 			lgr.exception("UserCreation exception %s" % ex)
 		return {"code": "800.400.001", 'message': 'User could not be created'}

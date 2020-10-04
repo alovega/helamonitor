@@ -392,7 +392,7 @@ def get_access_token(request):
 	"""
 	try:
 		data = get_request_data(request)
-		app_user = AppUserService().get(app__id = data.get('client_id'), user__username = data.get('username'))
+		app_user = AppUserService().get(user__username = data.get('username'))
 		if app_user is not None:
 			user = check_password(data.get('password'), app_user.user.password)
 			if user:
@@ -598,7 +598,7 @@ def get_system(request):
 	"""
 	try:
 		data = get_request_data(request)
-		system = SystemAdministrator.get_system(system = data.get('id'))
+		system = SystemAdministrator.get_system(system=data.get('id'), name=data.get('name'))
 		return JsonResponse(system)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
