@@ -93,9 +93,11 @@ class SystemAdministrator(object):
 		return {"code": "800.400.001"}
 
 	@staticmethod
-	def get_system(system, **kwargs):
+	def get_system(system, name=None, **kwargs):
 		"""
 		Retrieves a system.
+		@param name: Name of the system to be retrieved
+		@type name: str | None
 		@param system: Id of the system to be retrieved
 		@type system: str | None
 		@param kwargs: Extra key-value arguments to pass for incident logging
@@ -103,9 +105,13 @@ class SystemAdministrator(object):
 		@rtype: dict
 		"""
 		try:
-			system = SystemService().filter(pk = system, state__name = 'Active').values(
+			if name:
+
+				system = SystemService().filter(name=name, state__name='Active').values().first()
+			elif system:
+				system = SystemService().filter(pk=system, state__name='Active').values(
 					'id', 'name', 'description', 'date_created', 'date_modified', 'version', state_id = F('state'),
-					admin_id = F('admin')).first()
+					admin_id=F('admin')).first()
 			if system is None:
 				return {"code": "800.400.002"}
 			return {'code': '800.200.001', 'data': system}

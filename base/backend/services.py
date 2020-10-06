@@ -1,6 +1,6 @@
 from base.models import State, EndpointType, EventType, IncidentType, NotificationType, EscalationLevel
 
-from servicebase import ServiceBase
+from base.backend.servicebase import ServiceBase
 
 
 class StateService(ServiceBase):

@@ -6,7 +6,6 @@ import logging
 
 lgr = logging.getLogger(__name__)
 
-
 class ServiceBase(object):
 	"""
 	The class to handle CRUD methods.

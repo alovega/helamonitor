@@ -27,12 +27,11 @@ def ensure_authenticated(view_func):
 		for k in args:
 			if isinstance(k, WSGIRequest):
 				request_data = get_request_data(k)
-				client_id = request_data.get("client_id", None)
 				token = request_data.get("token", None)
-				if client_id and token:
+				if token:
 					is_checked = True
 					oauth = OauthService().filter(
-						app_user__app__id = client_id, token = token, expires_at__gt = timezone.now(),
+						token = token, expires_at__gt = timezone.now(),
 						state__name = "Active").first()
 					if not oauth:
 						response = HttpResponse(

@@ -18,17 +18,17 @@ class TestEndpointAdministration(object):
 		endpoint = EndpointAdministrator.create_endpoint(
 			state_id = state.id, endpoint_type_id = endpoint_type.id, system_id = system.id,
 			url = "https://mail.google.com", name = "mail", description = "Endpoint for Google mail",
-			response_time = 5
+			response_time = 5, color = "#FF5733"
 		)
 		endpoint2 = EndpointAdministrator.create_endpoint(
 			state_id = state.id, endpoint_type_id = endpoint_type.id, system_id = system.id,
 			url = "https://mail.google.com", name = "mail", description = "Endpoint for Google mail",
-			response_time = 5
+			response_time = 5, color = "#FF5733"
 		)
 		endpoint3 = EndpointAdministrator.create_endpoint(
 			state_id = state.id, endpoint_type_id = endpoint_type.id, system_id = system.id,
 			url = "https://mail.google.com", name = "", description = "Endpoint for Google mail",
-			response_time = 5
+			response_time = 5, color = "#FF5733"
 		)
 		assert endpoint.get('code') == '800.200.001', "Should create an endpoint"
 		assert endpoint2.get('code') == '800.400.001', "Should return error code"
@@ -43,15 +43,15 @@ class TestEndpointAdministration(object):
 		endpoint = mixer.blend(
 			'core.Endpoint', state = state, endpoint_type = endpoint_type, system = system,
 			endpoint = "https://mail.google.com", name = "mail", description = "Endpoint for Google mail",
-			response_time = 5
+			response_time = 5, color = "#FF5733"
 		)
 		updated_endpoint = EndpointAdministrator.update_endpoint(
 			endpoint.id,  state.id, description = "Google mail", response_time = 3,
-			url = "https://mail.googl.com", name = "mail"
+			url = "https://mail.googl.com", name = "mail", color = "#FF5733"
 		)
 		updated_endpoint2 = EndpointAdministrator.update_endpoint(
 			endpoint.id, state.id, description = "Google mail", response_time = 3,
-			url = "https://mail.googl.com", name = ""
+			url = "https://mail.googl.com", name = "", color = "#FF5733"
 		)
 		assert updated_endpoint.get('code') == '800.200.001', "Should update an endpoint"
 		assert updated_endpoint2.get('code') == '800.400.002', "Should update an endpoint"

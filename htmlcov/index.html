@@ -1,0 +1,338 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Coverage report</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.ba-throttle-debounce.min.js"></script>
+    <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="jquery.hotkeys.js"></script>
+    <script type="text/javascript" src="coverage_html.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(coverage.index_ready);
+    </script>
+</head>
+<body class="indexfile">
+
+<div id="header">
+    <div class="content">
+        <h1>Coverage report:
+            <span class="pc_cov">37%</span>
+        </h1>
+
+        <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
+
+        <form id="filter_container">
+            <input id="filter" type="text" value="" placeholder="filter..." />
+        </form>
+    </div>
+</div>
+
+<div class="help_panel">
+    <img id="panel_icon" src="keybd_open.png" alt="Hide keyboard shortcuts" />
+    <p class="legend">Hot-keys on this page</p>
+    <div>
+    <p class="keyhelp">
+        <span class="key">n</span>
+        <span class="key">s</span>
+        <span class="key">m</span>
+        <span class="key">x</span>
+        
+        <span class="key">c</span> &nbsp; change column sorting
+    </p>
+    </div>
+</div>
+
+<div id="index">
+    <table class="index">
+        <thead>
+            
+            <tr class="tablehead" title="Click to sort">
+                <th class="name left headerSortDown shortkey_n">Module</th>
+                <th class="shortkey_s">statements</th>
+                <th class="shortkey_m">missing</th>
+                <th class="shortkey_x">excluded</th>
+                
+                <th class="right shortkey_c">coverage</th>
+            </tr>
+        </thead>
+        
+        <tfoot>
+            <tr class="total">
+                <td class="name left">Total</td>
+                <td>2443</td>
+                <td>1551</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="892 2443">37%</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_admin_py.html">api\admin.py</a></td>
+                <td>21</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="21 21">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_decorators_py.html">api\backend\decorators.py</a></td>
+                <td>33</td>
+                <td>7</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="26 33">79%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_dashboard_administration_py.html">api\backend\interfaces\dashboard_administration.py</a></td>
+                <td>246</td>
+                <td>224</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="22 246">9%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_endpoint_administration_py.html">api\backend\interfaces\endpoint_administration.py</a></td>
+                <td>66</td>
+                <td>53</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="13 66">20%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_event_administration_py.html">api\backend\interfaces\event_administration.py</a></td>
+                <td>59</td>
+                <td>29</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="30 59">51%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_health_monitor_py.html">api\backend\interfaces\health_monitor.py</a></td>
+                <td>149</td>
+                <td>127</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="22 149">15%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_incident_administration_py.html">api\backend\interfaces\incident_administration.py</a></td>
+                <td>134</td>
+                <td>67</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="67 134">50%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_look_up_interface_py.html">api\backend\interfaces\look_up_interface.py</a></td>
+                <td>25</td>
+                <td>17</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 25">32%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_notification_interface_py.html">api\backend\interfaces\notification_interface.py</a></td>
+                <td>68</td>
+                <td>46</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="22 68">32%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_recipient_administration_py.html">api\backend\interfaces\recipient_administration.py</a></td>
+                <td>68</td>
+                <td>57</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="11 68">16%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_rules_administration_py.html">api\backend\interfaces\rules_administration.py</a></td>
+                <td>80</td>
+                <td>66</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="14 80">18%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_system_administration_py.html">api\backend\interfaces\system_administration.py</a></td>
+                <td>76</td>
+                <td>57</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="19 76">25%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_table_interface_py.html">api\backend\interfaces\table_interface.py</a></td>
+                <td>194</td>
+                <td>173</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="21 194">11%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_interfaces_user_administration_py.html">api\backend\interfaces\user_administration.py</a></td>
+                <td>134</td>
+                <td>106</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="28 134">21%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_services_py.html">api\backend\services.py</a></td>
+                <td>10</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="10 10">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_backend_utilities_common_py.html">api\backend\utilities\common.py</a></td>
+                <td>53</td>
+                <td>45</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="8 53">15%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_models_py.html">api\models.py</a></td>
+                <td>28</td>
+                <td>3</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="25 28">89%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="api_views_py.html">api\views.py</a></td>
+                <td>611</td>
+                <td>432</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="179 611">29%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="base_admin_py.html">base\admin.py</a></td>
+                <td>39</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="39 39">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="base_backend_services_py.html">base\backend\services.py</a></td>
+                <td>14</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="14 14">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="base_backend_utilities_py.html">base\backend\utilities.py</a></td>
+                <td>38</td>
+                <td>14</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="24 38">63%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="base_models_py.html">base\models.py</a></td>
+                <td>67</td>
+                <td>14</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="53 67">79%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="base_views_py.html">base\views.py</a></td>
+                <td>2</td>
+                <td>2</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="0 2">0%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="core_admin_py.html">core\admin.py</a></td>
+                <td>82</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="82 82">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="core_backend_services_py.html">core\backend\services.py</a></td>
+                <td>26</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="26 26">100%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="core_models_py.html">core\models.py</a></td>
+                <td>120</td>
+                <td>12</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="108 120">90%</td>
+            </tr>
+            
+            <tr class="file">
+                <td class="name left"><a href="core_views_py.html">core\views.py</a></td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                
+                <td class="right" data-ratio="0 0">100%</td>
+            </tr>
+            
+        </tbody>
+    </table>
+
+    <p id="no_rows">
+        No items found using the specified filter.
+    </p>
+</div>
+
+<div id="footer">
+    <div class="content">
+        <p>
+            <a class="nav" href="https://coverage.readthedocs.io">coverage.py v4.5.4</a>,
+            created at 2020-10-06 12:19
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

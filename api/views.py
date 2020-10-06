@@ -392,7 +392,7 @@ def get_access_token(request):
 	"""
 	try:
 		data = get_request_data(request)
-		app_user = AppUserService().get(app__id = data.get('client_id'), user__username = data.get('username'))
+		app_user = AppUserService().get(user__username = data.get('username'))
 		if app_user is not None:
 			user = check_password(data.get('password'), app_user.user.password)
 			if user:
@@ -598,7 +598,7 @@ def get_system(request):
 	"""
 	try:
 		data = get_request_data(request)
-		system = SystemAdministrator.get_system(system = data.get('id'))
+		system = SystemAdministrator.get_system(system=data.get('id'), name=data.get('name'))
 		return JsonResponse(system)
 	except Exception as ex:
 		lgr.exception('Incident get Exception: %s' % ex)
@@ -643,7 +643,6 @@ def delete_system(request):
 
 
 @csrf_exempt
-@ensure_authenticated
 def create_user(request):
 	"""
 	Creates a user
@@ -655,8 +654,8 @@ def create_user(request):
 	try:
 		data = get_request_data(request)
 		user = UserAdministrator.create_user(
-			username = data.get('username'), password = data.get('password'), email = data.get('email'), first_name =
-			data.get('firstname'), last_name = data.get('lastname'), phone_number = data.get('phone_number'))
+			username = data.get('userName'), password = data.get('password'), email = data.get('email'), first_name =
+			data.get('firstName'), last_name = data.get('lastName'), phone_number = data.get('phoneNumber'))
 		return JsonResponse(user)
 	except Exception as ex:
 		lgr.exception('User creation Exception: %s' % ex)
