@@ -57,9 +57,11 @@ class UserAdministrator(object):
 				return {"code": "800.400.002", "message": 'No Authentication app tied to this system'}
 			user = User.objects.filter(id = user.id).values().first()
 			if user:
-				app_user = AppUserService().create(app=app, use=user, state=StateService().get(name='Active'))
+				app_user = AppUserService().create(
+					app= AppService().get(system__name='Helaplan'), user=User.objects.get(email=user.get('email')), state=StateService().get(name='Active')
+				)
 				if not app_user:
-					return {'code': '800.400.003', "message": "Failed to create an app user %s" %user.get('id')}
+					return {'code': '800.400.003', "message": "Failed to create an app user %s %s" %(user.get('id'), app)}
 				return {'code': '800.200.001', 'data': user}
 		except Exception as ex:
 			lgr.exception("UserCreation exception %s" % ex)
