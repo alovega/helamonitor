@@ -57,13 +57,13 @@ class UserAdministrator(object):
 				return {"code": "800.400.002", "message": 'No Authentication app tied to this system'}
 			user = User.objects.filter(id = user.id).values().first()
 			if user:
+				app_user = AppUserService().create(app=app, use=user, state=StateService().get(name='Active'))
+				if not app_user:
+					return {'code': '800.400.003', "message": "Failed to create an app user %s" %user.get('id')}
 				return {'code': '800.200.001', 'data': user}
-			app_user = AppUserService().create(app=app, user=user, state=StateService().get(name='Active'))
-			if not app_user:
-				return {'code': '800.400.003', "message": "Failed to create an app user"}
 		except Exception as ex:
 			lgr.exception("UserCreation exception %s" % ex)
-		return {"code": "800.400.001", 'message': 'User could not be created'}
+		return {"code": "800.400.001", 'message': 'User could not be created %s' %ex}
 
 	@staticmethod
 	def update_user(
